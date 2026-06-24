@@ -1,0 +1,827 @@
+# IDScript
+
+IDScript adalah bahasa pemrograman berbahasa Indonesia yang menyediakan interpreter normal dan compiler VM resmi. Nama IDScript/IDS dapat dibaca sebagai `I[n]D[onesian] Script`, atau secara ringkas `I[n]D[o] Script`.
+
+## Tentang
+
+- Pembuat: Elang MRJ
+- Username GitHub: `Elang-elang`
+- Email: `elangmuhamad888@gmail.com`
+- Repository IDScript: <https://github.com/Elang-elang/IDScript>
+- Repository Indonesian Script (IS): <https://github.com/Elang-elang/indonesian_script>
+
+## Latar Belakang
+
+IDScript lahir sebagai kelanjutan dari Indonesian Script atau IS, sebuah proyek bahasa pemrograman berbahasa Indonesia yang sebelumnya dibuat sebagai prototype dan kemudian terbengkalai. IS menjadi bukti awal bahwa sintaks pemrograman dapat dibuat lebih dekat dengan istilah Indonesia, tetapi proyek tersebut belum memiliki struktur compiler, runtime, dan format bytecode yang cukup rapi untuk dilanjutkan sebagai bahasa yang lebih stabil.
+
+IDScript meneruskan gagasan tersebut dengan fondasi baru: grammar Lark, AST yang lebih jelas, interpreter normal, compiler VM resmi, format module `.idsm`, format compiled bytecode `.idsc`, builtin runtime, dan CLI publik bernama `idscript`. Tujuan awalnya bukan menggantikan bahasa pemrograman besar yang sudah ada, melainkan menyediakan ruang eksperimen serius untuk bahasa pemrograman yang lebih mudah dibaca oleh penutur Indonesia.
+
+## Status Proyek
+
+- Status saat ini: prototype / pre-alpha.
+- Interpreter normal tersedia melalui package `IDScript.compile`.
+- Compiler dan VM resmi tersedia melalui package `IDScript.compile.Compiler`.
+- CLI publik tersedia melalui command `idscript`.
+- Beberapa fitur bahasa sudah berjalan di interpreter normal, tetapi belum semuanya stabil di VM resmi.
+- File `.idbc` dari format lama masih dibaca sebagai kompatibilitas legacy.
+
+## Kebutuhan
+
+- Python 3.13 atau lebih baru.
+- `click` untuk CLI.
+- `lark` untuk parser.
+- `typeguard` untuk validasi tipe runtime.
+
+## Instalasi Lokal
+
+```bash
+python -m pip install -e .
+```
+
+Dengan dependency pengembangan:
+
+```bash
+python -m pip install -e .[dev]
+```
+
+## CLI
+
+Format utama command:
+
+```bash
+idscript <file> {-m|--module,-c|--bytecode,--both} <outputFile>
+```
+
+Menjalankan source dengan interpreter normal tanpa menghasilkan `.idsm` atau `.idsc`:
+
+```bash
+idscript program.ids
+```
+
+Menulis IDScript Module `.idsm`:
+
+```bash
+idscript program.ids -m build/program
+idscript program.ids --module build/program.idsm
+```
+
+Menulis IDScript Compiled bytecode `.idsc`:
+
+```bash
+idscript program.ids -c build/program
+idscript program.ids --bytecode build/program.idsc
+```
+
+Menulis `.idsm` dan `.idsc` sekaligus:
+
+```bash
+idscript program.ids --both build/program
+```
+
+Menjalankan entrypoint selain `utama`:
+
+```bash
+idscript program.ids --main jalankan
+```
+
+Menampilkan bantuan CLI:
+
+```bash
+idscript --help
+python -m IDScript --help
+```
+
+## Format File
+
+- `.ids`: file source IDScript yang ditulis manusia.
+- `.idsm`: IDScript Module, hasil kompilasi tahap pertama yang masih deskriptif/readable untuk VM resmi.
+- `.idsc`: IDScript Compiled, bytecode final yang opcode-nya dikodekan memakai token registry VM.
+- `.idbc`: format bytecode lama dari VMCompiler, hanya dipertahankan untuk kompatibilitas baca.
+
+Contoh alur:
+
+```bash
+idscript app.ids --module app.idsm
+idscript app.ids --bytecode app.idsc
+idscript app.idsc
+```
+
+## Aturan Import
+
+- Import path yang diawali `.` dibaca relatif dari file pemanggil.
+- Import path yang tidak diawali `.` diarahkan ke folder builtin IDScript.
+- Contoh import file lokal: `dari "./math.ids" impor { var tambah };`.
+- Contoh import builtin: `dari "iterasi.ids" impor { var panjang };`.
+
+## Sintaks Dasar IDScript
+
+Bagian ini menjelaskan bentuk sintaks utama yang didukung grammar saat ini. Contoh memakai tipe bawaan kapital seperti `Angka`, `Teks`, `Float`, `Boolean`, `Kosong`, dan `Apapun`.
+
+### Komentar
+
+Komentar C/C++ diterima oleh grammar.
+
+```ids
+// komentar satu baris
+
+/*
+   komentar banyak baris
+*/
+```
+
+### Konstanta Global
+
+`KONSTANTA` hanya boleh berada pada level luar/top-level.
+
+```ids
+KONSTANTA NILAI: Angka = 10;
+publik KONSTANTA VERSI: Teks = "0.1.0";
+privat KONSTANTA RAHASIA: Teks = "internal";
+```
+
+Catatan:
+
+- `publik` membuat simbol dapat diekspor dari module.
+- `privat` adalah default jika tidak ditulis.
+- Nilai konstanta tidak boleh diubah ulang.
+
+### Variabel Lokal
+
+`var` membuat binding yang dapat diubah.
+
+```ids
+var nama: Teks = "Budi";
+var umur: Angka = 20;
+var kosong_opsional: ?Angka;
+```
+
+Catatan:
+
+- Jika nilai awal tidak diberikan, runtime mencoba membuat default value dari tipe.
+- `?Angka` berarti nilai boleh `Angka` atau `kosong`.
+
+### Final Lokal
+
+`final` membuat binding lokal yang tidak boleh diubah ulang.
+
+```ids
+final total: Angka = 100;
+final label: Teks = "selesai";
+```
+
+### Assignment
+
+Assignment memakai operator `=`.
+
+```ids
+var nilai: Angka = 1;
+nilai = nilai + 1;
+
+var data: daftar[Angka] = [1, 2, 3];
+data[0] = 9;
+```
+
+### Return
+
+`kembalikan` mengembalikan nilai dari fungsi atau metode.
+
+```ids
+fungsi ambil(): Angka {
+    kembalikan 7;
+}
+
+fungsi ambil_lagi(): Angka {
+    kembalikan(7);
+}
+```
+
+### Throw / Kesalahan
+
+`kesalahan` melempar error dari dalam fungsi.
+
+```ids
+fungsi gagal(): Teks {
+    kesalahan "terjadi kesalahan";
+}
+```
+
+### Break Dan Continue
+
+`berhentikan` keluar dari loop. `lanjutkan` melanjutkan iterasi berikutnya.
+
+```ids
+fungsi hitung(): Angka {
+    var total: Angka = 0;
+
+    untuk (var angka dari dalam [1, 2, 3, 4]) {
+        jika (angka == 2) { lanjutkan; }
+        jika (angka == 4) { berhentikan; }
+        total = total + angka;
+    }
+
+    kembalikan total;
+}
+```
+
+### Fungsi
+
+Fungsi memakai keyword `fungsi`.
+
+```ids
+fungsi tambah(a: Angka, b: Angka): Angka {
+    kembalikan a + b;
+}
+
+publik fungsi utama(): Angka {
+    kembalikan tambah(2, 3);
+}
+```
+
+Catatan:
+
+- Entrypoint default adalah `fungsi utama()`.
+- Di interpreter normal, `fungsi utama` diperketat agar tidak menerima argumen dan mengembalikan `Angka` atau `?Angka`.
+- Argumen dapat diberi `final` untuk membuatnya tidak dapat diubah ulang.
+
+```ids
+fungsi kali(final a: Angka, final b: Angka): Angka {
+    kembalikan a * b;
+}
+```
+
+### If / Elif / Else
+
+Percabangan memakai `jika`, `namun jika`, dan `jika tidak`.
+
+```ids
+fungsi nilai_status(nilai: Angka): Teks {
+    jika (nilai > 80) {
+        kembalikan "baik";
+    } namun jika (nilai > 60) {
+        kembalikan "cukup";
+    } jika tidak {
+        kembalikan "kurang";
+    }
+}
+```
+
+Negasi memakai `bukan`.
+
+```ids
+fungsi cek(flag: Boolean): Angka {
+    jika (bukan flag) {
+        kembalikan 0;
+    }
+    kembalikan 1;
+}
+```
+
+### While
+
+Loop `selama` berjalan selama kondisi bernilai benar.
+
+```ids
+fungsi sampai_lima(): Angka {
+    var angka: Angka = 0;
+    selama (angka < 5) {
+        angka = angka + 1;
+    }
+    kembalikan angka;
+}
+```
+
+### For
+
+Loop `untuk` membaca nilai dari iterable dengan pola `dari dalam`.
+
+```ids
+fungsi jumlah(): Angka {
+    var total: Angka = 0;
+
+    untuk (var angka dari dalam [1, 2, 3]) {
+        total = total + angka;
+    }
+
+    kembalikan total;
+}
+```
+
+Destructuring sederhana juga tersedia untuk target tuple/list.
+
+```ids
+fungsi jumlah_pasangan(): Angka {
+    var total: Angka = 0;
+
+    untuk (var (a, b) dari dalam [[1, 2], [3, 4]]) {
+        total = total + a + b;
+    }
+
+    kembalikan total;
+}
+```
+
+### Try / Catch / Finally
+
+Grammar mendukung `coba`, `tangkap`, `jika tidak`, dan `diakhiri`.
+
+```ids
+fungsi aman(): Angka {
+    var nilai: Angka = 0;
+
+    coba {
+        kesalahan 5;
+    } tangkap (e) {
+        nilai = e;
+    } jika tidak {
+        nilai = 99;
+    } diakhiri {
+        nilai = nilai + 1;
+    }
+
+    kembalikan nilai;
+}
+```
+
+Catatan:
+
+- Try/catch sudah ada di interpreter normal.
+- VM resmi belum menstabilkan semua perilaku `Try`.
+
+### Switch / Match
+
+`pilah` digunakan untuk memilih kasus berdasarkan pattern.
+
+```ids
+fungsi pilih(x: Angka): Teks {
+    pilah (x) {
+        kasus 1:
+            kembalikan "satu";
+        kasus 2:
+            kembalikan "dua";
+        kasus bawaan:
+            kembalikan "lain";
+    }
+}
+```
+
+Pattern sequence, mapping, struct, capture, dan dots tersedia di grammar.
+
+```ids
+fungsi total_data(): Angka {
+    var total: Angka = 0;
+
+    pilah ([1, 2, 3]) {
+        kasus [kepala, ...ekor]:
+            total = kepala + ekor[0] + ekor[1];
+    }
+
+    kembalikan total;
+}
+```
+
+### Import
+
+Import memakai `dari` dan `impor`.
+
+```ids
+dari "./math.ids" impor { var tambah, konstan VERSI };
+dari "./math.ids" impor { var tambah sebagai plus };
+dari "./math.ids" impor *Apapun;
+```
+
+Import builtin tidak memakai awalan `./`.
+
+```ids
+dari "iterasi.ids" impor { var panjang, var Daftar };
+dari "atribut.ids" impor { var punya_attr };
+```
+
+Catatan:
+
+- `var` mengimpor nilai biasa.
+- `konstan` mengimpor sebagai binding konstan.
+- `publik` pada import membuat binding dapat diekspor ulang.
+- `privat` pada import membuat binding tidak diekspor ulang.
+- `sebagai` memberi alias.
+
+### Type Alias
+
+`tipe` membuat alias tipe.
+
+```ids
+tipe ID = Angka
+tipe Nama = Teks
+
+fungsi ambil_id(): ID {
+    kembalikan 7;
+}
+```
+
+Alias tipe juga dapat memakai parameter dinamis.
+
+```ids
+tipe Kotak[T] = daftar[T]
+```
+
+### Interface / Antarmuka
+
+`antarmuka` mendeskripsikan bentuk kamus/object.
+
+```ids
+antarmuka User {
+    nama: Teks,
+    umur: Angka,
+}
+
+fungsi ambil_umur(user: User): Angka {
+    kembalikan user["umur"];
+}
+```
+
+Interface dapat dinyatakan publik atau privat.
+
+```ids
+publik antarmuka Response {
+    status: Teks,
+    data: Apapun,
+}
+```
+
+### Struktur
+
+`struktur` mendefinisikan tipe data dengan field.
+
+```ids
+struktur Orang {
+    publik nama: Teks,
+    privat umur: Angka,
+}
+```
+
+Catatan:
+
+- Field default adalah privat.
+- Field `publik` dapat diakses dari luar.
+- Field `privat` hanya dapat diakses dari konteks internal struktur.
+
+Membuat instance struktur:
+
+```ids
+final budi: Orang = Orang { nama: "Budi", umur: 20 };
+```
+
+### Struktur Turunan
+
+`turunan dari` membuat struktur anak mewarisi field dan metode parent.
+
+```ids
+struktur Makhluk {
+    publik nama: Teks,
+}
+
+struktur Orang {
+    publik umur: Angka,
+} turunan dari Makhluk
+```
+
+Catatan:
+
+- Field parent disalin ke prototype child.
+- Method parent disalin ke prototype child.
+- Field duplicate antara parent dan child menghasilkan error.
+- Method duplicate antara parent dan child menghasilkan error.
+- Tidak ada override implicit.
+
+### Implementasi Struktur
+
+`implementasi` menambahkan metode ke struktur.
+
+```ids
+implementasi Orang {
+    publik metode sapa(ini: Orang): Teks {
+        kembalikan "Halo " + ini.nama;
+    }
+}
+```
+
+Catatan:
+
+- Parameter `ini` ditulis eksplisit.
+- Runtime mengikat instance ke parameter pertama saat metode dipanggil.
+- Metode default privat kecuali memakai `publik`.
+
+Metode statik ditulis dengan `statik`.
+
+```ids
+implementasi Orang {
+    publik statik metode buat_nama(nama: Teks): Teks {
+        kembalikan nama;
+    }
+}
+```
+
+### Sifat / Trait
+
+`sifat` mendeklarasikan kontrak metode.
+
+```ids
+sifat BisaSapa {
+    metode sapa(ini: Orang): Teks;
+}
+```
+
+Implementasi trait ke struktur memakai `implementasi Trait untuk Struktur`.
+
+```ids
+implementasi BisaSapa untuk Orang {
+    publik metode sapa(ini: Orang): Teks {
+        kembalikan ini.nama;
+    }
+}
+```
+
+Catatan:
+
+- Runtime memeriksa method yang diwajibkan trait.
+- Nama argumen, tipe argumen, dan tipe return dibandingkan.
+- Method tambahan boleh ada selama method wajib terpenuhi.
+
+### Enum
+
+`enum` mendefinisikan kumpulan variant.
+
+```ids
+enum Status {
+    publik Aktif,
+    publik Nonaktif,
+}
+```
+
+Unit variant:
+
+```ids
+enum Gender {
+    publik Pria,
+    publik Wanita,
+}
+```
+
+Tuple variant:
+
+```ids
+enum Data {
+    publik Nomor(Angka),
+    publik Pasangan(Teks, Angka),
+}
+```
+
+Struct variant:
+
+```ids
+enum Event {
+    publik Login { nama: Teks, umur: Angka },
+}
+```
+
+Discriminant variant:
+
+```ids
+enum Kode {
+    publik Oke = 200,
+    publik Gagal = 500,
+}
+```
+
+Enum juga dapat diberi metode.
+
+```ids
+implementasi Kode {
+    publik metode nilai(ini: Apapun): Angka {
+        kembalikan ini.value;
+    }
+}
+```
+
+### Literal Dan Object
+
+Literal dasar:
+
+```ids
+var teks: Teks = "halo";
+var angka: Angka = 10;
+var pecahan: Float = 3.14;
+var flag: Boolean = benar;
+var kosong_nilai: Kosong = kosong;
+```
+
+Daftar/list:
+
+```ids
+var angka: daftar[Angka] = [1, 2, 3];
+```
+
+Kamus/map:
+
+```ids
+var user: kamus[Teks, Apapun] = {"nama": "Budi", "umur": 20};
+```
+
+### Expression
+
+Call expression:
+
+```ids
+println("Halo");
+var hasil: Angka = tambah(2, 3);
+```
+
+Attribute access:
+
+```ids
+var nama: Teks = user.nama;
+```
+
+Index access:
+
+```ids
+var pertama: Angka = [1, 2, 3][0];
+```
+
+Operator arithmetic:
+
+```ids
+var hasil: Angka = 1 + 2 * 3;
+var pangkat: Angka = 2 ** 3;
+```
+
+Comparison:
+
+```ids
+jika (nilai >= 10) {
+    println("besar");
+}
+```
+
+Boolean:
+
+```ids
+jika (benar dan bukan salah) {
+    println("oke");
+}
+```
+
+Membership dan identity:
+
+```ids
+jika (2 didalam [1, 2, 3]) {
+    println("ada");
+}
+
+jika (nilai bukanlah kosong) {
+    println("berisi");
+}
+```
+
+`identifikasi` mengambil nilai identifier secara eksplisit.
+
+```ids
+var angka: Angka = 7;
+var salin: Angka = identifikasi angka;
+```
+
+`info` mengembalikan kategori runtime nilai.
+
+```ids
+var angka: Angka = 7;
+jika (info angka == "Angka") {
+    println("ini angka");
+}
+```
+
+Kategori `info` mencakup antara lain `Angka`, `Float`, `Boolean`, `Teks`, `Kosong`, `Daftar`, `Kamus`, `Struktur`, `Enum`, `VarianEnum`, `Tipe`, `Antarmuka`, `Fungsi`, dan `Objek`.
+
+## Type Annotation
+
+Tipe dasar:
+
+```ids
+var nama: Teks = "Budi";
+var umur: Angka = 20;
+var rasio: Float = 1.5;
+var aktif: Boolean = benar;
+var kosong_nilai: Kosong = kosong;
+var bebas: Apapun = "apa saja";
+```
+
+Optional type:
+
+```ids
+var mungkin: ?Angka = kosong;
+```
+
+List type:
+
+```ids
+var angka: daftar[Angka] = [1, 2, 3];
+```
+
+Dictionary type:
+
+```ids
+var data: kamus[Teks, Angka] = {"a": 1};
+```
+
+Function type:
+
+```ids
+var operasi: fungsi[[Angka, Angka], Angka];
+```
+
+Result type:
+
+```ids
+var hasil_operasi: hasil[Angka, Teks];
+```
+
+Union type:
+
+```ids
+var nilai: [Angka, Teks] = 1;
+```
+
+Literal type:
+
+```ids
+var mode: ["dev", "prod"] = "dev";
+```
+
+Dynamic type alias:
+
+```ids
+tipe Kotak[T] = daftar[T]
+var angka: Kotak[Angka] = [1, 2, 3];
+```
+
+## Contoh Program Lengkap
+
+```ids
+tipe Nama = Teks
+
+struktur Orang {
+    publik nama: Nama,
+    publik umur: Angka,
+}
+
+sifat BisaSapa {
+    metode sapa(ini: Orang): Teks;
+}
+
+implementasi BisaSapa untuk Orang {
+    publik metode sapa(ini: Orang): Teks {
+        kembalikan "Halo " + ini.nama;
+    }
+}
+
+fungsi utama(): Angka {
+    final budi: Orang = Orang { nama: "Budi", umur: 20 };
+    println(budi.sapa());
+
+    jika (info budi == "Struktur") {
+        println("Budi adalah struktur Orang");
+    }
+
+    kembalikan budi.umur;
+}
+```
+
+## Struktur Project
+
+- `src/IDScript/__main__.py`: CLI publik `idscript`.
+- `src/IDScript/gramm.lark`: grammar utama IDScript.
+- `src/IDScript/compile/entrypoint.py`: entrypoint interpreter normal.
+- `src/IDScript/compile/ids_ast`: definisi AST.
+- `src/IDScript/compile/parser`: transformer parse tree ke AST.
+- `src/IDScript/compile/runtime`: interpreter normal dan runtime model.
+- `src/IDScript/compile/Compiler`: compiler VM resmi, bytecode, dan VM runtime.
+- `src/IDScript/builtins`: builtin yang ditulis dalam IDScript.
+- `src/IDScript/compile/testing`: test interpreter normal dan CLI.
+- `src/IDScript/compile/Compiler/testing`: test compiler dan VM resmi.
+
+## Verifikasi
+
+Jalankan test dari folder `src/IDScript/compile`:
+
+```bash
+python -m pytest testing/test_cli.py Compiler/testing/test_compiler.py -q
+python -m pytest testing/test_compile.py testing/test_struct_runtime.py -q -k 'not test_compile_example_file'
+```
+
+Catatan saat ini:
+
+- Test VM dan CLI berjalan dengan command di atas.
+- Test normal runtime penuh masih membutuhkan `Example/main.ids` pada root project.
+- Folder `Example/` sebaiknya diisi kembali sebelum rilis publik final.
+
+## Lisensi
+
+Lisensi belum ditentukan di metadata package. Sebelum publish ke index publik, tentukan lisensi proyek terlebih dahulu.

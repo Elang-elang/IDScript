@@ -1,0 +1,64 @@
+dari "constants.ids" impor {
+    var JENIS_LITERAL,
+    var JENIS_TITIK,
+    var JENIS_AWAL,
+    var JENIS_AKHIR,
+    var JENIS_KELAS,
+    var JENIS_CABANG,
+    var JENIS_GRUP,
+    var OP_LITERAL,
+    var OP_TITIK,
+    var OP_AWAL,
+    var OP_AKHIR,
+    var OP_KELAS,
+    var OP_CABANG,
+    var OP_GRUP_MULAI,
+    var OP_GAGAL,
+    var OP_SUKSES,
+};
+dari "types.ids" impor {
+    var PatternRegex,
+    var instruksi_regex,
+    var pattern_regex,
+};
+dari "parser.ids" impor {
+    var parse_regex,
+};
+
+fungsi opcode_dari_jenis(jenis: Teks): Angka {
+    jika (jenis == JENIS_LITERAL) { kembalikan OP_LITERAL; }
+    jika (jenis == JENIS_TITIK) { kembalikan OP_TITIK; }
+    jika (jenis == JENIS_AWAL) { kembalikan OP_AWAL; }
+    jika (jenis == JENIS_AKHIR) { kembalikan OP_AKHIR; }
+    jika (jenis == JENIS_KELAS) { kembalikan OP_KELAS; }
+    jika (jenis == JENIS_CABANG) { kembalikan OP_CABANG; }
+    jika (jenis == JENIS_GRUP) { kembalikan OP_GRUP_MULAI; }
+    kembalikan OP_GAGAL;
+}
+
+publik fungsi susun_kode(tokens: daftar[Apapun]): daftar[Apapun] {
+    final kode: daftar[Apapun] = [];
+    var i: Angka = 0;
+
+    selama (i < tokens.__len__()) {
+        final token: Apapun = tokens[i];
+        kode.append(instruksi_regex(
+            opcode_dari_jenis(token.jenis),
+            token.nilai,
+            token.minimal,
+            token.maksimal,
+            token.greedy,
+            token.negatif
+        ));
+        i = i + 1;
+    }
+
+    kode.append(instruksi_regex(OP_SUKSES, "", 1, 1, benar, salah));
+    kembalikan kode;
+}
+
+publik fungsi kompilasi_regex(pola: Teks, flags: Angka): PatternRegex {
+    final tokens: daftar[Apapun] = parse_regex(pola, flags);
+    final kode: daftar[Apapun] = susun_kode(tokens);
+    kembalikan pattern_regex(pola, flags, tokens, kode);
+}

@@ -1,0 +1,17 @@
+/*
+    Helper atribut untuk builtin IDScript versi IDS.
+    OBJEK adalah alias builtin untuk object Python.
+*/
+
+publik fungsi ambil_attr(objek: Apapun, nama_attr: Teks): Apapun {
+    kembalikan OBJEK.__getattribute__(objek, nama_attr);
+}
+
+publik fungsi atur_attr(objek: Apapun, nama_attr: Teks, isi: Apapun): Kosong {
+    OBJEK.__setattr__(objek, nama_attr, isi);
+    kembalikan kosong;
+}
+
+publik fungsi punya_attr(objek: Apapun, nama_attr: Teks): Boolean {
+    kembalikan nama_attr didalam objek.__dir__();
+}

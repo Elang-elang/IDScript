@@ -1,0 +1,60 @@
+dari "constants.ids" impor {
+    var TANPA_FLAG sebagai _TANPA_FLAG,
+    var ABAIKAN_KAPITAL sebagai _ABAIKAN_KAPITAL,
+    var LOKAL sebagai _LOKAL,
+    var MULTIBARIS sebagai _MULTIBARIS,
+    var TITIK_SEMUA sebagai _TITIK_SEMUA,
+    var UNICODE sebagai _UNICODE,
+    var VERBOSE sebagai _VERBOSE,
+    var DEBUG sebagai _DEBUG,
+    var ASCII sebagai _ASCII,
+};
+dari "api.ids" impor {
+    var kompilasi sebagai _kompilasi,
+    var cocok sebagai _cocok,
+    var cari sebagai _cari,
+    var cocok_penuh sebagai _cocok_penuh,
+    var temukan_semua sebagai _temukan_semua,
+    var ganti sebagai _ganti,
+    var pisah sebagai _pisah,
+};
+
+publik KONSTANTA RegexVersi: Teks = "0.1.0";
+
+publik KONSTANTA TANPA_FLAG: Angka = _TANPA_FLAG;
+publik KONSTANTA ABAIKAN_KAPITAL: Angka = _ABAIKAN_KAPITAL;
+publik KONSTANTA LOKAL: Angka = _LOKAL;
+publik KONSTANTA MULTIBARIS: Angka = _MULTIBARIS;
+publik KONSTANTA TITIK_SEMUA: Angka = _TITIK_SEMUA;
+publik KONSTANTA UNICODE: Angka = _UNICODE;
+publik KONSTANTA VERBOSE: Angka = _VERBOSE;
+publik KONSTANTA DEBUG: Angka = _DEBUG;
+publik KONSTANTA ASCII: Angka = _ASCII;
+
+publik fungsi kompilasi(pola: Teks, flags: Angka): Apapun {
+    kembalikan _kompilasi(pola, flags);
+}
+
+publik fungsi cocok(pola: Teks, teks: Teks, flags: Angka): Apapun {
+    kembalikan _cocok(pola, teks, flags);
+}
+
+publik fungsi cari(pola: Teks, teks: Teks, flags: Angka): Apapun {
+    kembalikan _cari(pola, teks, flags);
+}
+
+publik fungsi cocok_penuh(pola: Teks, teks: Teks, flags: Angka): Apapun {
+    kembalikan _cocok_penuh(pola, teks, flags);
+}
+
+publik fungsi temukan_semua(pola: Teks, teks: Teks, flags: Angka): daftar[Apapun] {
+    kembalikan _temukan_semua(pola, teks, flags);
+}
+
+publik fungsi ganti(pola: Teks, pengganti: Teks, teks: Teks, flags: Angka): Teks {
+    kembalikan _ganti(pola, pengganti, teks, flags);
+}
+
+publik fungsi pisah(pola: Teks, teks: Teks, flags: Angka): daftar[Apapun] {
+    kembalikan _pisah(pola, teks, flags);
+}

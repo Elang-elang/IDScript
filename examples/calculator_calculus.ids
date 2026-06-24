@@ -1,0 +1,36 @@
+fungsi fungsi_polinom(x: Float): Float {
+    var x2: Float = x * x;
+    var x3: Float = x2 * x;
+    var hasil: Float = x3;
+    hasil = hasil + 2.0 * x2;
+    hasil = hasil + x;
+    kembalikan hasil;
+}
+
+fungsi turunan_polinom(x: Float): Float {
+    var x2: Float = x * x;
+    var hasil: Float = 3.0 * x2;
+    hasil = hasil + 4.0 * x;
+    hasil = hasil + 1.0;
+    kembalikan hasil;
+}
+
+fungsi integral_polinom(a: Float, b: Float): Float {
+    var langkah: Angka = 0;
+    var x: Float = a;
+    var total: Float = 0.0;
+    final dx: Float = 0.5;
+    selama (langkah < 4) {
+        total = total + fungsi_polinom(x) * dx;
+        x = x + dx;
+        langkah = langkah + 1;
+    }
+    kembalikan total;
+}
+
+fungsi utama(): Angka {
+    var hasil: Float = turunan_polinom(3.0);
+    hasil = hasil + integral_polinom(0.0, 2.0);
+    println(hasil);
+    kembalikan 0;
+}

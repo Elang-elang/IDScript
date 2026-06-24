@@ -1,0 +1,116 @@
+dari "constants.ids" impor {
+    var KELAS_DIGIT,
+    var KELAS_SPASI,
+    var KELAS_KATA,
+    var OP_AWAL,
+    var OP_AKHIR,
+    var OP_LITERAL,
+    var OP_TITIK,
+    var OP_KELAS,
+    var OP_SUKSES,
+    var TITIK_SEMUA,
+};
+dari "types.ids" impor {
+    var InstruksiRegex,
+    var PatternRegex,
+    var CocokRegex,
+    var cocok_regex,
+    var tidak_cocok,
+};
+
+fungsi panjang_teks(teks: Teks): Angka {
+    kembalikan teks.__len__();
+}
+
+fungsi karakter_teks(teks: Teks, posisi: Angka): Teks {
+    kembalikan teks[posisi];
+}
+
+fungsi adalah_digit(ch: Teks): Boolean {
+    kembalikan ch didalam "0123456789";
+}
+
+fungsi adalah_spasi(ch: Teks): Boolean {
+    kembalikan ch didalam " \t\n\r\v\f";
+}
+
+fungsi adalah_kata(ch: Teks): Boolean {
+    kembalikan ch didalam "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+}
+
+fungsi cocok_kelas(nilai: Apapun, negatif: Boolean, ch: Teks): Boolean {
+    var hasil: Boolean = salah;
+
+    jika (nilai == KELAS_DIGIT) { hasil = adalah_digit(ch); }
+    namun jika (nilai == KELAS_SPASI) { hasil = adalah_spasi(ch); }
+    namun jika (nilai == KELAS_KATA) { hasil = adalah_kata(ch); }
+    jika tidak { hasil = ch didalam nilai; }
+
+    jika (negatif) { kembalikan bukan hasil; }
+    kembalikan hasil;
+}
+
+fungsi cocok_satu(inst: InstruksiRegex, teks: Teks, posisi: Angka, flags: Angka): Boolean {
+    jika (inst.op == OP_AWAL) { kembalikan posisi == 0; }
+    jika (inst.op == OP_AKHIR) { kembalikan posisi == panjang_teks(teks); }
+
+    jika (posisi >= panjang_teks(teks)) { kembalikan salah; }
+
+    final ch: Teks = karakter_teks(teks, posisi);
+    jika (inst.op == OP_LITERAL) { kembalikan ch == inst.nilai; }
+    jika (inst.op == OP_TITIK) {
+        jika (flags == TITIK_SEMUA) { kembalikan benar; }
+        kembalikan ch != "\n";
+    }
+    jika (inst.op == OP_KELAS) { kembalikan cocok_kelas(inst.nilai, inst.negatif, ch); }
+    kembalikan salah;
+}
+
+fungsi jalankan_dari(pattern: PatternRegex, teks: Teks, awal: Angka): CocokRegex {
+    var pos: Angka = awal;
+    var i: Angka = 0;
+
+    selama (i < pattern.kode.__len__()) {
+        final inst: InstruksiRegex = pattern.kode[i];
+        jika (inst.op == OP_SUKSES) {
+            kembalikan cocok_regex(benar, teks, awal, pos, []);
+        }
+
+        var jumlah: Angka = 0;
+        selama (jumlah < inst.maksimal) {
+            jika (inst.op == OP_AWAL atau inst.op == OP_AKHIR) {
+                jika (jumlah == 0) {
+                    jika (cocok_satu(inst, teks, pos, pattern.flags)) { jumlah = 1; }
+                }
+                berhentikan;
+            }
+
+            jika (cocok_satu(inst, teks, pos, pattern.flags)) {
+                pos = pos + 1;
+                jumlah = jumlah + 1;
+            }
+            jika tidak {
+                berhentikan;
+            }
+        }
+
+        jika (jumlah < inst.minimal) { kembalikan tidak_cocok(teks); }
+        i = i + 1;
+    }
+
+    kembalikan cocok_regex(benar, teks, awal, pos, []);
+}
+
+publik fungsi cocok_dari(pattern: PatternRegex, teks: Teks, awal: Angka): CocokRegex {
+    kembalikan jalankan_dari(pattern, teks, awal);
+}
+
+publik fungsi cari_dari(pattern: PatternRegex, teks: Teks, awal: Angka): CocokRegex {
+    var pos: Angka = awal;
+    selama (pos <= panjang_teks(teks)) {
+        final hasil: CocokRegex = jalankan_dari(pattern, teks, pos);
+        jika (hasil.cocok) { kembalikan hasil; }
+        pos = pos + 1;
+    }
+    kembalikan tidak_cocok(teks);
+}

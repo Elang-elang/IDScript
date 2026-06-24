@@ -1,0 +1,55 @@
+// Konstanta publik untuk mesin Regex pure IDScript.
+// Nama API sengaja dibuat Indonesia; angka opcode disimpan stabil agar dapat
+// dikompilasi ke bytecode internal pada tahap berikutnya.
+
+publik KONSTANTA REGEX_MAGIC: Angka = 20230612;
+publik KONSTANTA REGEX_VERSI: Teks = "0.1.0";
+
+publik KONSTANTA TANPA_FLAG: Angka = 0;
+publik KONSTANTA ABAIKAN_KAPITAL: Angka = 2;
+publik KONSTANTA LOKAL: Angka = 4;
+publik KONSTANTA MULTIBARIS: Angka = 8;
+publik KONSTANTA TITIK_SEMUA: Angka = 16;
+publik KONSTANTA UNICODE: Angka = 32;
+publik KONSTANTA VERBOSE: Angka = 64;
+publik KONSTANTA DEBUG: Angka = 128;
+publik KONSTANTA ASCII: Angka = 256;
+
+publik KONSTANTA OP_GAGAL: Angka = 0;
+publik KONSTANTA OP_SUKSES: Angka = 1;
+publik KONSTANTA OP_LITERAL: Angka = 2;
+publik KONSTANTA OP_TITIK: Angka = 3;
+publik KONSTANTA OP_AWAL: Angka = 4;
+publik KONSTANTA OP_AKHIR: Angka = 5;
+publik KONSTANTA OP_KELAS: Angka = 6;
+publik KONSTANTA OP_CABANG: Angka = 7;
+publik KONSTANTA OP_GRUP_MULAI: Angka = 8;
+publik KONSTANTA OP_GRUP_AKHIR: Angka = 9;
+publik KONSTANTA OP_ULANG: Angka = 10;
+
+publik KONSTANTA JENIS_LITERAL: Teks = "literal";
+publik KONSTANTA JENIS_TITIK: Teks = "titik";
+publik KONSTANTA JENIS_AWAL: Teks = "awal";
+publik KONSTANTA JENIS_AKHIR: Teks = "akhir";
+publik KONSTANTA JENIS_KELAS: Teks = "kelas";
+publik KONSTANTA JENIS_CABANG: Teks = "cabang";
+publik KONSTANTA JENIS_GRUP: Teks = "grup";
+
+publik KONSTANTA KELAS_DIGIT: Teks = "digit";
+publik KONSTANTA KELAS_BUKAN_DIGIT: Teks = "bukan_digit";
+publik KONSTANTA KELAS_SPASI: Teks = "spasi";
+publik KONSTANTA KELAS_BUKAN_SPASI: Teks = "bukan_spasi";
+publik KONSTANTA KELAS_KATA: Teks = "kata";
+publik KONSTANTA KELAS_BUKAN_KATA: Teks = "bukan_kata";
+publik KONSTANTA KELAS_CUSTOM: Teks = "custom";
+
+publik KONSTANTA ULANG_SEKALI: Angka = 1;
+publik KONSTANTA ULANG_TAK_TERBATAS: Angka = 4294967295;
+
+publik fungsi galat_regex(pesan: Teks): Galat {
+    kesalahan Galat(pesan);
+}
+
+publik fungsi galat_posisi(pesan: Teks, pola: Teks, posisi: Angka): Galat {
+    kesalahan Galat(format("{} pada posisi {} di pola {}", pesan, posisi, pola));
+}

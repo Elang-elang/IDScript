@@ -1,0 +1,406 @@
+{
+  "title": "Roadmap Implementasi struktur dan implementasi IDScript",
+  "context": {
+    "runtime_file": "Utils/structure.py",
+    "target_design": "Rust-lite/Go-lite dengan struktur untuk field dan implementasi untuk method",
+    "core_runtime_objects": [
+      "Config",
+      "Structure",
+      "StructureInstance",
+      "Implementation"
+    ],
+    "verification_commands": [
+      "python -m mypy .",
+      "python -m pytest",
+      "python compile.py"
+    ]
+  },
+  "architecture": {
+    "Structure": {
+      "role": "Definisi/prototype structure, bukan instance",
+      "stores": [
+        "name",
+        "config",
+        "scope",
+        "fields",
+        "methods",
+        "extends"
+      ],
+      "state_location": "__PROTOTYPE__"
+    },
+    "StructureInstance": {
+      "role": "Object hasil instansiasi structure",
+      "stores": [
+        "__PROTOTYPE__ reference",
+        "__FIELDS__ values"
+      ],
+      "native_access": [
+        "__getattr__ untuk field dan method",
+        "__setattr__ untuk assignment field"
+      ]
+    },
+    "Implementation": {
+      "role": "Wrapper untuk mendaftarkan method ke Structure prototype",
+      "responsibilities": [
+        "add_method",
+        "extend"
+      ]
+    },
+    "Config": {
+      "role": "Konteks internal untuk akses privat saat method structure berjalan",
+      "methods": [
+        "enter",
+        "leave",
+        "struct_is"
+      ]
+    }
+  },
+  "phases": [
+    {
+      "id": 1,
+      "name": "Stabilisasi Python runtime",
+      "priority": "high",
+      "goal": "Pastikan file runtime dan import dasar tidak memblokir mypy/pytest/import.",
+      "tasks": [
+        {
+          "file": "node.py",
+          "action": "Tambahkan forward reference atau from __future__ import annotations untuk node yang saling mereferensikan."
+        },
+        {
+          "file": "node.py",
+          "action": "Ganti mutable default list/dict dengan field(default_factory=list)."
+        },
+        {
+          "file": "Utils/Types.py",
+          "action": "Perbaiki syntax check_types dan pastikan bisa diimpor."
+        },
+        {
+          "file": "Utils/scope.py",
+          "action": "Tambahkan import Any dan check_types, atau konsolidasikan dengan scope utama."
+        },
+        {
+          "file": "Utils/structure.py",
+          "action": "Pastikan Structure, StructureInstance, dan Implementation bisa dipakai melalui smoke test runtime."
+        }
+      ],
+      "tests": [
+        "python -m py_compile Utils/structure.py Utils/Types.py Utils/scope.py",
+        "python -m mypy ."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Rapikan grammar struktur",
+      "priority": "high",
+      "goal": "Buat grammar structure eksplisit, konsisten, dan mudah diubah menjadi AST.",
+      "grammar_sketch": [
+        "outside_stmt: func_decl | struct_decl | impl_stmt",
+        "struct_decl: \"struktur\" NAME block_struct",
+        "block_struct: \"{\" struct_field* \"}\"",
+        "struct_field: visibility? final_mark? NAME \":\" type_ann \";\"",
+        "visibility: \"publik\" | \"privat\"",
+        "final_mark: \"final\"",
+        "impl_stmt: \"implementasi\" NAME block_impl",
+        "block_impl: \"{\" func_decl* \"}\""
+      ],
+      "tasks": [
+        {
+          "file": "../gramm.lark",
+          "action": "Ganti implentasi menjadi implementasi."
+        },
+        {
+          "file": "../gramm.lark",
+          "action": "Samakan nama rule public/private agar tidak ada mismatch public_attr vs public_attrs."
+        },
+        {
+          "file": "../gramm.lark",
+          "action": "Gunakan semicolon untuk field structure agar konsisten dengan statement lain."
+        },
+        {
+          "file": "../gramm.lark",
+          "action": "Tunda assignment di block_impl sampai method binding stabil."
+        }
+      ],
+      "tests": [
+        "Parse struktur Orang { publik nama: teks; }",
+        "Parse implementasi Orang { fungsi sapa(ini: Orang): teks { kembalikan ini.nama; } }"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Desain node AST",
+      "priority": "high",
+      "goal": "Pisahkan node AST dari runtime object dan buat node structure/implementation jelas.",
+      "node_sketch": {
+        "Structure": {
+          "fields": [
+            "name: Name",
+            "body: BlockStruct"
+          ]
+        },
+        "BlockStruct": {
+          "fields": [
+            "fields: list[StructField]"
+          ]
+        },
+        "StructField": {
+          "fields": [
+            "name: Name",
+            "type: Type",
+            "is_priv: bool",
+            "constant: bool",
+            "default: Expression | None"
+          ]
+        },
+        "Implementation": {
+          "fields": [
+            "name: Name",
+            "body: ImplBlock",
+            "extended: list[Name]"
+          ]
+        },
+        "ImplBlock": {
+          "fields": [
+            "methods: list[Function]"
+          ]
+        }
+      },
+      "tasks": [
+        {
+          "file": "node.py",
+          "action": "Tambahkan StructField agar InitAttr bisa diganti dengan nama yang lebih spesifik."
+        },
+        {
+          "file": "node.py",
+          "action": "Pastikan semua list memakai default_factory."
+        },
+        {
+          "file": "node.py",
+          "action": "Jangan simpan runtime wrapper atau scope di node AST."
+        }
+      ],
+      "tests": [
+        "Unit test parse AST untuk Structure",
+        "Unit test parse AST untuk Implementation"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Parser transformer",
+      "priority": "high",
+      "goal": "Ubah parse tree grammar baru menjadi AST node yang konsisten.",
+      "tasks": [
+        {
+          "file": "parse.py",
+          "action": "Implementasikan struct_decl -> Structure."
+        },
+        {
+          "file": "parse.py",
+          "action": "Implementasikan block_struct -> BlockStruct."
+        },
+        {
+          "file": "parse.py",
+          "action": "Implementasikan struct_field -> StructField."
+        },
+        {
+          "file": "parse.py",
+          "action": "Implementasikan impl_stmt -> Implementation."
+        },
+        {
+          "file": "parse.py",
+          "action": "Implementasikan block_impl -> ImplBlock."
+        }
+      ],
+      "tests": [
+        "parse_code('struktur Orang { publik nama: teks; }') menghasilkan Structure",
+        "parse_code('implementasi Orang { fungsi sapa(ini: Orang): teks { kembalikan ini.nama; } }') menghasilkan Implementation"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Compiler structure declaration",
+      "priority": "high",
+      "goal": "Daftarkan structure sebagai type/constructor di scope compiler.",
+      "tasks": [
+        {
+          "file": "compiler.py",
+          "action": "Implementasikan visitor Structure untuk membuat RuntimeStructure dan declare ke current_scope."
+        },
+        {
+          "file": "compiler.py",
+          "action": "Implementasikan visitor BlockStruct untuk menghasilkan dict metadata fields."
+        },
+        {
+          "file": "compiler.py",
+          "action": "Implementasikan visitor StructField untuk resolve type annotation field."
+        },
+        {
+          "file": "compiler.py",
+          "action": "Pastikan Type(Name('Orang')) bisa resolve ke runtime Structure."
+        }
+      ],
+      "tests": [
+        "Compile deklarasi struktur tanpa error",
+        "current_scope.get('Orang') mengarah ke constructor Structure"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Constructor dan instance",
+      "priority": "high",
+      "goal": "Buat pemanggilan Structure menghasilkan StructureInstance dengan field tervalidasi.",
+      "tasks": [
+        {
+          "file": "Utils/structure.py",
+          "action": "Gunakan Structure.__call__ untuk menghasilkan StructureInstance."
+        },
+        {
+          "file": "compiler.py",
+          "action": "Pastikan Call(Name('Orang'), args/kwargs) dapat membuat instance."
+        },
+        {
+          "file": "../gramm.lark",
+          "action": "Pertimbangkan named argument untuk constructor, misalnya Orang(nama = 'Budi')."
+        }
+      ],
+      "tests": [
+        "Orang(nama='Budi') sukses",
+        "Orang(field_tidak_ada='x') gagal",
+        "Orang() gagal jika field wajib belum diisi",
+        "Field type mismatch gagal"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Implementation dan method binding",
+      "priority": "high",
+      "goal": "Daftarkan method dari block implementasi ke prototype Structure dan inject ini saat dipanggil.",
+      "tasks": [
+        {
+          "file": "compiler.py",
+          "action": "Implementasikan visitor Implementation untuk mengambil Structure dari scope."
+        },
+        {
+          "file": "compiler.py",
+          "action": "Tambahkan helper compile_method yang membuat wrapper method(instance, *args)."
+        },
+        {
+          "file": "compiler.py",
+          "action": "Saat method dijalankan, declare 'ini' di scope lokal method."
+        },
+        {
+          "file": "Utils/structure.py",
+          "action": "Gunakan StructureInstance.__getattr__ untuk mengembalikan bound method."
+        }
+      ],
+      "tests": [
+        "orang.sapa() memanggil method dari implementasi",
+        "method bisa membaca ini.nama",
+        "ini tidak tersedia di luar method"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Visibility dan assignment attribute",
+      "priority": "medium",
+      "goal": "Field publik/privat dan assignment attribute berjalan sesuai aturan.",
+      "tasks": [
+        {
+          "file": "compiler.py",
+          "action": "Attribute visitor tetap memakai getattr(value, attr)."
+        },
+        {
+          "file": "compiler.py",
+          "action": "Assignment mendukung target Attribute via setattr."
+        },
+        {
+          "file": "Utils/structure.py",
+          "action": "StructureInstance.__setattr__ menolak field constant/final."
+        },
+        {
+          "file": "Utils/structure.py",
+          "action": "Field privat hanya bisa diakses saat Config berada di structure yang sama."
+        }
+      ],
+      "tests": [
+        "orang.nama bisa dibaca dari luar jika publik",
+        "orang.umur gagal dari luar jika privat",
+        "method structure bisa membaca ini.umur jika privat",
+        "orang.nama = 'Andi' sukses jika bukan final",
+        "assignment ke field final gagal"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Dokumentasi dan contoh",
+      "priority": "medium",
+      "goal": "Tambahkan contoh IDScript dan dokumentasi syntax structure.",
+      "tasks": [
+        {
+          "file": "Example/main.ids",
+          "action": "Tambahkan contoh kecil struktur Orang dan implementasi sapa setelah fitur stabil."
+        },
+        {
+          "file": "AGENTS.md",
+          "action": "Catat keputusan desain struktur + implementasi."
+        },
+        {
+          "file": "TODO.md",
+          "action": "Update sisa pekerjaan lanjutan seperti inheritance/extension."
+        }
+      ],
+      "tests": [
+        "python compile.py menampilkan output example structure"
+      ]
+    }
+  ],
+  "recommended_order": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "risks": [
+    {
+      "risk": "Menyimpan nilai field instance di global scope",
+      "impact": "Beberapa instance akan saling menimpa state",
+      "mitigation": "Simpan nilai instance hanya di StructureInstance.__FIELDS__."
+    },
+    {
+      "risk": "Membuat ini/self global permanen",
+      "impact": "Scope bocor dan method bisa mempengaruhi kode luar",
+      "mitigation": "Declare ini hanya selama method dijalankan."
+    },
+    {
+      "risk": "Parser membuat runtime object langsung",
+      "impact": "AST sulit dites dan compiler kehilangan kendali type checking",
+      "mitigation": "Parser hanya menghasilkan AST node. Runtime object dibuat di compiler."
+    },
+    {
+      "risk": "Mengimplementasikan extension/inheritance terlalu awal",
+      "impact": "Model dasar field/method belum stabil dan kompleksitas naik",
+      "mitigation": "Tunda extension sampai structure, instance, method, dan visibility stabil."
+    },
+    {
+      "risk": "Mutable default di dataclass node",
+      "impact": "State list/dict terbagi antar node",
+      "mitigation": "Gunakan field(default_factory=list)."
+    }
+  ],
+  "definition_of_done": [
+    "python -m mypy . sukses",
+    "python -m pytest sukses",
+    "python compile.py sukses",
+    "Test parse structure lulus",
+    "Test compile structure lulus",
+    "Test constructor structure lulus",
+    "Test method binding dengan ini lulus",
+    "Test visibility publik/privat lulus",
+    "Test assignment attribute lulus"
+  ]
+}

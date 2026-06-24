@@ -1,0 +1,19 @@
+compiler.py:64: error: "Assignment" has no attribute "name"  [attr-defined]
+compiler.py:75: error: Missing return statement  [return]
+compiler.py:75: error: Variable "type" is not valid as a type  [valid-type]
+compiler.py:75: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
+compiler.py:81: error: Name "argument" is not defined; did you mean "arguments" or "Arguments"?  [name-defined]
+compiler.py:85: error: Name "argument" is not defined; did you mean "arguments" or "Arguments"?  [name-defined]
+compiler.py:96: error: Name "wrapper" is not defined  [name-defined]
+compiler.py:100: error: Name "wrapper" is not defined  [name-defined]
+compiler.py:108: error: Name "NoneType" is not defined  [name-defined]
+compiler.py:110: error: Need type annotation for "res"  [var-annotated]
+compiler.py:151: error: Name "enumarate" is not defined; did you mean "enumerate"?  [name-defined]
+compiler.py:195: error: "Kamus" has no attribute "valus"; maybe "values"?  [attr-defined]
+compiler.py:198: error: Name "enumarate" is not defined; did you mean "enumerate"?  [name-defined]
+compiler.py:217: error: Variable "body" is not valid as a type  [valid-type]
+compiler.py:217: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
+compiler.py:222: error: Variable "key" is not valid as a type  [valid-type]
+compiler.py:222: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
+compiler.py:222: error: Variable "val" is not valid as a type  [valid-type]
+Found 15 errors in 1 file (checked 1 source file)

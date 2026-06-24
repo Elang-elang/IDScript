@@ -1,0 +1,5 @@
+publik fungsi tambah(a: Angka, b: Angka): Angka {
+    kembalikan a + b;
+}
+
+publik KONSTANTA VERSI: Teks = "compiler-1";

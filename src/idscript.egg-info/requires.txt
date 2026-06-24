@@ -1,0 +1,14 @@
+click>=8.0
+lark>=1.0
+typeguard>=4.0
+
+[all]
+click
+lark
+typeguard
+mypy
+pytest
+
+[dev]
+mypy
+pytest
