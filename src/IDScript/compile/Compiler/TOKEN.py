@@ -63,12 +63,30 @@ class TokenRegistry:
     def encode_instruction(self, instruction: list[Any]) -> list[Any]:
         if not instruction:
             raise ValueError("Instruksi kosong tidak valid")
-        return [self.opcode_code(str(instruction[0])), *instruction[1:]]
+        return [self.opcode_code(str(instruction[0])), *(self._encode_value(item) for item in instruction[1:])]
 
     def decode_instruction(self, instruction: list[Any]) -> list[Any]:
         if not instruction:
             raise ValueError("Instruksi kosong tidak valid")
-        return [self.opcode_name(int(instruction[0])), *instruction[1:]]
+        return [self.opcode_name(int(instruction[0])), *(self._decode_value(item) for item in instruction[1:])]
+
+    def _encode_value(self, value: Any) -> Any:
+        if isinstance(value, dict):
+            return {key: self._encode_value(item) for key, item in value.items()}
+        if isinstance(value, list):
+            if value and isinstance(value[0], str) and self.canonical_opcode(value[0]) in self.opcodes:
+                return self.encode_instruction(value)
+            return [self._encode_value(item) for item in value]
+        return value
+
+    def _decode_value(self, value: Any) -> Any:
+        if isinstance(value, dict):
+            return {key: self._decode_value(item) for key, item in value.items()}
+        if isinstance(value, list):
+            if value and isinstance(value[0], int) and value[0] in self.opcode_names:
+                return self.decode_instruction(value)
+            return [self._decode_value(item) for item in value]
+        return value
 
 
 TOKEN = TokenRegistry.load()

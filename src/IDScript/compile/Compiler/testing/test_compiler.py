@@ -300,6 +300,97 @@ def test_vm_supports_global_and_lokal_builtins():
     assert VM(module).run() == 12
 
 
+def test_vm_supports_try_catch_else_and_finally():
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var nilai: Angka = 0;
+
+            coba {
+                kesalahan 5;
+            } tangkap (e) {
+                nilai = e.args[0];
+            } jika tidak {
+                nilai = 99;
+            } diakhiri {
+                nilai = nilai + 1;
+            }
+
+            kembalikan nilai;
+        }
+        """,
+        "try_catch_finally.ids",
+    )
+
+    assert VM(module).run() == 6
+
+
+def test_vm_supports_try_else_when_no_error():
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var nilai: Angka = 1;
+
+            coba {
+                nilai = nilai + 1;
+            } tangkap (e) {
+                nilai = 99;
+            } jika tidak {
+                nilai = nilai + 10;
+            } diakhiri {
+                nilai = nilai + 100;
+            }
+
+            kembalikan nilai;
+        }
+        """,
+        "try_else_finally.ids",
+    )
+
+    assert VM(module).run() == 112
+
+
+def test_vm_finally_runs_before_return_from_try():
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            coba {
+                kembalikan 7;
+            } diakhiri {
+                println("akhir");
+            }
+        }
+        """,
+        "try_return_finally.ids",
+    )
+
+    assert VM(module).run() == 7
+
+
+def test_vm_try_blocks_survive_compiled_idsc_roundtrip():
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var nilai: Angka = 0;
+            coba {
+                nilai = 1;
+            } tangkap (e) {
+                nilai = 99;
+            } jika tidak {
+                nilai = nilai + 2;
+            } diakhiri {
+                nilai = nilai + 3;
+            }
+            kembalikan nilai;
+        }
+        """,
+        "try_idsc.ids",
+    )
+    loaded = ModuleCode.from_bytes(module.to_compiled_bytes())
+
+    assert VM(loaded).run() == 6
+
+
 def test_vm_global_builtin_can_export_from_module(tmp_path):
     source = tmp_path / "main.ids"
     module_file = tmp_path / "scope.ids"

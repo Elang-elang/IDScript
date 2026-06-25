@@ -1,0 +1,29 @@
+dari "./math.ids" impor { tambah, konstan VERSI };
+
+struktur User {
+    publik nama: Teks,
+    publik umur: Angka,
+}
+
+implementasi User {
+    publik metode sapa(ini: User): Teks {
+        kembalikan ini.nama;
+    }
+}
+
+fungsi utama(): Angka {
+    var total: Angka = 0;
+    untuk (var angka dari dalam [1, 2, 3]) {
+        total = total + angka;
+    }
+    selama (total < 10) {
+        total = total + 1;
+    }
+    final user: User = User { nama: "elang", umur: 15 };
+    jika (VERSI == "compiler-1") {
+        println(user.sapa());
+        total = tambah(total, user.umur);
+    }
+    println(total);
+    kembalikan total;
+}

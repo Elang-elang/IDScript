@@ -152,6 +152,9 @@ class BytecodeCompiler:
         if isinstance(node, For):
             self._for(node, code, module, file)
             return
+        if isinstance(node, Try):
+            self._try(node, code, module, file)
+            return
         if isinstance(node, Kembalikan):
             self._expr(node.value, code)
             code.append(["RETURN_VALUE"])
@@ -175,7 +178,7 @@ class BytecodeCompiler:
             self._expr(node, code)
             code.append(["POP_TOP"])
             return
-        if isinstance(node, Try | Switch):
+        if isinstance(node, Switch):
             raise NotImplementedError(f"{type(node).__name__} belum stabil di Compiler VM resmi")
         raise NotImplementedError(f"Compiler VM belum mendukung statement {type(node).__name__}")
 
@@ -316,6 +319,24 @@ class BytecodeCompiler:
         for pos in breaks:
             code[pos][1] = end
         self._loop_stack.pop()
+
+    def _try(self, node: Try, code: list[Instruction], module: ModuleCode, file: Path) -> None:
+        body_code = self._block_code(node.body, module, file)
+        handlers = [
+            {
+                "alias": handler.alias.id,
+                "code": self._block_code(handler.body, module, file),
+            }
+            for handler in node.handler
+        ]
+        else_code = self._block_code(node.orelse, module, file) if node.orelse is not None else []
+        finally_code = self._block_code(node.finalbody, module, file) if node.finalbody is not None else []
+        code.append(["SETUP_TRY", body_code, handlers, else_code, finally_code])
+
+    def _block_code(self, block: Block, module: ModuleCode, file: Path) -> list[Instruction]:
+        block_code: list[Instruction] = []
+        self._stmt(block, block_code, module, file)
+        return block_code
 
     def _import_stmt(self, node: FromImport, code: list[Instruction], file: Path) -> None:
         if node._from.startswith("."):

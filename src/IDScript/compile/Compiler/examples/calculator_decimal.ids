@@ -1,0 +1,5 @@
+fungsi utama(): Float {
+    final hasil: Float = 15.56636;
+    println(hasil);
+    kembalikan hasil;
+}

@@ -45,6 +45,11 @@ OPCODE_ALIASES = {
 }
 
 
+class _VMReturn(BaseException):
+    def __init__(self, value: Any) -> None:
+        self.value = value
+
+
 @dataclass(frozen=True)
 class VMFunction:
     module_key: str
@@ -326,7 +331,7 @@ class VM:
                     del stack[-argc:]
                 stack.append(self._call(stack.pop(), args, state, locals_))
             elif op == "RETURN_VALUE":
-                return stack.pop() if stack else None
+                raise _VMReturn(stack.pop() if stack else None)
             elif op == "BUILD_LIST":
                 count = inst[1]
                 values = stack[-count:] if count else []
@@ -390,6 +395,8 @@ class VM:
                     target.methods[inst[1]] = method
                 else:
                     raise TypeError("STORE_METHOD membutuhkan struktur atau enum")
+            elif op == "SETUP_TRY":
+                self._execute_try(inst[1], inst[2], inst[3], inst[4], state, locals_)
             elif op == "GET_ITER":
                 locals_[inst[1]] = iter(stack.pop())
             elif op == "FOR_ITER":
@@ -432,7 +439,10 @@ class VM:
         if isinstance(func, VMFunction):
             state = self._load_module(func.module_key)
             locals_ = dict(zip(func.code.args, args))
-            return self._execute(func.code.code, state, locals_)
+            try:
+                return self._execute(func.code.code, state, locals_)
+            except _VMReturn as ret:
+                return ret.value
         if callable(func):
             if func is Global:
                 return func(state, *args)
@@ -440,6 +450,47 @@ class VM:
                 return func(locals_, *args)
             return func(*args)
         raise TypeError(f"Object {func!r} tidak dapat dipanggil")
+
+    def _execute_try(
+        self,
+        body_code: list[list[Any]],
+        handlers: list[dict[str, Any]],
+        else_code: list[list[Any]],
+        finally_code: list[list[Any]],
+        state: ModuleState,
+        locals_: dict[str, Any],
+    ) -> None:
+        try:
+            self._execute(body_code, state, locals_)
+        except Exception as err:
+            if not handlers:
+                raise
+            self._execute_handler(handlers[0], err, state, locals_)
+        else:
+            if else_code:
+                self._execute(else_code, state, locals_)
+        finally:
+            if finally_code:
+                self._execute(finally_code, state, locals_)
+
+    def _execute_handler(
+        self,
+        handler: dict[str, Any],
+        error: Exception,
+        state: ModuleState,
+        locals_: dict[str, Any],
+    ) -> None:
+        alias = handler["alias"]
+        missing = object()
+        previous = locals_.get(alias, missing)
+        locals_[alias] = error
+        try:
+            self._execute(handler["code"], state, locals_)
+        finally:
+            if previous is missing:
+                locals_.pop(alias, None)
+            else:
+                locals_[alias] = previous
 
     def _resolve_name(self, state: ModuleState, name: str, locals_: dict[str, Any]) -> Any:
         if name in locals_:
