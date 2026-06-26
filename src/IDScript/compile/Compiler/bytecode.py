@@ -19,27 +19,42 @@ class FunctionCode:
     name: str
     args: list[str]
     code: list[Instruction]
+    arg_is_def: list[bool] = field(default_factory=list)
 
     def to_module_dict(self) -> dict[str, Any]:
-        return {"name": self.name, "args": self.args, "code": self.code}
+        data = {"name": self.name, "args": self.args, "code": self.code}
+        if any(self.arg_is_def):
+            data["arg_is_def"] = self.arg_is_def
+        return data
 
     def to_compiled_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "name": self.name,
             "args": self.args,
             "code": [TOKEN.encode_instruction(inst) for inst in self.code],
         }
+        if any(self.arg_is_def):
+            data["arg_is_def"] = self.arg_is_def
+        return data
 
     @classmethod
     def from_module_dict(cls, data: dict[str, Any]) -> FunctionCode:
-        return cls(name=data["name"], args=list(data["args"]), code=list(data["code"]))
+        args = list(data["args"])
+        return cls(
+            name=data["name"],
+            args=args,
+            code=list(data["code"]),
+            arg_is_def=list(data.get("arg_is_def", [False] * len(args))),
+        )
 
     @classmethod
     def from_compiled_dict(cls, data: dict[str, Any]) -> FunctionCode:
+        args = list(data["args"])
         return cls(
             name=data["name"],
-            args=list(data["args"]),
+            args=args,
             code=[TOKEN.decode_instruction(inst) for inst in data["code"]],
+            arg_is_def=list(data.get("arg_is_def", [False] * len(args))),
         )
 
 

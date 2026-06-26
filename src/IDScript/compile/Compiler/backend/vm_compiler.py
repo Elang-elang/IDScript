@@ -187,6 +187,12 @@ class BytecodeCompiler:
             self._expr(node.value, code)
         elif isinstance(node, Name):
             code.append(["LOAD_NAME", node.id])
+        elif isinstance(node, Referensial):
+            code.append(["LOAD_REFERENSIAL", node.name.id])
+        elif isinstance(node, Deferensial):
+            code.append(["LOAD_DEREFERENSIAL", node.name.id])
+        elif isinstance(node, SalinReferensial):
+            code.append(["COPY_REFERENSIAL", node.name.id])
         elif isinstance(node, Info):
             code.append(["LOAD_INFO", node.name.id])
         elif isinstance(node, Constant):
@@ -239,6 +245,10 @@ class BytecodeCompiler:
             raise NotImplementedError(f"Compiler VM belum mendukung expression {type(node).__name__}")
 
     def _assignment(self, node: Assignment, code: list[Instruction]) -> None:
+        if isinstance(node.target, Deferensial):
+            self._expr(node.expr, code)
+            code.append(["STORE_DEREFERENSIAL", node.target.name.id])
+            return
         if isinstance(node.target, Name):
             self._expr(node.expr, code)
             code.append(["STORE_NAME", node.target.id])
@@ -257,14 +267,16 @@ class BytecodeCompiler:
         raise NotImplementedError("Target assignment belum didukung di VM resmi")
 
     def _function(self, name: str, attrs: AttrsFunc, block: Block, module: ModuleCode, file: Path) -> FunctionCode:
-        args = [arg.name.id for arg in (attrs.args.args or [])]
+        ast_args = list(attrs.args.args or [])
+        args = [arg.name.id for arg in ast_args]
+        arg_is_def = [arg.is_def for arg in ast_args]
         body: list[Instruction] = []
         for stmt in block.bodies or []:
             self._stmt(stmt, body, module, file)
         if not body or body[-1][0] not in {"RETURN", "RETURN_VALUE"}:
             body.append(["LOAD_CONST", None])
             body.append(["RETURN_VALUE"])
-        return FunctionCode(name=name, args=args, code=body)
+        return FunctionCode(name=name, args=args, code=body, arg_is_def=arg_is_def)
 
     def _implementation(self, node: Implementation, code: list[Instruction], module: ModuleCode, file: Path) -> None:
         struct_name = node.name.id

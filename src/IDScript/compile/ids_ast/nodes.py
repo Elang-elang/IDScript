@@ -24,6 +24,21 @@ class _IDENTIFIER(_STATEMENT):
 class Name(_IDENTIFIER):
     id: str
 
+
+@dataclass
+class Referensial(_IDENTIFIER):
+    name: Name
+
+
+@dataclass
+class Deferensial(_IDENTIFIER):
+    name: Name
+
+
+@dataclass
+class SalinReferensial(_IDENTIFIER):
+    name: Name
+
 @dataclass
 class Info(_IDENTIFIER):
     name: Name
@@ -72,18 +87,21 @@ class Const(_VARIABLE):
     type: 'Type'
     expr: 'Expression' | Any
     is_priv: bool = True
+    is_def: bool = False
 
 @dataclass
 class Variable(_VARIABLE):
     name: Name
     type: 'Type'
     expr: Optional['Expression'] = None
+    is_def: bool = False
 
 @dataclass
 class Final(_VARIABLE):
     name: Name
     type: 'Type'
     expr: 'Expression'
+    is_def: bool = False
 
 @dataclass
 class Assignment(_VARIABLE):
@@ -116,6 +134,7 @@ class Arg(_FUNCTION):
     name: Name
     type: 'Type'
     constant: bool = True
+    is_def: bool = False
 
 
 

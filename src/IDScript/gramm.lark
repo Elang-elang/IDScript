@@ -38,35 +38,36 @@ compound_stmt: func_decl
 outside_stmt: compound_stmt
             | const_decl
 
-const_decl: const_private | const_public
-const_private: "privat"? _const_keyword _name _typed_value ";"?
-const_public: "publik" _const_keyword _name _typed_value ";"?
+const_decl: "privat"? _const_keyword var_attrs _typed_value ";"? -> const_private
+          | "publik" _const_keyword var_attrs _typed_value ";"? -> const_public
 
-var_decl: _var_keyword _name _optional_typed_value
-final_decl: _final_keyword _name _typed_value
+var_decl: _var_keyword var_attrs _optional_typed_value
+final_decl: _final_keyword var_attrs _typed_value
 assignment: term _assign_operator expr
 
-_const_keyword: "KONSTANTA"
+_const_keyword: "KONSTANTA" | "konst"
 _var_keyword: "var"
 _final_keyword: "final"
 _assign_operator: "="
 _name: NAME
 _typed_value: ":" type_ann "=" expr
 _optional_typed_value: ":" type_ann ("=" expr)?
+var_attrs: "*" _name -> set_var_pointer
+          | _name -> default_var_assignment
  
 
 struct_decl: private_struct | public_struct
 private_struct: "privat"? struct_attrs
 public_struct: "publik" struct_attrs
 
-struct_attrs: "struktur" NAME block_struct struct_extend?
-struct_extend: "turunan" "dari" NAME
+struct_attrs: "struktur" name block_struct struct_extend?
+struct_extend: "turunan" "dari" name
 
 block_struct: "{" (struct_fields ("," struct_fields)* ","?)? "}"
 struct_fields: private_field | public_field
 private_field: "privat"? attr_field
 public_field: "publik" attr_field
-attr_field: NAME ":" type_ann
+attr_field: name ":" type_ann
 
 impl_stmt: impl_plain | impl_trait
 impl_plain: _implementation_keyword _name block_impl
@@ -78,14 +79,14 @@ body_impl: public_method | private_method
 public_method: "publik" (static_method | method_attrs)
 private_method: "privat"? (static_method | method_attrs)
 static_method: "statik" method_attrs
-method_attrs: "metode" NAME attrs_func block
+method_attrs: "metode" name attrs_func block
 
 
 
 enum_stmt: private_enum | public_enum
 private_enum: "privat"? enum_attrs
 public_enum: "publik" enum_attrs
-enum_attrs: "enum" NAME enum_block
+enum_attrs: "enum" name enum_block
 enum_block: "{" (enum_body ("," enum_body)* ","?)?  "}"
 enum_body: private_field_attr
          | public_field_attr
@@ -97,29 +98,30 @@ field_attr: unit_variant
           | structure_variant
           | discriminant
 
-unit_variant: NAME
-tuple_variant: NAME "(" ( type_ann ("," type_ann)* )? ")" 
-structure_variant: NAME "{" attr_field ("," attr_field)* ","? "}"
-discriminant: NAME "=" expr
+unit_variant: name
+tuple_variant: name "(" ( type_ann ("," type_ann)* )? ")" 
+structure_variant: name "{" attr_field ("," attr_field)* ","? "}"
+discriminant: name "=" expr
 
 
 trait_stmt: private_trait | public_trait
 private_trait: "privat"? trait_attrs
 public_trait: "publik" trait_attrs
 
-trait_attrs: "sifat" NAME "{" abstract_method abstract_method* "}"
-abstract_method: "metode" NAME attrs_func ";"
+trait_attrs: "sifat" name "{" abstract_method abstract_method* "}"
+abstract_method: "metode" name attrs_func ";"
 
 
 func_decl: private_func | public_func
-private_func: "privat"? "fungsi" NAME attrs_func block
-public_func: "publik" "fungsi" NAME attrs_func block
+private_func: "privat"? "fungsi" name attrs_func block
+public_func: "publik" "fungsi" name attrs_func block
 attrs_func: args ":" type_ann
 
 args: "(" (arg ("," arg)* ","?)? ")"
-arg: immut_arg | mut_arg
-immut_arg: "final" NAME ":" type_ann
-mut_arg: NAME ":" type_ann
+arg: immut_arg | field_arg
+immut_arg: "final" field_arg
+field_arg: NAME ":" type_ann -> mut_arg
+         | "*" NAME ":" type_ann -> mut_arg_deferensial
 
 
 ctrl_flow: if_flow
@@ -142,7 +144,7 @@ for_stmt: "untuk" "(" for_expr ")" block
 for_expr: for_expr_decl "dari" "dalam" expr
 for_expr_decl: _var_keyword for_containns -> for_var_decl
              | _final_keyword for_containns -> for_final_decl
-for_containns: NAME | "(" NAME ("," NAME)* ")"
+for_containns: name | "(" name ("," name)* ")"
 
 
 while_flow: while_stmt else_stmt?
@@ -152,7 +154,7 @@ try_flow: try_stmt catch_stmt+ else_stmt? finally_stmt?
         | try_stmt finally_stmt
 
 try_stmt: "coba" block
-catch_stmt: "tangkap" "(" NAME ")" block
+catch_stmt: "tangkap" "(" name ")" block
 finally_stmt: "diakhiri" block
 
 
@@ -165,7 +167,7 @@ case_attrs: "kasus" pattern -> case_pattern
 
 pattern: or_pattern
 or_pattern: as_pattern ("atau" as_pattern)*
-as_pattern: closed_pattern "sebagai" NAME
+as_pattern: closed_pattern "sebagai" name
           | closed_pattern
 
 closed_pattern: match_value
@@ -190,17 +192,17 @@ match_mapping: "{" mapping_item ("," mapping_item)* ("," match_dots)? "}"
              | "{" "}"
 
 mapping_item: dkey ":" pattern
-match_struct: NAME "{" pattern_keyword ("," pattern_keyword)* ("," match_dots)? "}"
-            | NAME "{" match_dots "}"
-            | NAME "{" "}"
-pattern_keyword: NAME "=" pattern
+match_struct: name "{" pattern_keyword ("," pattern_keyword)* ("," match_dots)? "}"
+            | name "{" match_dots "}"
+            | name "{" "}"
+pattern_keyword: name "=" pattern
 
-match_as_capture: NAME
+match_as_capture: name
 
-match_dots: "..." NAME
+match_dots: "..." name
 pattern_list: pattern ("," pattern)* ("," match_dots)?
 
-dotted_name: NAME ("." NAME)*
+dotted_name: name ("." name)*
 
 
 import_stmt: "dari" TEKS "impor" ("{" import_attr ("," import_attr)* ","? "}" | all_import_attrs) ";"
@@ -211,9 +213,9 @@ import_decl: var_import | const_import | static_import
 var_import: "var"? import_as
 const_import: "konstan" import_as
 static_import: "statik" import_as
-import_as: NAME ("sebagai" NAME)?
+import_as: name ("sebagai" name)?
 
-all_import_attrs: "*Apapun"
+all_import_attrs: "*Apapun" | "*"
 
 
 expr: expr_
@@ -245,24 +247,28 @@ pow_: (expr_ "**")? term
 term: subscripts
     | struct_field
     | get_identifier
+    | pointer_expr
     | literal
     | expr_
     | "(" expr_ ")"
-    | NAME
+    | name
 
 subscripts: attr
           | idx
           | call
 
-attr: term "." NAME 
+attr: term "." name 
 idx: term "[" expr_ "]"
 call: term "(" (expr_ ("," expr_)* ","?)? ")"
 
-struct_field: NAME kamus
+struct_field: name kamus
 get_identifier: identifier_name
               | info_expr
-identifier_name: "identifikasi" NAME
-info_expr: "info" NAME
+identifier_name: "identifikasi" name
+info_expr: "info" name
+pointer_expr: "&" NAME -> referensial
+            | "*" NAME -> deferensial
+            | "salin" NAME -> salin_referensial
 
 literal: constants | object
 constants: TEKS | ANGKA | FLOAT | BOOLEAN | KOSONG
@@ -271,9 +277,9 @@ object: daftar | kamus
 daftar: "[" (expr_ ("," expr_)* ","?)? "]"
 kamus: "{" dbodies? ","? "}"
 dbodies: dbody ("," dbody)*
-dbody: dkey ":" dval | NAME
-dkey: NAME | name_key | constants
-name_key: "[" NAME "]"
+dbody: dkey ":" dval | name
+dkey: name | name_key | constants
+name_key: "[" name "]"
 dval: expr_
 
 
@@ -283,7 +289,7 @@ type_ann: optional type_def
 optional: "?"
 
 type_def: type_object
-        | NAME
+        | name
 
 type_object: type_result | type_func | type_arr | type_dict | type_union | type_literal | type_dynamic
 type_result: "hasil" "[" type_ann ("," type_ann)? "]"
@@ -293,18 +299,18 @@ type_dict: "kamus" "[" type_ann "," type_ann "]"
 type_union: "[" type_ann ("," type_ann)? ","? "]"
 type_literal: "[" constants ("," constants)? ","? "]"
 
-type_dynamic: NAME "[" NAME ("," NAME)* ","? "]"
+type_dynamic: name "[" name ("," name)* ","? "]"
 
 typedef_stmt: private_typedef | public_typedef
 private_typedef: "privat"? typedef_attrs
 public_typedef: "publik" typedef_attrs
-typedef_attrs: "tipe" NAME typedef_params? "=" type_ann ";"?
-typedef_params: "[" NAME ("," NAME)* ","? "]"
+typedef_attrs: "tipe" name typedef_params? "=" type_ann ";"?
+typedef_params: "[" name ("," name)* ","? "]"
 
 interface_stmt: private_interface | public_interface
 private_interface: "privat"? interface_attrs
 public_interface: "publik" interface_attrs
-interface_attrs: _interface_keyword NAME interface_object
+interface_attrs: _interface_keyword name interface_object
 interface_object: "{" (interface_body_object ("," interface_body_object)* ","?)? "}"
 interface_body_object: dkey ":" type_ann | dkey ":" interface_object
 _interface_keyword: "antarmuka"
@@ -318,6 +324,8 @@ TEKS: ESCAPED_STRING
 ANGKA: SIGNED_INT
 BOOLEAN: "benar" | "salah"
 KOSONG: "kosong"
+
+name: NAME
 
 NAME: /[A-Za-z_][A-Za-z0-9_]*/
 

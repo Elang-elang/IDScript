@@ -51,35 +51,45 @@ class _Parse(Transformer):
     
     # VARIABLES
     def const_decl(self, field): return field
-    def const_private(self, name, type, expr):
+    def const_private(self, attrs, type, expr):
         return Const(
-            name=name,
-            type=type,
-            expr=expr
-        )
-    
-    def const_public(self, name, type, expr):
-        return Const(
-            name=name,
+            name=attrs[0],
             type=type,
             expr=expr,
-            is_priv=False
+            is_def=attrs[1],
+        )
+    
+    def const_public(self, attrs, type, expr):
+        return Const(
+            name=attrs[0],
+            type=type,
+            expr=expr,
+            is_priv=False,
+            is_def=attrs[1],
         )
     
     
-    def var_decl(self, name, type, expr = EMPTY):
+    def var_decl(self, attrs, type, expr = EMPTY):
         return Variable(
-            name=name,
+            name=attrs[0],
             type=type,
-            expr=expr
+            expr=expr,
+            is_def=attrs[1],
         )
     
-    def final_decl(self, name, type, expr):
+    def final_decl(self, attrs, type, expr):
         return Final(
-            name=name,
+            name=attrs[0],
             type=type,
-            expr=expr
+            expr=expr,
+            is_def=attrs[1],
         )
+    
+    def set_var_pointer(self, name):
+        return (name, True)
+    
+    def default_var_assignment(self, name):
+        return (name, False)
     
     def assignment(self, target, expr):
         return Assignment(
@@ -261,13 +271,17 @@ class _Parse(Transformer):
             name=name,
             type=type,
         )
-
-    def immut_arg(self, name, type):
+    
+    def mut_arg_deferensial(self, name, type):
         return Arg(
             name=name,
             type=type,
-            constant=True
+            is_def=True
         )
+
+    def immut_arg(self, field):
+        field.constant = True
+        return field
     
     
     def ctrl_flow(self, stmt):
@@ -572,6 +586,9 @@ class _Parse(Transformer):
     
     def term(self, expr):
         return expr
+
+    def name(self, name):
+        return name
     
     def subscripts(self, subscript):
         return subscript
@@ -608,6 +625,18 @@ class _Parse(Transformer):
 
     def info_expr(self, name):
         return Info(name=name)
+
+    def pointer_expr(self, value):
+        return value
+
+    def referensial(self, name):
+        return Referensial(name=name if isinstance(name, Name) else Name(id=str(name)))
+
+    def deferensial(self, name):
+        return Deferensial(name=name if isinstance(name, Name) else Name(id=str(name)))
+
+    def salin_referensial(self, name):
+        return SalinReferensial(name=name if isinstance(name, Name) else Name(id=str(name)))
     
     def literal(self, lit):
         return lit

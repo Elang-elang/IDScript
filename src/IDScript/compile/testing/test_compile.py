@@ -337,6 +337,91 @@ def test_structure_extend_can_compile_and_run():
     assert function() == "Budi"
 
 
+def test_pointer_referensial_deferensial_and_assignment_runtime():
+    ast = parse_code(
+        """
+        fungsi jalankan(): Angka {
+            var nilai: Angka = 7;
+            var *ptr: Angka = &nilai;
+            *ptr = 12;
+            kembalikan nilai + *ptr;
+        }
+        """
+    )
+    compiler = Compiler("<test.ids>")
+
+    compiler.Program(ast)
+    function = compiler.current_scope.get("jalankan")
+
+    assert function() == 24
+
+
+def test_pointer_copy_referensial_runtime():
+    ast = parse_code(
+        """
+        fungsi jalankan(): Angka {
+            var nilai: Angka = 3;
+            var *ptr: Angka = &nilai;
+            var *lain: Angka = salin ptr;
+            *lain = 9;
+            kembalikan *ptr;
+        }
+        """
+    )
+    compiler = Compiler("<test.ids>")
+
+    compiler.Program(ast)
+    function = compiler.current_scope.get("jalankan")
+
+    assert function() == 9
+
+
+def test_deferensial_argument_mutates_caller_runtime():
+    ast = parse_code(
+        """
+        fungsi ubah(*nilai: Angka): Angka {
+            *nilai = 8;
+            kembalikan *nilai;
+        }
+
+        fungsi jalankan(): Angka {
+            var nilai: Angka = 3;
+            ubah(&nilai);
+            kembalikan nilai;
+        }
+        """
+    )
+    compiler = Compiler("<test.ids>")
+
+    compiler.Program(ast)
+    function = compiler.current_scope.get("jalankan")
+
+    assert function() == 8
+
+
+def test_deferensial_argument_requires_reference_runtime():
+    ast = parse_code(
+        """
+        fungsi ubah(*nilai: Angka): Angka {
+            *nilai = 8;
+            kembalikan *nilai;
+        }
+
+        fungsi jalankan(): Angka {
+            var nilai: Angka = 3;
+            kembalikan ubah(nilai);
+        }
+        """
+    )
+    compiler = Compiler("<test.ids>")
+
+    compiler.Program(ast)
+    function = compiler.current_scope.get("jalankan")
+
+    with pytest.raises(TypeError):
+        function()
+
+
 def test_root_dots_pattern_is_not_supported():
     ast = parse_code(
         """
@@ -590,6 +675,35 @@ def test_global_builtin_can_export_from_runtime_module(tmp_path):
     result = Compile(module_b.read_text(), str(module_b))
 
     assert result.main() == 9
+
+
+def test_runtime_can_use_standalone_daftar_and_kamus_builtins():
+    result = Compile(
+        '''
+        dari "Daftar.ids" impor { var Daftar, var adalah_daftar };
+        dari "Kamus.ids" impor { var Kamus, var adalah_kamus };
+
+        fungsi utama(): Angka {
+            final daftar: Apapun = Daftar([1, 2]);
+            daftar.masukan(3);
+
+            final kamus: Apapun = Kamus({"a": 1});
+            kamus.atur("b", 2);
+
+            jika (bukan adalah_daftar(daftar)) { kembalikan 1; }
+            jika (bukan adalah_daftar([1])) { kembalikan 2; }
+            jika (adalah_daftar(kamus)) { kembalikan 3; }
+            jika (bukan adalah_kamus(kamus)) { kembalikan 4; }
+            jika (bukan adalah_kamus({"x": 1})) { kembalikan 5; }
+            jika (adalah_kamus(daftar)) { kembalikan 6; }
+
+            kembalikan daftar.ambil(2) + kamus.ambil("b");
+        }
+        ''',
+        "standalone_daftar_kamus_runtime.ids",
+    )
+
+    assert result.main() == 5
 
 
 def test_runtime_can_import_compiled_vm_module(tmp_path):

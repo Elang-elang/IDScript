@@ -14,6 +14,7 @@ from .control import Throw, Return, Break, Continue
 from .types import check_types, EMPTY, Result, default_value
 from .config import Config
 from .structure import Structure as Struct, Trait as trait
+from .variable import Variable as Var
 
 
 class _VMFunctionProxy:
@@ -160,8 +161,13 @@ class Compiler:
         ann = self.v(node.type)
         expr = self.v(node.expr) if node.expr else None
         is_priv = node.is_priv
-        
-        self.current_scope.declare(name, ann, expr, True, is_priv)
+        if node.is_def:
+            if not isinstance(expr, Var):
+                raise TypeError(f'Konstanta deferensial {name!r} membutuhkan referensial')
+            self.current_scope.declare(name, ann, expr, True, is_priv, True)
+            return
+
+        self.current_scope.declare(name, ann, expr, True, is_priv, False)
     
     def Variable(self, node: Variable):
         name = node.name.id
@@ -171,20 +177,36 @@ class Compiler:
         if expr is EMPTY:
             expr = default_value(ann)
         
-        self.current_scope.declare(name, ann, expr)
+        if node.is_def:
+            if not isinstance(expr, Var):
+                raise TypeError(f'Variabel deferensial {name!r} membutuhkan referensial')
+            self.current_scope.declare(name, ann, expr, False, False, True)
+            return
 
+        self.current_scope.declare(name, ann, expr)
+    
     def Final(self, node: Final):
         name = node.name.id
         ann = self.v(node.type)
         expr = self.v(node.expr)
         
+        if node.is_def:
+            if not isinstance(expr, Var):
+                raise TypeError(f'Final deferensial {name!r} membutuhkan referensial')
+            self.current_scope.declare(name, ann, expr, True, True, True)
+            return
+
         self.current_scope.declare(name, ann, expr, True)
     
     def Assignment(self, node: Assignment):
         expr = self.v(node.expr)
         
         target = None
-        if isinstance(node.target, Attribute):
+        if isinstance(node.target, Deferensial):
+            pointer = self.current_scope.getThis(node.target.name.id)
+            pointer.pointer_set(expr)
+
+        elif isinstance(node.target, Attribute):
             target = self.v(node.target.value)
             attr = node.target.attr
             setattr(target, attr, expr)
@@ -536,6 +558,12 @@ class Compiler:
         arg_type = self.v(node.type)
 
         def wrapper(val):
+            if node.is_def:
+                if not isinstance(val, Var):
+                    raise TypeError(f'Argumen deferensial {name!r} membutuhkan referensial')
+                self.current_scope.declare(name, arg_type, val, node.constant, True, True)
+                return
+
             self.current_scope.declare(name, arg_type, val, node.constant)
         
         wrapper.__name__ = name
@@ -974,6 +1002,18 @@ class Compiler:
     def Info(self, node: Info):
         value = self.current_scope.get(node.name.id)
         return self._info_name(value)
+
+    def Referensial(self, node: Referensial):
+        return self.current_scope.getThis(node.name.id)
+
+    def Deferensial(self, node: Deferensial):
+        return self.current_scope.getThis(node.name.id).pointer_get()
+
+    def SalinReferensial(self, node: SalinReferensial):
+        variable = self.current_scope.getThis(node.name.id)
+        if variable.is_pointer:
+            return variable.value
+        return variable.copy_address()
 
     def _info_name(self, value: Any) -> str:
         from .enum import Enum, EnumValue, StructVariant, TupleVariant

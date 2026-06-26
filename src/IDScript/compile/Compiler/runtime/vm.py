@@ -51,6 +51,24 @@ class _VMReturn(BaseException):
 
 
 @dataclass(frozen=True)
+class VMReference:
+    scope: dict[str, Any]
+    name: str
+
+    def get(self) -> Any:
+        return self.scope[self.name]
+
+    def set(self, value: Any) -> None:
+        self.scope[self.name] = value
+
+    def copy(self) -> VMReference:
+        return VMReference(self.scope, self.name)
+
+    def __repr__(self) -> str:
+        return f"<Referensial: {self.name}>"
+
+
+@dataclass(frozen=True)
 class VMFunction:
     module_key: str
     name: str
@@ -284,10 +302,18 @@ class VM:
                 stack.append(default_value(inst[1]))
             elif op == "LOAD_NAME":
                 stack.append(self._resolve_name(state, inst[1], locals_))
+            elif op == "LOAD_REFERENSIAL":
+                stack.append(self._resolve_reference(state, inst[1], locals_))
+            elif op == "LOAD_DEREFERENSIAL":
+                stack.append(self._dereference(self._resolve_name(state, inst[1], locals_)))
+            elif op == "COPY_REFERENSIAL":
+                stack.append(self._copy_reference(self._resolve_name(state, inst[1], locals_)))
             elif op == "LOAD_INFO":
                 stack.append(self._info_name(self._resolve_name(state, inst[1], locals_)))
             elif op == "STORE_NAME":
                 self._store_name(state, locals_, inst[1], stack.pop())
+            elif op == "STORE_DEREFERENSIAL":
+                self._store_dereference(self._resolve_name(state, inst[1], locals_), stack.pop())
             elif op == "STORE_FAST":
                 locals_[inst[1]] = stack.pop()
             elif op == "POP_TOP":
@@ -438,7 +464,12 @@ class VM:
             return self._call(func.function, [func.instance, *args], state, locals_)
         if isinstance(func, VMFunction):
             state = self._load_module(func.module_key)
-            locals_ = dict(zip(func.code.args, args))
+            locals_ = {}
+            arg_is_def = func.code.arg_is_def or [False] * len(func.code.args)
+            for name, value, is_def in zip(func.code.args, args, arg_is_def):
+                if is_def and not isinstance(value, VMReference):
+                    raise TypeError(f"Argumen deferensial {name!r} membutuhkan referensial")
+                locals_[name] = value
             try:
                 return self._execute(func.code.code, state, locals_)
             except _VMReturn as ret:
@@ -508,6 +539,28 @@ class VM:
         if name == "kosong":
             return None
         raise NameError(f"{name!r} tidak didefinisikan")
+
+    def _resolve_reference(self, state: ModuleState, name: str, locals_: dict[str, Any]) -> VMReference:
+        if name in locals_:
+            return VMReference(locals_, name)
+        if name in state.globals:
+            return VMReference(state.globals, name)
+        raise NameError(f"{name!r} tidak didefinisikan")
+
+    def _dereference(self, value: Any) -> Any:
+        if not isinstance(value, VMReference):
+            raise TypeError(f"{value!r} bukan referensial")
+        return value.get()
+
+    def _store_dereference(self, value: Any, new_value: Any) -> None:
+        if not isinstance(value, VMReference):
+            raise TypeError(f"{value!r} bukan referensial")
+        value.set(new_value)
+
+    def _copy_reference(self, value: Any) -> VMReference:
+        if not isinstance(value, VMReference):
+            raise TypeError(f"{value!r} bukan referensial")
+        return value.copy()
 
     def _get_attr(self, value: Any, name: str) -> Any:
         if isinstance(value, VMEnumType):
@@ -585,6 +638,8 @@ class VM:
             return "Tipe"
         if isinstance(value, (VMFunction, VMBoundMethod)) or callable(value):
             return "Fungsi"
+        if isinstance(value, VMReference):
+            return "Referensial"
         return "Objek"
 
     def _binary(self, op: str, left: Any, right: Any, state: ModuleState, locals_: dict[str, Any]) -> Any:

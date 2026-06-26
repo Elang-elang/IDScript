@@ -1,0 +1,153 @@
+struktur KamusObjek {
+    publik Object: kamus[Apapun, Apapun],
+}
+
+implementasi KamusObjek {
+    publik metode inisiasi(ini: KamusObjek, objek: kamus[Apapun, Apapun]): KamusObjek {
+        kembalikan KamusObjek { Object: objek };
+    }
+
+    publik metode __adalah_kamus__(ini: KamusObjek): Boolean {
+        kembalikan benar;
+    }
+
+    publik metode ambil(ini: KamusObjek, kunci: Apapun): Apapun {
+        kembalikan ini.Object[kunci];
+    }
+
+    publik metode ambil_bawaan(ini: KamusObjek, kunci: Apapun, bawaan: Apapun): Apapun {
+        kembalikan ini.Object.get(kunci, bawaan);
+    }
+
+    publik metode atur(ini: KamusObjek, kunci: Apapun, isi: Apapun): Kosong {
+        ini.Object[kunci] = isi;
+        kembalikan kosong;
+    }
+
+    publik metode punya(ini: KamusObjek, kunci: Apapun): Boolean {
+        kembalikan kunci didalam ini.Object;
+    }
+
+    publik metode iterasi(ini: KamusObjek): Apapun {
+        kembalikan ini.Object.__iter__();
+    }
+
+    publik metode aneka_item(ini: KamusObjek): Apapun {
+        kembalikan ini.Object.items();
+    }
+
+    publik metode aneka_kunci(ini: KamusObjek): Apapun {
+        kembalikan ini.Object.keys();
+    }
+
+    publik metode aneka_isi(ini: KamusObjek): Apapun {
+        kembalikan ini.Object.values();
+    }
+
+    publik metode perluas(ini: KamusObjek, subjek: Apapun): Kosong {
+        ini.Object.update(subjek);
+        kembalikan kosong;
+    }
+
+    publik metode bersihkan(ini: KamusObjek): Kosong {
+        ini.Object.clear();
+        kembalikan kosong;
+    }
+
+    publik metode salin(ini: KamusObjek): Apapun {
+        kembalikan ini.Object.copy();
+    }
+
+    publik metode atur_bawaan(ini: KamusObjek, kunci: Apapun, isi: Apapun): Apapun {
+        kembalikan ini.Object.setdefault(kunci, isi);
+    }
+
+    publik metode keluar_item(ini: KamusObjek): Apapun {
+        kembalikan ini.Object.popitem();
+    }
+
+    publik metode dihapus(ini: KamusObjek, kunci: Apapun): Apapun {
+        kembalikan ini.Object.pop(kunci);
+    }
+
+    publik metode __iter__(ini: KamusObjek): Apapun {
+        kembalikan ini.iterasi();
+    }
+
+    publik metode __contains__(ini: KamusObjek, kunci: Apapun): Boolean {
+        kembalikan ini.punya(kunci);
+    }
+
+    publik metode __len__(ini: KamusObjek): Angka {
+        kembalikan ini.Object.__len__();
+    }
+
+    publik metode __str__(ini: KamusObjek): Teks {
+        kembalikan ini.Object.__str__();
+    }
+
+    publik metode __repr__(ini: KamusObjek): Teks {
+        kembalikan ini.Object.__repr__();
+    }
+
+    publik metode __format__(ini: KamusObjek, spesifikasi: Teks): Teks {
+        kembalikan ini.Object.__format__(spesifikasi);
+    }
+
+    publik metode __getitem__(ini: KamusObjek, kunci: Apapun): Apapun {
+        kembalikan ini.Object.__getitem__(kunci);
+    }
+
+    publik metode __setitem__(ini: KamusObjek, kunci: Apapun, isi: Apapun): Kosong {
+        ini.Object.__setitem__(kunci, isi);
+        kembalikan kosong;
+    }
+
+    publik metode __delitem__(ini: KamusObjek, kunci: Apapun): Kosong {
+        ini.Object.__delitem__(kunci);
+        kembalikan kosong;
+    }
+
+    publik metode __eq__(ini: KamusObjek, subjek: Apapun): Boolean {
+        kembalikan ini.Object.__eq__(subjek);
+    }
+
+    publik metode __ne__(ini: KamusObjek, subjek: Apapun): Boolean {
+        kembalikan ini.Object.__ne__(subjek);
+    }
+
+    publik metode __sizeof__(ini: KamusObjek): Angka {
+        kembalikan ini.Object.__sizeof__();
+    }
+
+    publik metode __dir__(ini: KamusObjek): Apapun {
+        kembalikan ini.Object.__dir__();
+    }
+}
+
+publik fungsi Kamus(objek: Apapun): Apapun {
+    kembalikan KamusObjek { Object: objek };
+}
+
+publik fungsi adalah_kamus_asli(objek: Apapun): Boolean {
+    kembalikan info objek == "Kamus";
+}
+
+publik fungsi adalah_kamus_objek(objek: Apapun): Boolean {
+    jika (info objek != "Struktur") {
+        kembalikan salah;
+    }
+
+    coba {
+        kembalikan objek.__adalah_kamus__();
+    } tangkap (e) {
+        kembalikan salah;
+    }
+}
+
+publik fungsi adalah_kamus(objek: Apapun): Boolean {
+    jika (adalah_kamus_asli(objek)) {
+        kembalikan benar;
+    }
+    kembalikan adalah_kamus_objek(objek);
+}

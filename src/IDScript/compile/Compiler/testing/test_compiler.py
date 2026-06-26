@@ -391,6 +391,102 @@ def test_vm_try_blocks_survive_compiled_idsc_roundtrip():
     assert VM(loaded).run() == 6
 
 
+def test_vm_supports_referensial_and_dereferensial_pointer_ops():
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var nilai: Angka = 7;
+            var *ptr: Angka = &nilai;
+            *ptr = 12;
+            kembalikan nilai + *ptr;
+        }
+        """,
+        "pointer_vm.ids",
+    )
+
+    assert VM(module).run() == 24
+
+
+def test_vm_supports_copy_referensial_pointer_ops():
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var nilai: Angka = 3;
+            var *ptr: Angka = &nilai;
+            var *lain: Angka = salin ptr;
+            *lain = 9;
+            kembalikan *ptr;
+        }
+        """,
+        "pointer_copy_vm.ids",
+    )
+
+    assert VM(module).run() == 9
+
+
+def test_vm_deferensial_argument_mutates_caller():
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi ubah(*nilai: Angka): Angka {
+            *nilai = 8;
+            kembalikan *nilai;
+        }
+
+        fungsi utama(): Angka {
+            var nilai: Angka = 3;
+            ubah(&nilai);
+            kembalikan nilai;
+        }
+        """,
+        "deferensial_arg_vm.ids",
+    )
+
+    assert module.functions["ubah"].arg_is_def == [True]
+    assert VM(module).run() == 8
+
+
+def test_vm_deferensial_argument_requires_reference():
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi ubah(*nilai: Angka): Angka {
+            *nilai = 8;
+            kembalikan *nilai;
+        }
+
+        fungsi utama(): Angka {
+            var nilai: Angka = 3;
+            kembalikan ubah(nilai);
+        }
+        """,
+        "deferensial_arg_error_vm.ids",
+    )
+
+    with pytest.raises(Exception, match="TypeError: Argumen deferensial"):
+        VM(module).run()
+
+
+def test_vm_deferensial_argument_metadata_survives_idsc_roundtrip():
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi ubah(*nilai: Angka): Angka {
+            *nilai = 11;
+            kembalikan *nilai;
+        }
+
+        fungsi utama(): Angka {
+            var nilai: Angka = 4;
+            ubah(&nilai);
+            kembalikan nilai;
+        }
+        """,
+        "deferensial_arg_idsc_vm.ids",
+    )
+    loaded = ModuleCode.from_bytes(module.to_compiled_bytes())
+
+    assert loaded.functions["ubah"].arg_is_def == [True]
+    assert VM(loaded).run() == 11
+
+
 def test_vm_global_builtin_can_export_from_module(tmp_path):
     source = tmp_path / "main.ids"
     module_file = tmp_path / "scope.ids"
@@ -418,7 +514,8 @@ def test_vm_can_use_ids_builtin_atribut_and_iterasi():
     module = BytecodeCompiler().compile_source(
         '''
         dari "atribut.ids" impor { var punya_attr };
-        dari "iterasi.ids" impor { var panjang, var jangkauan, var Daftar };
+        dari "iterasi.ids" impor { var panjang, var jangkauan };
+        dari "Daftar.ids" impor { var Daftar };
 
         fungsi utama(): Angka {
             final data: Apapun = [1, 2, 3];
@@ -433,6 +530,35 @@ def test_vm_can_use_ids_builtin_atribut_and_iterasi():
     )
 
     assert VM(module).run() == 7
+
+
+def test_vm_can_use_standalone_daftar_and_kamus_builtins():
+    module = BytecodeCompiler().compile_source(
+        '''
+        dari "Daftar.ids" impor { var Daftar, var adalah_daftar };
+        dari "Kamus.ids" impor { var Kamus, var adalah_kamus };
+
+        fungsi utama(): Angka {
+            final daftar: Apapun = Daftar([1, 2]);
+            daftar.masukan(3);
+
+            final kamus: Apapun = Kamus({"a": 1});
+            kamus.atur("b", 2);
+
+            jika (bukan adalah_daftar(daftar)) { kembalikan 1; }
+            jika (bukan adalah_daftar([1])) { kembalikan 2; }
+            jika (adalah_daftar(kamus)) { kembalikan 3; }
+            jika (bukan adalah_kamus(kamus)) { kembalikan 4; }
+            jika (bukan adalah_kamus({"x": 1})) { kembalikan 5; }
+            jika (adalah_kamus(daftar)) { kembalikan 6; }
+
+            kembalikan daftar.ambil(2) + kamus.ambil("b");
+        }
+        ''',
+        "standalone_daftar_kamus.ids",
+    )
+
+    assert VM(module).run() == 5
 
 
 def test_vm_can_import_compiled_idsm_and_idsc_modules(tmp_path):
