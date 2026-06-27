@@ -11,7 +11,7 @@
   let scriptsPromise = null;
 
   function getLanguages(baseUrl) {
-    const icon = baseUrl ? `${baseUrl}small.jpg` : "small.jpg";
+    const icon = baseUrl ? `${baseUrl}small.jpg` : "./small.jpg";
     return [
       {
         name: "idscript",
@@ -25,8 +25,8 @@
         },
       },
       {
-        name: "idscript_module_json",
-        caption: "IDScript Module JSON",
+        name: "idscript_module",
+        caption: "IDScript Module",
         mode: "ace/mode/json",
         extensions: "idsm|idsc",
         icon,

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import os
+import re
 from typing import Any
 
 from lark import UnexpectedCharacters, UnexpectedEOF, UnexpectedInput, UnexpectedToken
@@ -24,9 +25,14 @@ class SourceSpan:
 _ANSI = {
     "reset": "\033[0m",
     "bold": "\033[1m",
+    "dim": "\033[2m",
     "red": "\033[31m",
+    "green": "\033[32m",
+    "yellow": "\033[33m",
     "blue": "\033[34m",
+    "magenta": "\033[35m",
     "cyan": "\033[36m",
+    "gray": "\033[90m",
 }
 
 
@@ -252,6 +258,81 @@ _EXPECTED_PRIORITY = {
     "NAME": 6,
 }
 
+_IDENT_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+_NUMBER_RE = re.compile(r"[-+]?(?:\d+\.\d+|\d+)(?:[eE][-+]?\d+)?\b")
+
+_DECLARATION_KEYWORDS = {
+    "fungsi",
+    "metode",
+    "struktur",
+    "implementasi",
+    "sifat",
+    "enum",
+    "tipe",
+    "antarmuka",
+    "turunan",
+}
+
+_CONTROL_KEYWORDS = {
+    "jika",
+    "namun",
+    "tidak",
+    "untuk",
+    "dari",
+    "dalam",
+    "selama",
+    "coba",
+    "tangkap",
+    "diakhiri",
+    "pilah",
+    "kasus",
+    "bawaan",
+}
+
+_FLOW_KEYWORDS = {
+    "kembalikan",
+    "kesalahan",
+    "berhentikan",
+    "lanjutkan",
+}
+
+_MODIFIER_KEYWORDS = {
+    "publik",
+    "privat",
+    "statik",
+    "final",
+    "var",
+    "konst",
+    "KONSTANTA",
+    "konstan",
+}
+
+_WORD_OPERATORS = {
+    "bukan",
+    "atau",
+    "dan",
+    "didalam",
+    "adalah",
+    "bukanlah",
+    "sebagai",
+    "salin",
+    "impor",
+}
+
+_CONSTANTS = {"benar", "salah", "kosong"}
+_BUILTIN_TYPES = {
+    "Teks",
+    "Angka",
+    "Float",
+    "Boolean",
+    "Kosong",
+    "Apapun",
+    "OBJEK",
+    "daftar",
+    "kamus",
+    "hasil",
+}
+
 
 def _expected_name(name: str) -> str:
     return _EXPECTED_NAMES.get(name, name.lower().replace("_", " "))
@@ -268,27 +349,110 @@ def _expected_list(expected: Any) -> str:
     return ", ".join(values)
 
 
+def _highlight_identifier(value: str) -> str:
+    if value in _DECLARATION_KEYWORDS:
+        return _paint(value, "bold", "magenta")
+    if value in _CONTROL_KEYWORDS:
+        return _paint(value, "bold", "blue")
+    if value in _FLOW_KEYWORDS:
+        return _paint(value, "bold", "red")
+    if value in _MODIFIER_KEYWORDS:
+        return _paint(value, "yellow")
+    if value in _WORD_OPERATORS:
+        return _paint(value, "magenta")
+    if value in _CONSTANTS:
+        return _paint(value, "bold", "magenta")
+    if value in _BUILTIN_TYPES:
+        return _paint(value, "bold", "cyan")
+    return value
+
+
+def _highlight_source_line(line: str) -> str:
+    if not _use_color():
+        return line
+
+    result: list[str] = []
+    index = 0
+    while index < len(line):
+        if line.startswith("//", index):
+            result.append(_paint(line[index:], "dim", "gray"))
+            break
+        if line.startswith("/*", index):
+            result.append(_paint(line[index:], "dim", "gray"))
+            break
+
+        char = line[index]
+        if char == '"':
+            start = index
+            index += 1
+            escaped = False
+            while index < len(line):
+                current = line[index]
+                if current == '"' and not escaped:
+                    index += 1
+                    break
+                escaped = current == "\\" and not escaped
+                if current != "\\":
+                    escaped = False
+                index += 1
+            result.append(_paint(line[start:index], "green"))
+            continue
+
+        number = _NUMBER_RE.match(line, index)
+        if number:
+            result.append(_paint(number.group(0), "yellow"))
+            index = number.end()
+            continue
+
+        identifier = _IDENT_RE.match(line, index)
+        if identifier:
+            result.append(_highlight_identifier(identifier.group(0)))
+            index = identifier.end()
+            continue
+
+        if line.startswith(("==", "!=", ">=", "<=", "**"), index):
+            result.append(_paint(line[index:index + 2], "bold", "magenta"))
+            index += 2
+            continue
+
+        if char in "&*+-/=<>!?":
+            result.append(_paint(char, "bold", "magenta"))
+        elif char in "{}[](),;:.":
+            result.append(_paint(char, "blue"))
+        else:
+            result.append(char)
+        index += 1
+
+    return "".join(result)
+
+
 def _source_context(source: str, span: SourceSpan) -> str:
     lines = source.splitlines()
     if span.line < 1 or span.line > len(lines):
         return ""
 
-    line = lines[span.line - 1]
-    number = str(span.line)
-    gutter = " " * len(number)
+    radius = 2
+    start_line = max(span.line - radius, 1)
+    end_line = min(span.line + radius, len(lines))
+    line_number_width = len(str(end_line))
+    gutter = " " * line_number_width
     caret_offset = max(span.column - 1, 0)
     bar = _paint("|", "blue")
-    line_number = _paint(number, "blue")
     caret = _paint("^", "bold", "red")
-    return "\n".join(
-        [
-            f" {gutter} {bar}",
-            f" {line_number} {bar} {line}",
-            f" {gutter} {bar} {' ' * caret_offset}{caret}",
-        ]
-    )
+
+    context = [f" {gutter} {bar}"]
+    for line_number in range(start_line, end_line + 1):
+        raw_line = lines[line_number - 1]
+        display_number = str(line_number).rjust(line_number_width)
+        if line_number == span.line:
+            display_number = _paint(display_number, "bold", "red")
+        else:
+            display_number = _paint(display_number, "blue")
+        context.append(f" {display_number} {bar} {_highlight_source_line(raw_line)}")
+        if line_number == span.line:
+            context.append(f" {gutter} {bar} {' ' * caret_offset}{caret}")
+    return "\n".join(context)
 
 
 # Compatibility with the earlier temporary name.
 IDSyntaxError = IDSSyntaxError
-__exceptions__ = [ IDSError, IDSNameError, IDSRuntimeError, IDSSyntaxError, IDSyntaxError ]

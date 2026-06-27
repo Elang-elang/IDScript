@@ -61,7 +61,7 @@ private_struct: "privat"? struct_attrs
 public_struct: "publik" struct_attrs
 
 struct_attrs: "struktur" name block_struct struct_extend?
-struct_extend: "turunan" "dari" name
+struct_extend: "turunan" "dari" name ";"?
 
 block_struct: "{" (struct_fields ("," struct_fields)* ","?)? "}"
 struct_fields: private_field | public_field
@@ -311,7 +311,7 @@ interface_stmt: private_interface | public_interface
 private_interface: "privat"? interface_attrs
 public_interface: "publik" interface_attrs
 interface_attrs: _interface_keyword name interface_object
-interface_object: "{" (interface_body_object ("," interface_body_object)* ","?)? "}"
+interface_object: "{" (interface_body_object ("," interface_body_object)* ","?)? "}" ";"?
 interface_body_object: dkey ":" type_ann | dkey ":" interface_object
 _interface_keyword: "antarmuka"
 

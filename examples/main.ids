@@ -1,4 +1,3 @@
-
 fungsi Tambah(*obj: Angka, sbj: Angka): Kosong {
     *obj = *obj + sbj;
 }
@@ -7,7 +6,6 @@ fungsi utama(): Angka {
     var result: Angka;
     var angka_tambah: Angka = 15;
     Tambah(&result, angka_tambah);
-    tidak didalam
 
     jika (result == angka_tambah) {
         println("Berhasil dengan nilai akhir: {}", result);
@@ -15,4 +13,5 @@ fungsi utama(): Angka {
         println("Gagal dengan nilai akhir: {}", result);
     }
     kembalikan result;
+
 }

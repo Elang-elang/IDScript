@@ -5,6 +5,7 @@ from click.testing import CliRunner
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
+from IDScript import __version__
 from IDScript.__main__ import main
 
 
@@ -76,3 +77,42 @@ def test_cli_compile_mode_requires_output_file(tmp_path):
 
     assert result.exit_code != 0
     assert "OUTPUT_FILE wajib diisi" in result.output
+
+
+def test_cli_reports_version():
+    result = CliRunner().invoke(main, ["--version"])
+
+    assert result.exit_code == 0
+    assert f"idscript, version {__version__}" in result.output
+
+
+def test_cli_reports_colored_help():
+    result = CliRunner().invoke(main, ["--help"], color=True)
+
+    assert result.exit_code == 0
+    assert "idscript" in result.output
+    assert "--version" in result.output
+    assert "\x1b[" in result.output
+
+
+def test_cli_reports_colored_idscript_syntax_error(tmp_path):
+    source = tmp_path / "bad.ids"
+    source.write_text(
+        """fungsi utama(): Angka {
+    var awal: Angka = 1;
+    var nilai: Angka = 2
+    kembalikan nilai;
+    println("selesai");
+}
+""",
+        encoding="utf-8",
+    )
+
+    result = CliRunner().invoke(main, [str(source)], color=True)
+
+    assert result.exit_code == 1
+    assert "kesalahan sintaks" in result.output
+    assert "bad.ids:4:" in result.output
+    assert "awal" in result.output
+    assert "println" in result.output
+    assert "\x1b[" in result.output
