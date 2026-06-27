@@ -9,6 +9,7 @@ import operator
 from pathlib import Path
 
 from ..ids_ast import *
+from ..diagnostics import IDSRuntimeError, annotate_exception, get_source
 from .scope import GlobalScope, Scope
 from .control import Throw, Return, Break, Continue
 from .types import check_types, EMPTY, Result, default_value
@@ -94,7 +95,12 @@ class Compiler:
             type(__node).__name__,
             self._undefined_node,
         )
-        return method(__node)
+        try:
+            return method(__node)
+        except (Return, Throw, Break, Continue):
+            raise
+        except Exception as error:
+            raise annotate_exception(error, get_source(__node)) from error
 
     def _undefined_node(self, __node):
         raise NotImplementedError(f'The node/token {type(__node).__name__!r} is undefined')
@@ -106,14 +112,10 @@ class Compiler:
                     self.v(body)
         except ImportError:
             raise
+        except IDSRuntimeError:
+            raise
         except Exception as e:
-            raise Exception(
-                (
-                    'Something was wrong on file\n'
-                    f'    {self.config.path()!r}\n\n'
-                    f'{type(e).__name__}: {str(e)}\n'
-                )
-            )
+            raise IDSRuntimeError.from_exception(e, file=self.config.path()) from e
     
     def Top(self, node: Top):
         return self.v(node.body)
@@ -334,10 +336,9 @@ class Compiler:
                 check_types(result, return_type)
                 return result
             except Throw as err:
-                error = Exception('Something was wrong')
-                if err.args:
-                    error = err.args[0]
-                check_types(error, return_type)
+                error = err.args[0] if err.args else IDSRuntimeError('Something was wrong')
+                if not isinstance(error, BaseException):
+                    error = IDSRuntimeError(error)
                 raise error
             except:
                 raise
@@ -509,10 +510,9 @@ class Compiler:
                 check_types(result, return_type)
                 return result
             except Throw as err:
-                error = Exception('Something was wrong')
-                if err.args:
-                    error = err.args[0]
-                check_types(error, return_type)
+                error = err.args[0] if err.args else IDSRuntimeError('Something was wrong')
+                if not isinstance(error, BaseException):
+                    error = IDSRuntimeError(error)
                 raise error
             except:
                 raise
@@ -650,7 +650,7 @@ class Compiler:
         except Throw as err:
             if not node.handler:
                 raise
-            error = err.args[0] if err.args else Exception('Something was wrong')
+            error = err.args[0] if err.args else IDSRuntimeError('Something was wrong')
             self._handle_exception(node.handler[0], error)
             handled = True
 
@@ -852,7 +852,7 @@ class Compiler:
             for func_wrapp in funcs_wrapp:
                 func_wrapp(exports)
         except Throw as e:
-            raise Exception(f'Something was wrong in {str(path_module)}: {str(e)}')
+            raise IDSRuntimeError(f'Something was wrong in {str(path_module)}: {str(e)}') from e
         except:
             raise
 

@@ -29,7 +29,7 @@ class BytecodeCompiler:
         self._temp_id = 0
 
     def compile_source(self, code: str, file: str | Path = "<memory.ids>") -> ModuleCode:
-        module = self.compile_ast(parse_source(code), Path(file).resolve())
+        module = self.compile_ast(parse_source(code, str(file)), Path(file).resolve())
         module.modules = {path: value for path, value in self._cache.items() if path != module.path}
         return module
 
@@ -48,7 +48,7 @@ class BytecodeCompiler:
             return self._path_cache[key]
         if path.suffix in {".idsm", ".idsc", ".idbc"}:
             return self._load_binary_module(path)
-        return self._compile_program(parse_source(path.read_text()), path)
+        return self._compile_program(parse_source(path.read_text(), str(path)), path)
 
     def _load_binary_module(self, path: Path) -> ModuleCode:
         module = ModuleCode.from_bytes(path.read_bytes())

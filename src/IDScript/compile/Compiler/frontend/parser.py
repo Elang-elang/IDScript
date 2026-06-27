@@ -14,6 +14,6 @@ from ...parser import Parse
 GRAMMAR_FILE = Path(__file__).resolve().parents[3] / "gramm.lark"
 
 
-def parse_source(code: str) -> Program:
-    parser = Lark(GRAMMAR_FILE.read_text(), parser="earley", ambiguity="resolve")
-    return cast(Program, Parse(parser.parse(code)))
+def parse_source(code: str, file: str = "<memory.ids>") -> Program:
+    parser = Lark(GRAMMAR_FILE.read_text(), parser="earley", ambiguity="resolve", propagate_positions=True)
+    return cast(Program, Parse(parser.parse(code), file=file))

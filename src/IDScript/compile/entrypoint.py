@@ -1,11 +1,13 @@
 """Entrypoint for parsing, compiling, and running IDScript source code."""
 
 from lark import Lark
+from lark import UnexpectedInput
 from pathlib import Path
 from typing import cast
 from .parser import Parse
 from .runtime import Compiler
 from .ids_ast import Program
+from .diagnostics import IDSSyntaxError
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -15,11 +17,15 @@ class Compile:
         self.parser = Lark(
             (BASE_DIR.parent / 'gramm.lark').read_text(),
             parser='earley',
-            ambiguity='resolve'
+            ambiguity='resolve',
+            propagate_positions=True,
         )
         self.__compiler__ = Compiler(str(file), is_module=is_module)
-        self.__tree = self.parser.parse(code)
-        self.__raw_code__ = cast(Program, Parse(self.__tree))
+        try:
+            self.__tree = self.parser.parse(code)
+        except UnexpectedInput as err:
+            raise IDSSyntaxError.from_lark(err, str(file), code) from err
+        self.__raw_code__ = cast(Program, Parse(self.__tree, file=str(file)))
         self.__code__ = self.__compiler__.Program(self.__raw_code__)
     
     def _run_func(self, name, *args):

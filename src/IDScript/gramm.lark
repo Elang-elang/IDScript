@@ -221,7 +221,7 @@ all_import_attrs: "*Apapun" | "*"
 expr: expr_
 expr_: not_
 
-not_: /bukan/ expr
+not_: (/bukan/) expr
     | or_
 or_: and_ ("atau" expr_)?
 and_: in_ ("dan" expr_)?

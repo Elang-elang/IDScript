@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 
 
-def _run_bytecode_file(file: Path, main: str) -> None:
+def _run_bytecode_file(file: Path, main: str = 'utama') -> None:
     from .bytecode import ModuleCode
     from .runtime import VM
 

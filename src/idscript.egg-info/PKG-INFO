@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: idscript
-Version: 0.1.1
+Version: 0.1.3
 Summary: IDScript adalah bahasa pemrograman berbahasa Indonesia penerus Indonesian Script (IS), dengan interpreter dan compiler VM resmi.
 Home-page: https://github.com/Elang-elang/IDScript
 Author: Elang MRJ
@@ -8,7 +8,9 @@ Author-email: elangmuhamad888@gmail.com
 License: MIT
 Project-URL: Indonesian Script (IS), https://github.com/Elang-elang/indonesian_script
 Project-URL: Source, https://github.com/Elang-elang/IDScript
-Classifier: Development Status :: 2 - Pre-Alpha
+Project-URL: Display Icon, https://raw.githubusercontent.com/Elang-elang/IDScript/main/icons/big.jpg
+Project-URL: Small Icon, https://raw.githubusercontent.com/Elang-elang/IDScript/main/icons/small.jpg
+Classifier: Development Status :: 4 - Beta
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.13
 Classifier: Topic :: Software Development :: Compilers
@@ -42,6 +44,8 @@ Dynamic: requires-python
 Dynamic: summary
 
 <div align="center">
+
+<img src="icons/big.jpg" alt="IDScript" width="160">
 
 # IDScript
 

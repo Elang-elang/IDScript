@@ -2,12 +2,21 @@
 
 from lark import Transformer, v_args
 from ..ids_ast import *
+from ..diagnostics import set_source, span_from_meta, span_from_token
 from ..runtime.types import EMPTY
 
 @v_args(inline=True)
 class _Parse(Transformer):
-    def __init__(self):
-        pass
+    def __init__(self, file: str = "<unknown>"):
+        self.file = file
+
+    def _call_userfunc(self, tree, new_children=None):
+        result = super()._call_userfunc(tree, new_children)
+        return set_source(result, span_from_meta(tree.meta, self.file))
+
+    def _call_userfunc_token(self, token):
+        result = super()._call_userfunc_token(token)
+        return set_source(result, span_from_token(token, self.file))
     
     # The PROGRAM
     def start(self, prog):
@@ -805,8 +814,8 @@ class _Parse(Transformer):
         return Name(id=str(id))
 
 class Parse:
-    def __new__(cls, tree):
-        return _Parse().transform(tree)
+    def __new__(cls, tree, file: str = "<unknown>"):
+        return _Parse(file).transform(tree)
     @classmethod
     def __repr__(cls):
         return 'parse.Parse'

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://acode.app/schema/plugin/v0.1.0.json",
+  "id": "idscript.syntax",
+  "name": "IDScript Syntax",
+  "version": "0.1.0",
+  "repository": "https://github.com/Elang-elang/IDScript",
+  "main": "main.js",
+  "icon": "small.jpg",
+  "minVersionCode": 290,
+  "license": "MIT",
+  "keywords": [
+    "idscript",
+    "syntax",
+    "highlighting",
+    "ace"
+  ],
+  "price": 0,
+  "permissions": [],
+  "author": {
+    "name": "Elang MRJ",
+    "email": "elangmuhamad888@gmail.com",
+    "github": "Elang-elang"
+  },
+  "readme": "README.md",
+  "files": [
+    "small.jpg",
+    "big.jpg",
+    "main.js",
+    "mode-idscript.js",
+    "snippets/idscript.js",
+    "README.md"
+  ]
+}

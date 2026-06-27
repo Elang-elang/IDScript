@@ -1,15 +1,15 @@
 from pathlib import Path
+import os
 
 from setuptools import find_packages, setup
 
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent
+os.chdir(ROOT)
 README = ROOT / "README.md"
-
-
 setup(
     name="idscript",
-    version="0.1.2",
+    version="0.1.3",
     description="IDScript adalah bahasa pemrograman berbahasa Indonesia penerus Indonesian Script (IS), dengan interpreter dan compiler VM resmi.",
     long_description=README.read_text(encoding="utf-8") if README.exists() else "",
     long_description_content_type="text/markdown",
@@ -19,14 +19,16 @@ setup(
     project_urls={
         "Indonesian Script (IS)": "https://github.com/Elang-elang/indonesian_script",
         "Source": "https://github.com/Elang-elang/IDScript",
+        "Display Icon": "https://raw.githubusercontent.com/Elang-elang/IDScript/main/icons/big.jpg",
+        "Small Icon": "https://raw.githubusercontent.com/Elang-elang/IDScript/main/icons/small.jpg",
     },
     license="MIT",
     license_files=["LICENSE.md"],
     package_dir={"": "src"},
     packages=find_packages(where="src"),
-    include_package_data=True,
+    include_package_data=False,
     package_data={
-        "IDScript": ["gramm.lark"],
+        "IDScript": ["gramm.lark", "icons/*.jpg"],
         "IDScript.builtins": ["*.ids", "*.idsc", "Regex/*.ids"],
         "IDScript.compile.Compiler": ["TOKEN.json"],
     },

@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="icons/big.jpg" alt="IDScript" width="160">
+
 # IDScript
 
 **Bahasa pemrograman berbahasa Indonesia dengan interpreter, compiler VM, dan bytecode resmi.**

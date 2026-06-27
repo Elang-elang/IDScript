@@ -5,6 +5,7 @@ from lark import Lark
 import pytest
 
 from compile import Compile, Compiler, Parse
+from compile.diagnostics import IDSError, IDSNameError, IDSSyntaxError
 
 COMPILE_DIR = Path(__file__).resolve().parent.parent
 
@@ -55,6 +56,43 @@ def test_declared_function_argument_is_supported():
     function = compiler.current_scope.get("identitas")
 
     assert function(2) == 2
+
+
+def test_syntax_error_reports_source_location():
+    code = "fungsi utama(: Angka { kembalikan(0); }"
+
+    with pytest.raises(IDSSyntaxError) as err:
+        Compile(code, "syntax_error.ids")
+
+    assert isinstance(err.value, IDSError)
+    message = str(err.value)
+    assert "syntax_error.ids:1:" in message
+    assert "kesalahan sintaks" in message
+    assert "^" in message
+
+
+def test_undefined_identifier_raises_ids_name_error():
+    result = Compile("fungsi utama(): Angka { kembalikan tidak_ada; }", "name_error.ids")
+
+    with pytest.raises(IDSNameError) as err:
+        result.main()
+
+    assert "tidak_ada" in str(err.value)
+    assert "name_error.ids:1:" in str(err.value)
+
+
+def test_runtime_error_reports_source_location():
+    code = """fungsi utama(): Angka {
+    var nilai: Angka = "salah";
+    kembalikan nilai;
+}
+"""
+    result = Compile(code, "runtime_error.ids")
+
+    with pytest.raises(Exception) as err:
+        result.main()
+
+    assert "runtime_error.ids:2:" in str(err.value)
 
 
 def test_cpp_comment_syntax_is_ignored():

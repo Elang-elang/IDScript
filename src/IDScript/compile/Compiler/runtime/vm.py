@@ -8,6 +8,7 @@ from typing import Any
 
 from ..builtins import BUILTIN_FUNCTIONS, BUILTIN_TYPES, default_value, Global, Lokal
 from ..bytecode import FunctionCode, ModuleCode
+from ...diagnostics import IDSNameError, IDSRuntimeError
 
 
 OPCODE_ALIASES = {
@@ -254,14 +255,10 @@ class VM:
             return self._call(func, [], state, {})
         except AttributeError:
             raise
+        except IDSRuntimeError:
+            raise
         except Exception as e:
-            raise Exception(
-                (
-                    'Something was wrong on file\n'
-                    f'    {self.root.path!r}\n\n'
-                    f'{type(e).__name__}: {str(e)}\n'
-                )
-            )
+            raise IDSRuntimeError.from_exception(e, file=self.root.path) from e
 
     def exports(self, module_key: str | None = None) -> dict[str, Any]:
         state = self._load_module(module_key or self.root.path)
@@ -447,7 +444,7 @@ class VM:
                     else:
                         raise ImportError(f"Name {source!r} tidak diekspor oleh {inst[1]!r}")
             elif op == "RAISE_ERROR":
-                raise RuntimeError(stack.pop() if stack else "IDScript VM error")
+                raise IDSRuntimeError(stack.pop() if stack else "IDScript VM error")
             else:
                 raise NotImplementedError(f"Opcode VM {op!r} belum diimplementasikan")
             ip += 1
@@ -538,14 +535,14 @@ class VM:
             return False
         if name == "kosong":
             return None
-        raise NameError(f"{name!r} tidak didefinisikan")
+        raise IDSNameError(f"{name!r} tidak terdefinisi")
 
     def _resolve_reference(self, state: ModuleState, name: str, locals_: dict[str, Any]) -> VMReference:
         if name in locals_:
             return VMReference(locals_, name)
         if name in state.globals:
             return VMReference(state.globals, name)
-        raise NameError(f"{name!r} tidak didefinisikan")
+        raise IDSNameError(f"{name!r} tidak terdefinisi")
 
     def _dereference(self, value: Any) -> Any:
         if not isinstance(value, VMReference):

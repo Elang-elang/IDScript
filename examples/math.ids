@@ -1,5 +1,5 @@
-publik fungsi tambah(a: Angka, b: Angka): Angka {
-    kembalikan a + b;
+publik fungsi tambahA(*a: Angka, b: Angka): Kosong {
+    *a = *a + b;
 }
 
 publik KONSTANTA VERSI: Teks = "compiler-1";
