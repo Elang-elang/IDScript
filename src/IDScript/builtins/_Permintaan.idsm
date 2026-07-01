@@ -1,0 +1,411 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "_Permintaan",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Permintaan.idsm",
+    "code": [],
+    "functions": {
+        "minta": {
+            "name": "minta",
+            "args": [
+                "method",
+                "url",
+                "opsi"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.minta"
+                ],
+                [
+                    "LOAD_NAME",
+                    "method"
+                ],
+                [
+                    "LOAD_NAME",
+                    "url"
+                ],
+                [
+                    "LOAD_NAME",
+                    "opsi"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    3
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "ambil": {
+            "name": "ambil",
+            "args": [
+                "url",
+                "opsi"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.ambil"
+                ],
+                [
+                    "LOAD_NAME",
+                    "url"
+                ],
+                [
+                    "LOAD_NAME",
+                    "opsi"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "kirim": {
+            "name": "kirim",
+            "args": [
+                "url",
+                "opsi"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.kirim"
+                ],
+                [
+                    "LOAD_NAME",
+                    "url"
+                ],
+                [
+                    "LOAD_NAME",
+                    "opsi"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "taruh": {
+            "name": "taruh",
+            "args": [
+                "url",
+                "opsi"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.taruh"
+                ],
+                [
+                    "LOAD_NAME",
+                    "url"
+                ],
+                [
+                    "LOAD_NAME",
+                    "opsi"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "tambal": {
+            "name": "tambal",
+            "args": [
+                "url",
+                "opsi"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.tambal"
+                ],
+                [
+                    "LOAD_NAME",
+                    "url"
+                ],
+                [
+                    "LOAD_NAME",
+                    "opsi"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "hapus": {
+            "name": "hapus",
+            "args": [
+                "url",
+                "opsi"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.hapus"
+                ],
+                [
+                    "LOAD_NAME",
+                    "url"
+                ],
+                [
+                    "LOAD_NAME",
+                    "opsi"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "teks": {
+            "name": "teks",
+            "args": [
+                "response"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.teks"
+                ],
+                [
+                    "LOAD_NAME",
+                    "response"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "json": {
+            "name": "json",
+            "args": [
+                "response"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.json"
+                ],
+                [
+                    "LOAD_NAME",
+                    "response"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "status": {
+            "name": "status",
+            "args": [
+                "response"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.status"
+                ],
+                [
+                    "LOAD_NAME",
+                    "response"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "header": {
+            "name": "header",
+            "args": [
+                "response"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.header"
+                ],
+                [
+                    "LOAD_NAME",
+                    "response"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "url": {
+            "name": "url",
+            "args": [
+                "response"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.url"
+                ],
+                [
+                    "LOAD_NAME",
+                    "response"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "berhasil": {
+            "name": "berhasil",
+            "args": [
+                "response"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.berhasil"
+                ],
+                [
+                    "LOAD_NAME",
+                    "response"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        }
+    },
+    "exports": [
+        "minta",
+        "ambil",
+        "kirim",
+        "taruh",
+        "tambal",
+        "hapus",
+        "teks",
+        "json",
+        "status",
+        "header",
+        "url",
+        "berhasil"
+    ],
+    "modules": {},
+    "native_symbols": {
+        "__py_native__.minta": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_minta",
+            "registry_key": "IDScript.builtins._Permintaan:_minta"
+        },
+        "__py_native__.ambil": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_ambil",
+            "registry_key": "IDScript.builtins._Permintaan:_ambil"
+        },
+        "__py_native__.kirim": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_kirim",
+            "registry_key": "IDScript.builtins._Permintaan:_kirim"
+        },
+        "__py_native__.taruh": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_taruh",
+            "registry_key": "IDScript.builtins._Permintaan:_taruh"
+        },
+        "__py_native__.tambal": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_tambal",
+            "registry_key": "IDScript.builtins._Permintaan:_tambal"
+        },
+        "__py_native__.hapus": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_hapus",
+            "registry_key": "IDScript.builtins._Permintaan:_hapus"
+        },
+        "__py_native__.teks": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_teks",
+            "registry_key": "IDScript.builtins._Permintaan:_teks"
+        },
+        "__py_native__.json": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_json",
+            "registry_key": "IDScript.builtins._Permintaan:_json"
+        },
+        "__py_native__.status": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_status",
+            "registry_key": "IDScript.builtins._Permintaan:_status"
+        },
+        "__py_native__.header": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_header",
+            "registry_key": "IDScript.builtins._Permintaan:_header"
+        },
+        "__py_native__.url": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_url",
+            "registry_key": "IDScript.builtins._Permintaan:_url"
+        },
+        "__py_native__.berhasil": {
+            "kind": "function",
+            "module": "IDScript.builtins._Permintaan",
+            "qualname": "_berhasil",
+            "registry_key": "IDScript.builtins._Permintaan:_berhasil"
+        }
+    }
+}

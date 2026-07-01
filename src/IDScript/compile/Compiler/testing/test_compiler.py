@@ -1,14 +1,32 @@
 from pathlib import Path
+import json
 import pytest
 import subprocess
 import sys
 import time
 
 from compile.Compiler import BytecodeCompiler, FunctionCode, ModuleCode, TOKEN, VM, compile_bytecode_file, run_source_direct
+from compile.diagnostics import IDSRuntimeError
 
 
 EXAMPLE_DIR = Path(__file__).resolve().parents[1] / "examples"
 IDSCRIPT_DIR = Path(__file__).resolve().parents[3]
+
+
+def assert_idsm_format(data: bytes) -> None:
+    assert data.startswith(b"IDSM1\n")
+    payload = data[len(b"IDSM1\n"):]
+    assert payload.startswith(b"{\n    ")
+    assert json.loads(payload.decode("utf-8"))["format"] == "idsm"
+
+
+def assert_idsc_format(data: bytes) -> None:
+    assert data.startswith(b"IDSC1\n")
+    payload = data[len(b"IDSC1\n"):]
+    assert payload
+    assert not payload.lstrip().startswith(b"{")
+    with pytest.raises((UnicodeDecodeError, json.JSONDecodeError)):
+        json.loads(payload.decode("utf-8"))
 
 
 def test_token_registry_can_encode_and_decode_opcode():
@@ -79,10 +97,17 @@ def test_official_compiler_writes_idsm_and_idsc(tmp_path, capsys):
 
     compile_bytecode_file(source, bytecode_file, module_file)
 
-    assert module_file.read_bytes().startswith(b"IDSM1\n")
-    assert bytecode_file.read_bytes().startswith(b"IDSC1\n")
+    assert_idsm_format(module_file.read_bytes())
+    assert_idsc_format(bytecode_file.read_bytes())
     assert VM(ModuleCode.from_bytes(bytecode_file.read_bytes())).run() == 25
     assert capsys.readouterr().out == "elang\n25\n"
+
+
+def test_compiled_idsc_rejects_old_json_payload():
+    old_payload = b'IDSC1\n{"format":"idsc","version":1}'
+
+    with pytest.raises(Exception, match="Tag binary IDScript"):
+        ModuleCode.from_bytes(old_payload)
 
 
 def test_official_compiler_cli_default_pipeline(tmp_path):
@@ -100,8 +125,8 @@ def test_official_compiler_cli_default_pipeline(tmp_path):
     )
 
     assert result.stdout == "elang\n25\n"
-    assert source.with_suffix(".idsm").read_bytes().startswith(b"IDSM1\n")
-    assert source.with_suffix(".idsc").read_bytes().startswith(b"IDSC1\n")
+    assert_idsm_format(source.with_suffix(".idsm").read_bytes())
+    assert_idsc_format(source.with_suffix(".idsc").read_bytes())
 
 
 def test_bytecode_compiler_can_compile_ast_from_memory():
@@ -131,8 +156,8 @@ def test_calculator_examples_compile_to_bytecode_and_run_fast(tmp_path, capsys):
         bytecode_file = source.with_suffix(".idsc")
 
         compile_bytecode_file(source, bytecode_file, module_file)
-        assert module_file.read_bytes().startswith(b"IDSM1\n")
-        assert bytecode_file.read_bytes().startswith(b"IDSC1\n")
+        assert_idsm_format(module_file.read_bytes())
+        assert_idsc_format(bytecode_file.read_bytes())
 
         module = ModuleCode.from_bytes(bytecode_file.read_bytes())
         start = time.perf_counter()
@@ -160,7 +185,7 @@ def test_vm_supports_typedef_interface_and_enum(tmp_path):
 
         enum Type {
             publik Kosong,
-            publik Daftar(daftar[Angka]),
+            publik Daftar(daftar<Angka>),
             publik Object { nama: Teks, umur: Angka },
             publik Kode = 7,
         }
@@ -193,8 +218,8 @@ def test_vm_supports_typedef_interface_and_enum(tmp_path):
 
     compile_bytecode_file(source, bytecode_file, module_file)
 
-    assert module_file.read_bytes().startswith(b"IDSM1\n")
-    assert bytecode_file.read_bytes().startswith(b"IDSC1\n")
+    assert_idsm_format(module_file.read_bytes())
+    assert_idsc_format(bytecode_file.read_bytes())
     assert VM(ModuleCode.from_bytes(bytecode_file.read_bytes())).run() == 27
 
 
@@ -281,11 +306,11 @@ def test_vm_rejects_private_enum_variant_from_module(tmp_path):
 
     module = BytecodeCompiler().compile_file(source)
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(IDSRuntimeError, match="Status.*Rahasia"):
         VM(module).run()
 
 
-def test_vm_supports_global_and_lokal_builtins():
+def test_vm_global_and_lokal_are_not_internal_builtins():
     module = BytecodeCompiler().compile_source(
         """
         fungsi utama(): Angka {
@@ -297,7 +322,8 @@ def test_vm_supports_global_and_lokal_builtins():
         "scope_builtins.ids",
     )
 
-    assert VM(module).run() == 12
+    with pytest.raises(IDSRuntimeError, match="Global"):
+        VM(module).run()
 
 
 def test_vm_supports_try_catch_else_and_finally():
@@ -353,6 +379,8 @@ def test_vm_supports_try_else_when_no_error():
 def test_vm_finally_runs_before_return_from_try():
     module = BytecodeCompiler().compile_source(
         """
+        dari "Konsol.idsm" impor { publik println };
+
         fungsi utama(): Angka {
             coba {
                 kembalikan 7;
@@ -461,7 +489,7 @@ def test_vm_deferensial_argument_requires_reference():
         "deferensial_arg_error_vm.ids",
     )
 
-    with pytest.raises(Exception, match="TypeError: Argumen deferensial"):
+    with pytest.raises(IDSRuntimeError, match="Argumen deferensial"):
         VM(module).run()
 
 
@@ -487,12 +515,12 @@ def test_vm_deferensial_argument_metadata_survives_idsc_roundtrip():
     assert VM(loaded).run() == 11
 
 
-def test_vm_global_builtin_can_export_from_module(tmp_path):
+def test_vm_module_exports_with_public_const_without_global_builtin(tmp_path):
     source = tmp_path / "main.ids"
     module_file = tmp_path / "scope.ids"
     module_file.write_text(
         """
-        publik KONSTANTA _INIT: Kosong = Global("NILAI", 9, salah);
+        publik KONSTANTA NILAI: Angka = 9;
         """
     )
     source.write_text(
@@ -513,8 +541,8 @@ def test_vm_global_builtin_can_export_from_module(tmp_path):
 def test_vm_can_use_ids_builtin_atribut_and_iterasi():
     module = BytecodeCompiler().compile_source(
         '''
-        dari "atribut.ids" impor { var punya_attr };
-        dari "iterasi.ids" impor { var panjang, var jangkauan };
+        dari "Atribut.ids" impor { publik punya_attr };
+        dari "Iterasi.ids" impor { publik panjang, publik jangkauan };
         dari "Daftar.ids" impor { var Daftar };
 
         fungsi utama(): Angka {

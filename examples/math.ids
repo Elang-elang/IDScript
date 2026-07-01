@@ -1,5 +1,0 @@
-publik fungsi tambahA(*a: Angka, b: Angka): Kosong {
-    *a = *a + b;
-}
-
-publik KONSTANTA VERSI: Teks = "compiler-1";

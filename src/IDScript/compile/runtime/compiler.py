@@ -2,14 +2,25 @@
 
 from typing import (
     Any, List, Dict, TypedDict, Callable, Type as T,
-    Union, Literal, Optional, cast, get_origin
+    Union, Literal, Optional, cast, get_origin, TypeAliasType
 )
 import builtins
 import operator
 from pathlib import Path
 
 from ..ids_ast import *
-from ..diagnostics import IDSRuntimeError, annotate_exception, get_source
+from ..diagnostics import (
+    IDSAttributeError,
+    IDSLoopError,
+    IDSModuleError,
+    IDSRuntimeError,
+    IDSNameError,
+    IDSTypeError,
+    IDSValueError,
+    annotate_exception,
+    get_source,
+    runtime_exception,
+)
 from .scope import GlobalScope, Scope
 from .control import Throw, Return, Break, Continue
 from .types import check_types, EMPTY, Result, default_value
@@ -26,8 +37,13 @@ class _VMFunctionProxy:
         self._function = function
 
     def __call__(self, *args: Any) -> Any:
-        state = self._vm._load_module(self._module_key)
-        return self._vm._call(self._function, list(args), state, {})
+        try:
+            state = self._vm._load_module(self._module_key)
+            return self._vm._call(self._function, list(args), state, {})
+        except IDSRuntimeError:
+            raise
+        except Exception as error:
+            raise IDSRuntimeError.from_exception(error, file=self._module_key) from error
 
     def __repr__(self) -> str:
         return f'<VMFunction: {self._name}>'
@@ -52,43 +68,7 @@ class Compiler:
             True,
         )
         
-        from ..builtin import GLOBAL, LOCAL
-        
-        Global = type(
-            'Global',
-            (object,),
-            {
-                '__init__': lambda _: None,
-                '__call__': lambda _, *args: GLOBAL(self.global_scope, *args),
-                '__repr__': lambda _: '<Function: Global>', 
-            }
-        )()
-        Lokal = type(
-            'Lokal',
-            (object,),
-            {
-                '__init__': lambda _: None,
-                '__call__': lambda _, *args: LOCAL(self.current_scope, *args),
-                '__repr__': lambda _: '<Function: Lokal>', 
-            }
-        )()
-        
-        self.global_scope.declare(
-            'Global',
-            Callable[[...], None],
-            Global,
-            True,
-            True,
-        )
-        
-        self.global_scope.declare(
-            'Lokal',
-            Callable[[...], None],
-            Lokal,
-            True,
-            True,
-        )
-    
+
     def visit(self, __node):
         method = builtins.getattr(
             self,
@@ -99,11 +79,15 @@ class Compiler:
             return method(__node)
         except (Return, Throw, Break, Continue):
             raise
-        except Exception as error:
+        except IDSRuntimeError as error:
             raise annotate_exception(error, get_source(__node)) from error
+        except Exception as error:
+            span = get_source(__node)
+            annotated = annotate_exception(error, span)
+            raise runtime_exception(annotated, span=span, file=self.config.path()) from error
 
     def _undefined_node(self, __node):
-        raise NotImplementedError(f'The node/token {type(__node).__name__!r} is undefined')
+        raise IDSValueError(f'Node/token {type(__node).__name__!r} belum didefinisikan')
     
     def Program(self, node: Program):
         try:
@@ -132,30 +116,22 @@ class Compiler:
     def Kembalikan(self, node: Kembalikan):
         if self.config.is_infunc():
             raise Return(self.v(node.value))
-        raise AttributeError(
-            'Return statement only inside function'
-        )
+        raise IDSAttributeError('Statement kembalikan hanya dapat digunakan di dalam fungsi')
 
     def Kesalahan(self, node: Kesalahan):
         if self.config.is_infunc():
             raise Throw(self.v(node.value))
-        raise AttributeError(
-            'Throw statement only inside function'
-        )
+        raise IDSAttributeError('Statement kesalahan hanya dapat digunakan di dalam fungsi')
 
     def Berhentikan(self, node: Berhentikan):
         if self.config.is_inloop():
             raise Break()
-        raise AttributeError(
-            'Break statement only inside loop'
-        )
+        raise IDSLoopError('Statement berhentikan hanya dapat digunakan di dalam loop')
 
     def Lanjutkan(self, node: Lanjutkan):
         if self.config.is_inloop():
             raise Continue()
-        raise AttributeError(
-            'Continue statement only inside loop'
-        )
+        raise IDSLoopError('Statement lanjutkan hanya dapat digunakan di dalam loop')
     
     
     def Const(self, node: Const):
@@ -165,7 +141,7 @@ class Compiler:
         is_priv = node.is_priv
         if node.is_def:
             if not isinstance(expr, Var):
-                raise TypeError(f'Konstanta deferensial {name!r} membutuhkan referensial')
+                raise IDSTypeError(f'Konstanta deferensial {name!r} membutuhkan referensial')
             self.current_scope.declare(name, ann, expr, True, is_priv, True)
             return
 
@@ -181,7 +157,7 @@ class Compiler:
         
         if node.is_def:
             if not isinstance(expr, Var):
-                raise TypeError(f'Variabel deferensial {name!r} membutuhkan referensial')
+                raise IDSTypeError(f'Variabel deferensial {name!r} membutuhkan referensial')
             self.current_scope.declare(name, ann, expr, False, False, True)
             return
 
@@ -194,7 +170,7 @@ class Compiler:
         
         if node.is_def:
             if not isinstance(expr, Var):
-                raise TypeError(f'Final deferensial {name!r} membutuhkan referensial')
+                raise IDSTypeError(f'Final deferensial {name!r} membutuhkan referensial')
             self.current_scope.declare(name, ann, expr, True, True, True)
             return
 
@@ -222,7 +198,7 @@ class Compiler:
             target = node.target.id
             self.current_scope.set(target, expr)
         else:
-            raise TypeError('Assignment target must be a name or subscripts')
+            raise IDSTypeError('Target assignment harus berupa nama, atribut, indeks, atau deferensial')
     
     
     def Structure(self, node: Structure):
@@ -296,21 +272,47 @@ class Compiler:
     
     def Method(self, node: Method):
         name = node.name.id
-        args = self.v(node.attrs.args)
         return_type = self.v(node.attrs.type)
         body = node.body.bodies or []
         struct_name = self.config.struct_name
         static = node.static
         
-        def wrapper(*arguments):
-            arguments = list(arguments)
+        generic_params = []
+        if names := node.attrs.generic:
+            generic_params = [name.id for name in names]
+        
+        def wrapper_scope(wrapp) -> Any:
             parent = self.current_scope
             self.current_scope = Scope(parent=parent)
-
             self.config.enter_func()
             self.config.enter_struct(struct_name)
-            if static and arguments:
-                arguments.pop(0)
+            try:
+                return wrapp()
+            except:
+                raise
+            finally:
+                self.current_scope = parent
+                self.config.leave_struct()
+                self.config.leave_func()
+        
+        def generic_wrapper(wrapper_func, generic_args = [], arguments = []) -> Any:
+            try:
+                for idx, param_name in enumerate(generic_params):
+                    if len(generic_args) <= idx:
+                        raise IDSAttributeError(
+                            f'{name}() kekurangan argumen generik wajib {param_name!r}'
+                        )
+                    
+                    self.current_scope.declare(
+                        param_name, T, generic_args[idx], True, True
+                    )
+                return wrapper_func(*arguments)
+            except:
+                raise
+        
+        def wrapper_func(*arguments):
+            args = self.v(node.attrs.args)
+            arguments = list(arguments)
 
             try:
                 if args and arguments:
@@ -318,16 +320,12 @@ class Compiler:
                         if i < len(arguments):
                             arg(arguments[i])
                         else:
-                            raise AttributeError(f'{name}() missing required argument {arg.name!r}')
+                            raise IDSAttributeError(f'{name}() kekurangan argumen wajib {arg.__name__!r}')
                 if arguments and not args:
-                    raise AttributeError(f'{name}() takes 0 arguments but {len(arguments)} was given')
+                    raise IDSAttributeError(f'{name}() menerima 0 argumen tetapi diberi {len(arguments)}')
 
                 for stmt in body:
                     self.v(stmt)
-
-                result = arguments[0] if arguments else None
-                check_types(result, return_type)
-                return result
             except Return as res:
                 result = None
                 if res.args:
@@ -336,17 +334,25 @@ class Compiler:
                 check_types(result, return_type)
                 return result
             except Throw as err:
-                error = err.args[0] if err.args else IDSRuntimeError('Something was wrong')
+                error = err.args[0] if err.args else IDSRuntimeError('Terjadi kesalahan')
                 if not isinstance(error, BaseException):
                     error = IDSRuntimeError(error)
                 raise error
             except:
                 raise
-            finally:
-                self.current_scope = parent
-                self.config.leave_struct()
-                self.config.leave_func()
         
+        def wrapper(*args, **kwargs):
+            generic_args = kwargs.get('generic_params', [])
+            arguments = kwargs.get('arguments', list(args))
+            def wrapp():
+                if generic_args and generic_params:
+                    return generic_wrapper(wrapper_func, generic_args, arguments)
+                return wrapper_func(*arguments)
+            return wrapper_scope(wrapp)
+        
+        self.config.enter('<object>')
+        args = self.v(node.attrs.args)
+        self.config.leave('<object>')
         annotations = {}
         for arg, ann in zip(args['wrapp'], args['annotations']):
             annotations[arg.__name__] = ann
@@ -358,7 +364,7 @@ class Compiler:
             (object,),
             {
                 '__init__': lambda _: None,
-                '__call__': lambda _, *args: wrapper(*args),
+                '__call__': lambda _, *args, **kwargs: wrapper(*args, **kwargs),
                 '__repr__': lambda _: f'<Method of {struct_name}: {name}>',
                 '__setattr__': lambda this, name, value: object.__setattr__(this, name, value),
 
@@ -371,6 +377,7 @@ class Compiler:
             'value': method(),
             'type': Callable[[...], Any],
             'is_priv': node.is_priv,
+            'static': static,
         }
     
     
@@ -457,6 +464,7 @@ class Compiler:
     def AbstractMethod(self, node: AbstractMethod):
         args = self.v(node.attrs.args)
         return_type = self.v(node.attrs.type)
+        static = node.static
         
         annotations = {}
         for arg, ann in zip(args['wrapp'], args['annotations']):
@@ -467,38 +475,74 @@ class Compiler:
         return {
             'name': node.name.id,
             'annotations': annotations,
-            'type': Callable[[...], Any]
+            'type': Callable[[...], Any],
+            'static': static,
         }
     
     def Function(self, node: Function):
         name = node.name.id
-        args = self.v(node.attrs.args)
         return_type = self.v(node.attrs.type)
         body = node.body.bodies or []
         is_priv = node.is_priv
         
+        generic_params = []
+        if names := node.attrs.generic:
+            generic_params = [name.id for name in names]
+        
         # perketatan fungsi utama
         if name == 'utama':
-            if any(list(args.values())):
-                raise AttributeError("Main Function (fungsi utama) doesn't arguments required!")
+            if generic_params:
+                raise IDSAttributeError('Fungsi utama tidak boleh memiliki argumen generik')
+            if node.attrs.args.args:
+                raise IDSAttributeError('Fungsi utama tidak boleh memiliki argumen')
             if return_type != int and return_type != Optional[int]:
-                raise AttributeError("Main Function (fungsi utama) doesn't return a integer type?")
+                raise IDSTypeError('Fungsi utama harus mengembalikan Angka')
         
-        def wrapper(*arguments):
+        def wrapper_scope(wrapp) -> Any:
             parent = self.current_scope
             self.current_scope = Scope(parent=parent)
 
             self.config.enter_func()
-
+            try:
+                return wrapp()
+            except:
+                raise
+            finally:
+                self.current_scope = parent
+                self.config.leave_func()
+        
+        def generic_wrapper(wrapper_func, generic_args = [], arguments = []) -> Any:
+            parent = self.current_scope
+            self.current_scope = Scope(parent=parent)
+            self.config.enter_func()
+            try:
+                for idx, param_name in enumerate(generic_params):
+                    if len(generic_args) <= idx:
+                        raise IDSAttributeError(
+                            f'{name}() kekurangan argumen generik wajib {param_name!r}'
+                        )
+                    
+                    self.current_scope.declare(
+                        param_name, T, generic_args[idx], True, True
+                    )
+                return wrapper_func(*arguments)
+            except:
+                raise
+            finally:
+                self.current_scope = parent
+                self.config.leave_func()
+        
+        def wrapper_func(*arguments) -> Any:
+            args = self.v(node.attrs.args)
             try:
                 if args and arguments:
                     for i, arg in enumerate(args['wrapp']):
                         if i < len(arguments):
                             arg(arguments[i])
                         else:
-                            raise AttributeError(f'{name}() missing required argument {arg.name!r}')
+                            raise IDSAttributeError(f'{name}() kekurangan argumen wajib {arg.__name__!r}')
                 if arguments and not args:
-                    raise AttributeError(f'{name}() takes 0 arguments but {len(arguments)} was given')
+                    raise IDSAttributeError(f'{name}() menerima 0 argumen tetapi diberi {len(arguments)}')
 
                 for stmt in body:
                     self.v(stmt)
@@ -510,22 +554,28 @@ class Compiler:
                 check_types(result, return_type)
                 return result
             except Throw as err:
-                error = err.args[0] if err.args else IDSRuntimeError('Something was wrong')
+                error = err.args[0] if err.args else IDSRuntimeError('Terjadi kesalahan')
                 if not isinstance(error, BaseException):
                     error = IDSRuntimeError(error)
                 raise error
             except:
                 raise
-            finally:
-                self.current_scope = parent
-                self.config.leave_func()
+        
+        def wrapper(*args, **kwargs) -> Any:
+            generic_args = kwargs.get('generic_params', [])
+            arguments = kwargs.get('arguments', list(args))
+            def wrapp() -> Any:
+                if generic_args and generic_params:
+                    return generic_wrapper(wrapper_func, generic_args, arguments)
+                return wrapper_func(*arguments)
+            return wrapper_scope(wrapp)
         
         func = type(
             name,
             (object,),
             {
                 '__init__': lambda _: None,
-                '__call__': lambda _, *args: wrapper(*args),
+                '__call__': lambda _, *args, **kwargs: wrapper(*args, **kwargs),
                 '__repr__': lambda _: f'<Function: {name}>',
                 '__setattr__': lambda this, name, value: object.__setattr__(this, name, value),
 
@@ -555,12 +605,18 @@ class Compiler:
     
     def Arg(self, node: Arg):
         name = node.name.id
-        arg_type = self.v(node.type)
+        arg_type = Any
+        try:
+            arg_type = self.v(node.type)
+        except IDSNameError:
+            if not self.config.is_struct_name('<object>'):
+                raise 
+            arg_type = TypeAliasType(node.type.type.id, Any)
 
         def wrapper(val):
             if node.is_def:
                 if not isinstance(val, Var):
-                    raise TypeError(f'Argumen deferensial {name!r} membutuhkan referensial')
+                    raise IDSTypeError(f'Argumen deferensial {name!r} membutuhkan referensial')
                 self.current_scope.declare(name, arg_type, val, node.constant, True, True)
                 return
 
@@ -650,7 +706,7 @@ class Compiler:
         except Throw as err:
             if not node.handler:
                 raise
-            error = err.args[0] if err.args else IDSRuntimeError('Something was wrong')
+            error = err.args[0] if err.args else IDSRuntimeError('Terjadi kesalahan')
             self._handle_exception(node.handler[0], error)
             handled = True
 
@@ -750,7 +806,7 @@ class Compiler:
                 )
 
             if len(dots_indexes) > 1:
-                raise NotImplementedError('Multiple unpack patterns belum didukung')
+                raise IDSValueError('Pattern bongkar ganda belum didukung')
 
             dots_index = dots_indexes[0]
             before = pattern.patterns[:dots_index]
@@ -820,7 +876,7 @@ class Compiler:
             return True
 
         if isinstance(pattern, MatchDots):
-            raise NotImplementedError("Unpack pattern '...' belum didukung sebagai pattern utama")
+            raise IDSValueError("Pola bongkar '...' belum didukung sebagai pattern utama")
         return False
     
     
@@ -835,9 +891,9 @@ class Compiler:
         funcs_wrapp = [ self.v(wrapp) for wrapp in node._imports ]
 
         if not path_module.exists():
-            raise ModuleNotFoundError(f'No module named {str(path_module)!r}')
+            raise IDSModuleError(f'Modul {str(path_module)!r} tidak ditemukan')
 
-        if path_module.suffix in {'.idsm', '.idsc', '.idbc'}:
+        if path_module.suffix in {'.idsm', '.idsc'}:
             exports = self._compiled_module_exports(path_module)
             for func_wrapp in funcs_wrapp:
                 func_wrapp(exports)
@@ -852,7 +908,7 @@ class Compiler:
             for func_wrapp in funcs_wrapp:
                 func_wrapp(exports)
         except Throw as e:
-            raise IDSRuntimeError(f'Something was wrong in {str(path_module)}: {str(e)}') from e
+            raise IDSModuleError(f'Terjadi kesalahan di modul {str(path_module)!r}: {str(e)}') from e
         except:
             raise
 
@@ -895,7 +951,7 @@ class Compiler:
                 return True
             
             if name not in exports:
-                raise ImportError(f'Name {name} never defined')
+                raise IDSModuleError(f'Nama {name} tidak pernah didefinisikan')
             this = exports[name]
             
             alias = None
@@ -993,11 +1049,21 @@ class Compiler:
     
     def Call(self, node: Call):
         func = self.v(node.func)
-        if not node.args:
+        if not node.args and not node.generic:
             return func()
         
+        if not callable(func):
+            raise IDSTypeError(f'{func} bukanlah sebuah fungsi/metode')
+        
         args = [self.v(arg) for arg in node.args]
-        return func(*args)
+        if not node.generic:
+            return func(*args)
+        
+        generic = [self.v(arg) for arg in node.generic]
+        return func(
+            arguments=args,
+            generic_params=generic
+        )
     
     def Info(self, node: Info):
         value = self.current_scope.get(node.name.id)
@@ -1053,7 +1119,7 @@ class Compiler:
         kwargs = self.v(node.kwargs)
         
         if type(struct) is not Struct:
-            raise AttributeError(f'{str(struct)} is not a structure')
+            raise IDSAttributeError(f'{str(struct)} bukan struktur')
         
         return struct(**kwargs)
     
@@ -1178,7 +1244,7 @@ class Compiler:
     def Dynamic(self, node: Dynamic):
         typedef = self.v(node.name)
         if not callable(typedef):
-            raise TypeError(f'{node.name.id!r} is not a dynamic typedef')
+            raise IDSTypeError(f'{node.name.id!r} bukan typedef dinamis')
         args = [self.v(arg) for arg in node.args]
         return typedef(*args)
     

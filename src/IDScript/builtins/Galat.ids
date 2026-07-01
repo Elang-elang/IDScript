@@ -1,0 +1,11 @@
+dari "_Galat.idsm" impor {
+    publik Galat,
+    publik GalatTipe,
+    publik GalatNilai,
+    publik GalatAtribut,
+    publik GalatIndeks,
+    publik GalatKunci,
+    publik GalatModul,
+    publik GalatLoop,
+    publik GalatMemori,
+};

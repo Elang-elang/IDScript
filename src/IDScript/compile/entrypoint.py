@@ -7,7 +7,7 @@ from typing import cast
 from .parser import Parse
 from .runtime import Compiler
 from .ids_ast import Program
-from .diagnostics import IDSSyntaxError
+from .diagnostics import IDSAttributeError, IDSSyntaxError
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -25,18 +25,18 @@ class Compile:
             self.__tree = self.parser.parse(code)
         except UnexpectedInput as err:
             raise IDSSyntaxError.from_lark(err, str(file), code) from err
-        self.__raw_code__ = cast(Program, Parse(self.__tree, file=str(file)))
+        self.__raw_code__ = cast(Program, Parse(self.__tree, file=str(file), source=code))
         self.__code__ = self.__compiler__.Program(self.__raw_code__)
     
     def _run_func(self, name, *args):
         func = self.__compiler__.current_scope.get(name)
         if func is None:
-            raise AttributeError(f"Function {name!r} not found on global scope")
+            raise IDSAttributeError(f"Fungsi {name!r} tidak ditemukan pada scope global")
         
         if not args:
             return func()
         if args and name == 'utama':
-            raise AttributeError("Main Function (fungsi utama) doesn't arguments!")
+            raise IDSAttributeError("Fungsi utama tidak menerima argumen")
         
         if not args:
             return func()
@@ -46,7 +46,7 @@ class Compile:
         try:
             return self._run_func(name, *args)
         except Exception as e:
-            print(f"Something was wrong at {name!r}: {str(e)}")
+            print(f"Terjadi kesalahan saat menjalankan {name!r}: {str(e)}")
 
     def run(self, name, *args): return self._run_func(name, *args)
     def test(self, name, *args): return self.sefty_run(name, *args)

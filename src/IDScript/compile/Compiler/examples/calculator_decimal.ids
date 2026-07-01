@@ -1,3 +1,5 @@
+dari "Konsol.idsm" impor { publik println };
+
 fungsi utama(): Float {
     final hasil: Float = 15.56636;
     println(hasil);

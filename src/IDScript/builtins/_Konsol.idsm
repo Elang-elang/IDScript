@@ -1,0 +1,195 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "_Konsol",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Konsol.idsm",
+    "code": [],
+    "functions": {
+        "format": {
+            "name": "format",
+            "args": [
+                "text",
+                "args"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.format"
+                ],
+                [
+                    "LOAD_NAME",
+                    "text"
+                ],
+                [
+                    "LOAD_NAME",
+                    "args"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "print": {
+            "name": "print",
+            "args": [
+                "text"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.print"
+                ],
+                [
+                    "LOAD_NAME",
+                    "text"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "println": {
+            "name": "println",
+            "args": [
+                "text"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.println"
+                ],
+                [
+                    "LOAD_NAME",
+                    "text"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "eprint": {
+            "name": "eprint",
+            "args": [
+                "text"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.eprint"
+                ],
+                [
+                    "LOAD_NAME",
+                    "text"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "eprintln": {
+            "name": "eprintln",
+            "args": [
+                "text"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.eprintln"
+                ],
+                [
+                    "LOAD_NAME",
+                    "text"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "input_teks": {
+            "name": "input_teks",
+            "args": [],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.input_teks"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    0
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        }
+    },
+    "exports": [
+        "format",
+        "print",
+        "println",
+        "eprint",
+        "eprintln",
+        "input_teks"
+    ],
+    "modules": {},
+    "native_symbols": {
+        "__py_native__.format": {
+            "kind": "function",
+            "module": "IDScript.builtins._Konsol",
+            "qualname": "_format",
+            "registry_key": "IDScript.builtins._Konsol:_format"
+        },
+        "__py_native__.print": {
+            "kind": "function",
+            "module": "IDScript.builtins._Konsol",
+            "qualname": "_print",
+            "registry_key": "IDScript.builtins._Konsol:_print"
+        },
+        "__py_native__.println": {
+            "kind": "function",
+            "module": "IDScript.builtins._Konsol",
+            "qualname": "_println",
+            "registry_key": "IDScript.builtins._Konsol:_println"
+        },
+        "__py_native__.eprint": {
+            "kind": "function",
+            "module": "IDScript.builtins._Konsol",
+            "qualname": "_eprint",
+            "registry_key": "IDScript.builtins._Konsol:_eprint"
+        },
+        "__py_native__.eprintln": {
+            "kind": "function",
+            "module": "IDScript.builtins._Konsol",
+            "qualname": "_eprintln",
+            "registry_key": "IDScript.builtins._Konsol:_eprintln"
+        },
+        "__py_native__.input_teks": {
+            "kind": "function",
+            "module": "IDScript.builtins._Konsol",
+            "qualname": "_input_teks",
+            "registry_key": "IDScript.builtins._Konsol:_input_teks"
+        }
+    }
+}

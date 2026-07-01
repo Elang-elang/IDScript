@@ -13,6 +13,8 @@ def test_cli_runs_interpreter_without_compile_outputs(tmp_path):
     source = tmp_path / "main.ids"
     source.write_text(
         """
+        dari "Konsol.idsm" impor { publik println };
+
         fungsi utama(): Angka {
             println("jalan");
             kembalikan 0;

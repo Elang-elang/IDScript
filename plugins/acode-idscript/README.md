@@ -8,10 +8,12 @@ Plugin Acode untuk syntax highlighting file IDScript (`.ids`) dan tampilan JSON 
 
 ## Fitur
 
-- Highlight keyword IDScript: `fungsi`, `struktur`, `implementasi`, `jika`, `coba`, `tangkap`, dan lainnya.
-- Highlight tipe builtin: `Angka`, `Teks`, `Float`, `Boolean`, `Kosong`, `Apapun`, `OBJEK`.
+- Highlight contextual: kata seperti `dari`, `impor`, `final`, dan `jika` hanya diwarnai saat cocok dengan pola syntax IDScript, sehingga tetap bisa dipakai sebagai identifier di konteks lain.
+- Highlight import eksplisit, misalnya `dari "Konsol.idsm" impor { publik println };`.
+- Highlight tipe builtin sebagai soft keyword/type token: `Angka`, `Teks`, `Float`, `Boolean`, `Kosong`, `Apapun`, `daftar`, `kamus`, `hasil`.
 - Highlight komentar `// ...` dan `/* ... */`.
 - Highlight string, angka, operator, pointer `&nama`, `*ptr`, dan `salin ptr`.
+- Theme opsional `ace/theme/idscript_night` bernuansa LazyVim/NvChad. Plugin tidak memaksa tema ini; warna highlight tetap mengikuti tema Acode default jika user tidak memilihnya.
 - Auto indent sederhana setelah `{`, `(`, dan `[`.
 - Comment toggle memakai `//`.
 - Snippet dasar untuk `fungsi`, `utama`, `jika`, `coba`, `struktur`, dan `implementasi`.
@@ -27,7 +29,7 @@ Plugin ini mendaftarkan mode untuk:
 
 ## Warna
 
-Plugin memakai token standar Ace, jadi warna mengikuti tema Acode pengguna. Tidak ada warna hardcoded.
+Default-nya plugin memakai token standar Ace, jadi warna mengikuti tema Acode pengguna. Tema opsional `idscript_night` disediakan untuk user yang ingin tampilan gelap khusus IDScript.
 
 ## Icon
 
@@ -47,6 +49,7 @@ plugins/acode-idscript/
 ├── plugin.json
 ├── README.md
 ├── small.jpg
+├── theme-idscript-night.js
 └── snippets/
     └── idscript.js
 ```

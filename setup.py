@@ -9,7 +9,7 @@ os.chdir(ROOT)
 README = ROOT / "README.md"
 setup(
     name="idscript",
-    version="0.1.3a",
+    version="0.1.5b5",
     description="IDScript adalah bahasa pemrograman berbahasa Indonesia penerus Indonesian Script (IS), dengan interpreter dan compiler VM resmi.",
     long_description=README.read_text(encoding="utf-8") if README.exists() else "",
     long_description_content_type="text/markdown",
@@ -29,7 +29,7 @@ setup(
     include_package_data=False,
     package_data={
         "IDScript": ["gramm.lark", "icons/*.jpg"],
-        "IDScript.builtins": ["*.ids", "*.idsc", "Regex/*.ids"],
+        "IDScript.builtins": ["*.ids", "*.idsm", "*.idsc"],
         "IDScript.compile.Compiler": ["TOKEN.json"],
     },
     install_requires=[

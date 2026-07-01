@@ -5,7 +5,7 @@ from lark import Lark
 import pytest
 
 from compile import Compile, Compiler, Parse
-from compile.diagnostics import IDSError, IDSNameError, IDSSyntaxError
+from compile.diagnostics import IDSError, IDSNameError, IDSRuntimeError, IDSSyntaxError
 
 COMPILE_DIR = Path(__file__).resolve().parent.parent
 
@@ -340,7 +340,54 @@ def test_trait_implementation_requires_declared_methods():
     )
     compiler = Compiler("<test.ids>")
 
-    with pytest.raises(Exception, match="missing method"):
+    with pytest.raises(Exception, match="kekurangan method"):
+        compiler.Program(ast)
+
+
+def test_trait_static_abstract_method_accepts_static_implementation():
+    ast = parse_code(
+        """
+        struktur Orang {
+            publik nama: Teks,
+        }
+
+        sifat BisaBuat {
+            statik metode jenis(): Teks;
+        }
+
+        implementasi BisaBuat untuk Orang {
+            publik statik metode jenis(): Teks {
+                kembalikan "manusia";
+            }
+        }
+        """
+    )
+    compiler = Compiler("<test.ids>")
+
+    compiler.Program(ast)
+
+
+def test_trait_static_abstract_method_rejects_instance_implementation():
+    ast = parse_code(
+        """
+        struktur Orang {
+            publik nama: Teks,
+        }
+
+        sifat BisaBuat {
+            statik metode jenis(): Teks;
+        }
+
+        implementasi BisaBuat untuk Orang {
+            publik metode jenis(ini: Orang): Teks {
+                kembalikan ini.nama;
+            }
+        }
+        """
+    )
+    compiler = Compiler("<test.ids>")
+
+    with pytest.raises(Exception, match="statik"):
         compiler.Program(ast)
 
 
@@ -456,7 +503,7 @@ def test_deferensial_argument_requires_reference_runtime():
     compiler.Program(ast)
     function = compiler.current_scope.get("jalankan")
 
-    with pytest.raises(TypeError):
+    with pytest.raises(IDSRuntimeError, match="Argumen deferensial"):
         function()
 
 
@@ -482,10 +529,10 @@ def test_root_dots_pattern_is_not_supported():
 
     try:
         function()
-    except NotImplementedError as err:
-        assert "Unpack pattern" in str(err)
+    except IDSRuntimeError as err:
+        assert "Pola bongkar" in str(err)
     else:
-        raise AssertionError("root MatchDots should raise NotImplementedError")
+        raise AssertionError("root MatchDots should raise IDSRuntimeError")
 
 
 def test_public_module_import_works(tmp_path):
@@ -531,7 +578,7 @@ def test_private_module_symbol_cannot_be_imported(tmp_path):
         """
     )
 
-    with pytest.raises(ImportError):
+    with pytest.raises(IDSRuntimeError, match="Nama PRIV tidak pernah didefinisikan"):
         Compile(module_b.read_text(), str(module_b))
 
 
@@ -562,7 +609,7 @@ def test_private_import_binding_is_not_reexported(tmp_path):
         """
     )
 
-    with pytest.raises(ImportError):
+    with pytest.raises(IDSRuntimeError, match="Nama PUB tidak pernah didefinisikan"):
         Compile(module_c.read_text(), str(module_c))
 
 
@@ -606,7 +653,7 @@ def test_enum_variants_and_methods_are_supported_at_runtime():
         """
         enum Type {
             publik Kosong,
-            publik Daftar(daftar[Angka]),
+            publik Daftar(daftar<Angka>),
             publik Object { nama: Teks, umur: Angka },
             publik Kode = 7,
         }
@@ -677,7 +724,7 @@ def test_info_expression_reports_idscript_runtime_categories():
     assert compiler.current_scope.get("jenis")() == "ok"
 
 
-def test_global_and_lokal_builtins_are_supported_at_runtime():
+def test_global_and_lokal_builtins_are_not_internal_runtime():
     ast = parse_code(
         """
         fungsi utama(): Angka {
@@ -690,15 +737,16 @@ def test_global_and_lokal_builtins_are_supported_at_runtime():
     compiler = Compiler("<test.ids>")
 
     compiler.Program(ast)
-    assert compiler.current_scope.get("utama")() == 12
+    with pytest.raises(IDSNameError, match="Global"):
+        compiler.current_scope.get("utama")()
 
 
-def test_global_builtin_can_export_from_runtime_module(tmp_path):
+def test_runtime_module_exports_with_public_const_without_global_builtin(tmp_path):
     module_a = tmp_path / "module_a.ids"
     module_b = tmp_path / "module_b.ids"
     module_a.write_text(
         """
-        publik KONSTANTA _INIT: Kosong = Global("NILAI", 9, salah);
+        publik KONSTANTA NILAI: Angka = 9;
         """
     )
     module_b.write_text(
@@ -718,8 +766,8 @@ def test_global_builtin_can_export_from_runtime_module(tmp_path):
 def test_runtime_can_use_standalone_daftar_and_kamus_builtins():
     result = Compile(
         '''
-        dari "Daftar.ids" impor { var Daftar, var adalah_daftar };
-        dari "Kamus.ids" impor { var Kamus, var adalah_kamus };
+        dari "Daftar.ids" impor { publik Daftar, publik adalah_daftar };
+        dari "Kamus.ids" impor { publik Kamus, publik adalah_kamus };
 
         fungsi utama(): Angka {
             final daftar: Apapun = Daftar([1, 2]);

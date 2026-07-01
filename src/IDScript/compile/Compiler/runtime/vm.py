@@ -3,12 +3,22 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import importlib
 from pathlib import Path
 from typing import Any
 
-from ..builtins import BUILTIN_FUNCTIONS, BUILTIN_TYPES, default_value, Global, Lokal
+from ..builtins import BUILTIN_FUNCTIONS, BUILTIN_TYPES, default_value
 from ..bytecode import FunctionCode, ModuleCode
-from ...diagnostics import IDSNameError, IDSRuntimeError
+from ...diagnostics import (
+    IDSAttributeError,
+    IDSKeyError,
+    IDSModuleError,
+    IDSNameError,
+    IDSRuntimeError,
+    IDSTypeError,
+    IDSValueError,
+)
+from IDScript.maker.pyvalue import IDSPyValue, unwrap_py_args, unwrap_py_value, wrap_py_value
 
 
 OPCODE_ALIASES = {
@@ -82,17 +92,40 @@ class VMBoundMethod:
     function: VMFunction
 
 
+@dataclass(frozen=True)
+class VMMethod:
+    function: VMFunction
+    is_public: bool = True
+    is_static: bool = False
+
+
 @dataclass
 class VMStructType:
     name: str
     fields: dict[str, dict[str, Any]]
-    methods: dict[str, VMFunction] = field(default_factory=dict)
+    methods: dict[str, VMMethod] = field(default_factory=dict)
 
 
 @dataclass
 class VMStructInstance:
     struct: VMStructType
     values: dict[str, Any]
+
+    def __getattr__(self, name: str) -> Any:
+        if name in self.values:
+            return self.values[name]
+        raise IDSAttributeError(f"Struktur {self.struct.name!r} tidak punya attribute {name!r}")
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name in {"struct", "values"}:
+            object.__setattr__(self, name, value)
+            return
+        values = self.__dict__.get("values")
+        struct = self.__dict__.get("struct")
+        if values is not None and struct is not None and name in struct.fields:
+            values[name] = value
+            return
+        object.__setattr__(self, name, value)
 
     def __repr__(self) -> str:
         public = {
@@ -130,14 +163,16 @@ class VMEnumType:
     name: str
     variants: dict[str, dict[str, Any]]
     is_module_file: bool = False
-    methods: dict[str, VMFunction] = field(default_factory=dict)
+    methods: dict[str, VMMethod] = field(default_factory=dict)
 
     def __getattr__(self, name: str) -> Any:
         if name not in self.variants:
-            raise AttributeError(f"Enum {self.name!r} tidak punya variant {name!r}")
+            if name in self.methods:
+                return self.methods[name].function
+            raise IDSAttributeError(f"Enum {self.name!r} tidak punya variant {name!r}")
         schema = self.variants[name]
         if schema.get("is_priv") and self.is_module_file:
-            raise AttributeError(f"Enum {self.name!r} tidak punya variant {name!r}")
+            raise IDSAttributeError(f"Enum {self.name!r} tidak punya variant {name!r}")
         kind = schema["kind"]
         if kind in {"unit", "discriminant"}:
             return VMEnumValue(
@@ -163,25 +198,25 @@ class VMEnumVariantConstructor:
         if kind == "tuple":
             expected = self.schema.get("args", [])
             if len(args) != len(expected):
-                raise TypeError(f"{self.enum.name}.{self.name} membutuhkan {len(expected)} argument")
+                raise IDSTypeError(f"{self.enum.name}.{self.name} membutuhkan {len(expected)} argument")
             for value, type_desc in zip(args, expected):
                 _check_descriptor(value, type_desc)
             return VMEnumValue(self.enum, self.name, "tuple", payload=tuple(args))
         if kind == "struct":
             if len(args) != 1 or not isinstance(args[0], dict):
-                raise TypeError(f"{self.enum.name}.{self.name} membutuhkan satu kamus payload")
+                raise IDSTypeError(f"{self.enum.name}.{self.name} membutuhkan satu kamus payload")
             payload = dict(args[0])
             expected_fields = self.schema.get("fields", {})
             unknown = set(payload) - set(expected_fields)
             missing = set(expected_fields) - set(payload)
             if unknown:
-                raise AttributeError(f"Field enum tidak dikenal: {', '.join(sorted(unknown))}")
+                raise IDSAttributeError(f"Field enum tidak dikenal: {', '.join(sorted(unknown))}")
             if missing:
-                raise AttributeError(f"Field enum belum diisi: {', '.join(sorted(missing))}")
+                raise IDSAttributeError(f"Field enum belum diisi: {', '.join(sorted(missing))}")
             for field, type_desc in expected_fields.items():
                 _check_descriptor(payload[field], type_desc)
             return VMEnumValue(self.enum, self.name, "struct", fields=payload)
-        raise TypeError(f"{self.enum.name}.{self.name} bukan constructor")
+        raise IDSTypeError(f"{self.enum.name}.{self.name} bukan constructor")
 
     def __repr__(self) -> str:
         return f"{self.enum.name}.{self.name}"
@@ -200,15 +235,16 @@ class VMEnumValue:
         if name in self.fields:
             return self.fields[name]
         if name in self.enum.methods:
-            return VMBoundMethod(self, self.enum.methods[name])
-        raise AttributeError(f"Enum value {self.enum.name}.{self.variant} tidak punya attribute {name!r}")
+            method = self.enum.methods[name]
+            return method.function if method.is_static else VMBoundMethod(self, method.function)
+        raise IDSAttributeError(f"Enum value {self.enum.name}.{self.variant} tidak punya attribute {name!r}")
 
     def __getitem__(self, key: int | str) -> Any:
         if self.kind == "tuple":
             return self.payload[int(key)]
         if self.kind == "struct":
             return self.fields[str(key)]
-        raise TypeError(f"Enum value {self.enum.name}.{self.variant} tidak punya payload")
+        raise IDSTypeError(f"Enum value {self.enum.name}.{self.variant} tidak punya payload")
 
     def __repr__(self) -> str:
         base = f"{self.enum.name}.{self.variant}"
@@ -261,13 +297,19 @@ class VM:
             raise IDSRuntimeError.from_exception(e, file=self.root.path) from e
 
     def exports(self, module_key: str | None = None) -> dict[str, Any]:
-        state = self._load_module(module_key or self.root.path)
-        return dict(state.exports)
+        key = module_key or self.root.path
+        try:
+            state = self._load_module(key)
+            return dict(state.exports)
+        except IDSRuntimeError:
+            raise
+        except Exception as error:
+            raise IDSRuntimeError.from_exception(error, file=key) from error
 
     def _load_module(self, module_key: str) -> ModuleState:
         if module_key not in self.modules:
             path = Path(module_key)
-            if path.suffix in {".idsm", ".idsc", ".idbc"} and path.exists():
+            if path.suffix in {".idsm", ".idsc"} and path.exists():
                 loaded = ModuleCode.from_bytes(path.read_bytes())
                 self._register_module(loaded)
                 self.modules[module_key] = loaded
@@ -279,6 +321,8 @@ class VM:
             state = ModuleState(code=self.modules[module_key], globals={}, exports={})
             self.states[module_key] = state
 
+        for name, symbol in state.code.native_symbols.items():
+            state.globals[name] = self._resolve_native_symbol(name, symbol)
         for name, function in state.code.functions.items():
             state.globals[name] = VMFunction(module_key, name, function)
         self._execute(state.code.code, state, {})
@@ -407,17 +451,21 @@ class VM:
                     struct_values[key] = value
                 struct = stack.pop()
                 if not isinstance(struct, VMStructType):
-                    raise TypeError("Constructor struktur membutuhkan VMStructType")
+                    raise IDSTypeError("Constructor struktur membutuhkan VMStructType")
                 stack.append(VMStructInstance(struct, struct_values))
             elif op == "STORE_METHOD":
                 method = stack.pop()
                 target = stack.pop()
                 if not isinstance(method, VMFunction):
-                    raise TypeError("STORE_METHOD membutuhkan fungsi VM")
+                    raise IDSTypeError("STORE_METHOD membutuhkan fungsi VM")
                 if isinstance(target, VMStructType | VMEnumType):
-                    target.methods[inst[1]] = method
+                    target.methods[inst[1]] = VMMethod(
+                        function=method,
+                        is_public=bool(inst[2]) if len(inst) > 2 else True,
+                        is_static=bool(inst[3]) if len(inst) > 3 else False,
+                    )
                 else:
-                    raise TypeError("STORE_METHOD membutuhkan struktur atau enum")
+                    raise IDSTypeError("STORE_METHOD membutuhkan struktur atau enum")
             elif op == "SETUP_TRY":
                 self._execute_try(inst[1], inst[2], inst[3], inst[4], state, locals_)
             elif op == "GET_ITER":
@@ -442,11 +490,11 @@ class VM:
                     elif source in imported.exports:
                         state.globals[alias or source] = imported.exports[source]
                     else:
-                        raise ImportError(f"Name {source!r} tidak diekspor oleh {inst[1]!r}")
+                        raise IDSModuleError(f"Nama {source!r} tidak diekspor oleh {inst[1]!r}")
             elif op == "RAISE_ERROR":
-                raise IDSRuntimeError(stack.pop() if stack else "IDScript VM error")
+                raise IDSRuntimeError(stack.pop() if stack else "Terjadi kesalahan pada VM IDScript")
             else:
-                raise NotImplementedError(f"Opcode VM {op!r} belum diimplementasikan")
+                raise IDSValueError(f"Opcode VM {op!r} belum diimplementasikan")
             ip += 1
         return None
 
@@ -458,26 +506,82 @@ class VM:
 
     def _call(self, func: Any, args: list[Any], state: ModuleState, locals_: dict[str, Any]) -> Any:
         if isinstance(func, VMBoundMethod):
-            return self._call(func.function, [func.instance, *args], state, locals_)
+            generic_count = len(func.function.code.generic)
+            args = list(args[:generic_count]) + [func.instance] + list(args[generic_count:])
+            return self._call(func.function, args, state, locals_)
         if isinstance(func, VMFunction):
             state = self._load_module(func.module_key)
             locals_ = {}
+            generic_count = len(func.code.generic)
+            for i, name in enumerate(func.code.generic):
+                locals_[name] = args[i]
+            regular_args = args[generic_count:]
             arg_is_def = func.code.arg_is_def or [False] * len(func.code.args)
-            for name, value, is_def in zip(func.code.args, args, arg_is_def):
+            for name, value, is_def in zip(func.code.args, regular_args, arg_is_def):
                 if is_def and not isinstance(value, VMReference):
-                    raise TypeError(f"Argumen deferensial {name!r} membutuhkan referensial")
+                    raise IDSTypeError(f"Argumen deferensial {name!r} membutuhkan referensial")
                 locals_[name] = value
             try:
                 return self._execute(func.code.code, state, locals_)
             except _VMReturn as ret:
                 return ret.value
+            except IDSRuntimeError:
+                raise
+            except Exception as error:
+                raise IDSRuntimeError.from_exception(error, file=func.module_key) from error
         if callable(func):
-            if func is Global:
-                return func(state, *args)
-            elif func is Lokal:
-                return func(locals_, *args)
-            return func(*args)
-        raise TypeError(f"Object {func!r} tidak dapat dipanggil")
+            try:
+                return self._wrap_py_value(func(*unwrap_py_args(args)))
+            except IDSRuntimeError:
+                raise
+            except Exception as error:
+                raise IDSRuntimeError.from_exception(error, file=state.code.path) from error
+        raise IDSTypeError(f"Objek {func!r} tidak dapat dipanggil")
+
+    def _wrap_py_value(self, value: Any) -> Any:
+        return wrap_py_value(
+            value,
+            (
+                VMReference,
+                VMFunction,
+                VMBoundMethod,
+                VMMethod,
+                VMStructType,
+                VMStructInstance,
+                VMTypeAlias,
+                VMInterface,
+                VMEnumType,
+                VMEnumValue,
+                VMEnumVariantConstructor,
+            ),
+        )
+
+    def _resolve_native_symbol(self, name: str, symbol: dict[str, Any]) -> Any:
+        module_name = symbol.get("module")
+        qualname = symbol.get("qualname")
+        if not module_name:
+            raise IDSModuleError(f"Binding native {name!r} tidak lengkap")
+        try:
+            module = importlib.import_module(module_name)
+            if symbol.get("kind") == "module":
+                return module
+            registry_key = symbol.get("registry_key")
+            if registry_key:
+                from IDScript.maker.registry import resolve_native
+
+                return resolve_native(registry_key)
+            if not qualname:
+                raise IDSModuleError(f"Binding native {name!r} tidak punya qualname")
+            value: Any = module
+            for part in qualname.split("."):
+                if part == "<locals>":
+                    raise IDSModuleError("Binding lokal tidak dapat diimpor ulang")
+                value = getattr(value, part)
+            return value
+        except IDSRuntimeError:
+            raise
+        except Exception as error:
+            raise IDSRuntimeError.from_exception(error, file=symbol.get("file")) from error
 
     def _execute_try(
         self,
@@ -493,6 +597,8 @@ class VM:
         except Exception as err:
             if not handlers:
                 raise
+            if not isinstance(err, IDSRuntimeError):
+                err = IDSRuntimeError.from_exception(err, file=state.code.path)
             self._execute_handler(handlers[0], err, state, locals_)
         else:
             if else_code:
@@ -546,17 +652,17 @@ class VM:
 
     def _dereference(self, value: Any) -> Any:
         if not isinstance(value, VMReference):
-            raise TypeError(f"{value!r} bukan referensial")
+            raise IDSTypeError(f"{value!r} bukan referensial")
         return value.get()
 
     def _store_dereference(self, value: Any, new_value: Any) -> None:
         if not isinstance(value, VMReference):
-            raise TypeError(f"{value!r} bukan referensial")
+            raise IDSTypeError(f"{value!r} bukan referensial")
         value.set(new_value)
 
     def _copy_reference(self, value: Any) -> VMReference:
         if not isinstance(value, VMReference):
-            raise TypeError(f"{value!r} bukan referensial")
+            raise IDSTypeError(f"{value!r} bukan referensial")
         return value.copy()
 
     def _get_attr(self, value: Any, name: str) -> Any:
@@ -564,22 +670,29 @@ class VM:
             return getattr(value, name)
         if isinstance(value, VMEnumValue):
             return getattr(value, name)
+        if isinstance(value, VMStructType):
+            if name in value.methods:
+                return value.methods[name].function
+            raise IDSAttributeError(f"Struktur {value.name!r} tidak punya attribute {name!r}")
         if isinstance(value, VMStructInstance):
             if name in value.values:
                 return value.values[name]
             if name in value.struct.methods:
-                return VMBoundMethod(value, value.struct.methods[name])
+                method = value.struct.methods[name]
+                return method.function if method.is_static else VMBoundMethod(value, method.function)
         if isinstance(value, dict):
             return value[name]
-        return getattr(value, name)
+        if isinstance(value, IDSPyValue) and name == "isiAsli":
+            return value.isiAsli
+        return self._wrap_py_value(getattr(value, name))
 
     def _set_attr(self, value: Any, name: str, new_value: Any) -> None:
         if isinstance(value, VMStructInstance):
             if name not in value.struct.fields:
-                raise AttributeError(f"Struktur {value.struct.name!r} tidak punya field {name!r}")
+                raise IDSAttributeError(f"Struktur {value.struct.name!r} tidak punya field {name!r}")
             value.values[name] = new_value
             return
-        setattr(value, name, new_value)
+        setattr(value, name, unwrap_py_value(new_value))
 
     def _has_method(self, value: Any, name: str) -> bool:
         return isinstance(value, VMStructInstance) and name in value.struct.methods
@@ -592,18 +705,21 @@ class VM:
         state: ModuleState,
         locals_: dict[str, Any],
     ) -> Any:
-        return self._call(VMBoundMethod(value, value.struct.methods[name]), args, state, locals_)
+        method = value.struct.methods[name]
+        if method.is_static:
+            return self._call(method.function, args, state, locals_)
+        return self._call(VMBoundMethod(value, method.function), args, state, locals_)
 
     def _get_index(self, value: Any, key: Any, state: ModuleState, locals_: dict[str, Any]) -> Any:
         if self._has_method(value, "__getitem__"):
             return self._call_method(value, "__getitem__", [key], state, locals_)
-        return value[key]
+        return self._wrap_py_value(value[unwrap_py_value(key)])
 
     def _set_index(self, target: Any, key: Any, value: Any, state: ModuleState, locals_: dict[str, Any]) -> None:
         if self._has_method(target, "__setitem__"):
             self._call_method(target, "__setitem__", [key, value], state, locals_)
             return
-        target[key] = value
+        target[unwrap_py_value(key)] = unwrap_py_value(value)
 
     def _truthy(self, value: Any) -> bool:
         return bool(value)
@@ -663,7 +779,7 @@ class VM:
             return left / right
         if op == "**":
             return left ** right
-        raise NotImplementedError(f"Operator binary {op!r} belum didukung")
+        raise IDSValueError(f"Operator binary {op!r} belum didukung")
 
     def _compare(self, op: str, left: Any, right: Any, state: ModuleState, locals_: dict[str, Any]) -> bool:
         methods = {
@@ -701,7 +817,7 @@ class VM:
             return left is right
         if op == "is not":
             return left is not right
-        raise NotImplementedError(f"Operator compare {op!r} belum didukung")
+        raise IDSValueError(f"Operator compare {op!r} belum didukung")
 
     def _resolve_type_descriptor(self, descriptor: Any, state: ModuleState, locals_: dict[str, Any]) -> Any:
         if not isinstance(descriptor, dict):
@@ -742,12 +858,12 @@ def _check_descriptor(value: Any, descriptor: Any) -> None:
     if kind == "name":
         expected = BUILTIN_TYPES.get(descriptor["name"])
         if expected is not None and expected is not Any and not isinstance(value, expected):
-            raise TypeError(f"Nilai {value!r} bukan tipe {descriptor['name']}")
+            raise IDSTypeError(f"Nilai {value!r} bukan tipe {descriptor['name']}")
     elif kind == "python":
         expected = {"str": str, "int": int, "float": float, "bool": bool, "NoneType": type(None)}.get(descriptor["name"])
         if expected is not None and not isinstance(value, expected):
-            raise TypeError(f"Nilai {value!r} bukan tipe {descriptor['name']}")
+            raise IDSTypeError(f"Nilai {value!r} bukan tipe {descriptor['name']}")
     elif kind == "list" and not isinstance(value, list):
-        raise TypeError(f"Nilai {value!r} bukan daftar")
+        raise IDSTypeError(f"Nilai {value!r} bukan daftar")
     elif kind == "dict" and not isinstance(value, dict):
-        raise TypeError(f"Nilai {value!r} bukan kamus")
+        raise IDSTypeError(f"Nilai {value!r} bukan kamus")

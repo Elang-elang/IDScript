@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import Any
 
+from ..diagnostics import IDSAttributeError, IDSTypeError
 from .types import check_types
 from .config import Config
 from copy import deepcopy
@@ -54,7 +55,7 @@ class Structure:
                     config.leave_struct()
 
             return bound
-        raise AttributeError(f"Structure {prototype['name']!r} has no attribute {name!r}")
+        raise IDSAttributeError(f"Struktur {prototype['name']!r} tidak punya attribute {name!r}")
 
     def set_method(
         self,
@@ -66,17 +67,17 @@ class Structure:
     ) -> None:
         method = value or kwargs.get('method')
         if method is None:
-            raise TypeError('set_method() missing method value')
+            raise IDSTypeError('set_method() membutuhkan nilai method')
         check_types(method, type)
 
         prototype = object.__getattribute__(self, '__PROTOTYPE__')
         if name in prototype['methods']:
-            raise AttributeError(
-                f"Structure {prototype['name']!r} has duplicated method {name!r}"
+            raise IDSAttributeError(
+                f"Struktur {prototype['name']!r} memiliki method duplikat {name!r}"
             )
         if name in prototype['schema'] and not prototype['schema'][name].get('is_method'):
-            raise AttributeError(
-                f"Structure {prototype['name']!r} has duplicated member {name!r}"
+            raise IDSAttributeError(
+                f"Struktur {prototype['name']!r} memiliki member duplikat {name!r}"
             )
         prototype['schema'][name] = {
             'type': type,
@@ -157,15 +158,15 @@ class Structure:
 
         duplicated = set(this_properties) & set(extend_properties)
         if duplicated:
-            raise AttributeError(
-                f'Structure {struct_name!r} has duplicated field(s): '
+            raise IDSAttributeError(
+                f'Struktur {struct_name!r} memiliki field duplikat: '
                 f"{', '.join(sorted(duplicated))}"
             )
 
         duplicated_methods = set(this_methods) & set(extend_methods)
         if duplicated_methods:
-            raise AttributeError(
-                f'Structure {struct_name!r} has duplicated method(s): '
+            raise IDSAttributeError(
+                f'Struktur {struct_name!r} memiliki method duplikat: '
                 f"{', '.join(sorted(duplicated_methods))}"
             )
 
@@ -184,7 +185,7 @@ class Structure:
             field = prototype['schema'][name]
             config = prototype['config']
             if field.get('is_priv') and not config.is_struct_name(struct_name):
-                raise AttributeError(f'Structure {struct_name!r} has no attribute {name!r}')
+                raise IDSAttributeError(f'Struktur {struct_name!r} tidak punya attribute {name!r}')
 
         def init(instance: object, **kwargs: Any) -> None:
             schema = prototype['schema']
@@ -201,13 +202,13 @@ class Structure:
             }
 
             if unknown:
-                raise AttributeError(
-                    f'Structure {struct_name!r} has no field(s): '
+                raise IDSAttributeError(
+                    f'Struktur {struct_name!r} tidak punya field: '
                     f"{', '.join(sorted(unknown))}"
                 )
             if required:
-                raise AttributeError(
-                    f'Structure {struct_name!r} missing field(s): '
+                raise IDSAttributeError(
+                    f'Struktur {struct_name!r} kekurangan field: '
                     f"{', '.join(sorted(required))}"
                 )
 
@@ -247,8 +248,8 @@ class Structure:
                 return bound
 
             if name in schema:
-                raise AttributeError(f'Structure {struct_name!r} has no attribute {name!r}')
-            raise AttributeError(f'Structure {struct_name!r} has no attribute {name!r}')
+                raise IDSAttributeError(f'Struktur {struct_name!r} tidak punya attribute {name!r}')
+            raise IDSAttributeError(f'Struktur {struct_name!r} tidak punya attribute {name!r}')
 
         def set_attr(instance: object, name: str, value: Any) -> None:
             if name in {'__PROTOTYPE__', '__FIELDS__'} or name.startswith('_'):
@@ -258,12 +259,12 @@ class Structure:
             fields = object.__getattribute__(instance, '__FIELDS__')
             schema = prototype['schema']
             if name not in schema or schema[name].get('is_method'):
-                raise AttributeError(f'Structure {struct_name!r} has no property {name!r}')
+                raise IDSAttributeError(f'Struktur {struct_name!r} tidak punya properti {name!r}')
 
             ensure_access(instance, name)
             field = schema[name]
             if field.get('constant'):
-                raise AttributeError(f'Structure field {name!r} is constant')
+                raise IDSAttributeError(f'Field struktur {name!r} adalah konstan')
 
             check_types(value, field.get('type', Any))
             fields['properties'][name] = value
@@ -272,7 +273,7 @@ class Structure:
             fields = object.__getattribute__(instance, '__FIELDS__')
             method = fields['methods'].get('inisiasi')
             if method is None:
-                raise AttributeError(f"Structure {struct_name!r} has no method 'inisiasi'")
+                raise IDSAttributeError(f"Struktur {struct_name!r} tidak punya method 'inisiasi'")
 
             config = prototype['config']
             config.enter_struct(struct_name)
@@ -299,7 +300,7 @@ class Structure:
         def special_unary(instance: object, name: str) -> Any:
             result = call_special(instance, name)
             if result is NotImplemented:
-                raise TypeError(f"Structure {struct_name!r} does not implement {name}")
+                raise IDSTypeError(f"Struktur {struct_name!r} tidak mengimplementasikan {name}")
             return result
 
         def special_binary(instance: object, name: str, other: Any) -> Any:
@@ -308,12 +309,12 @@ class Structure:
         def special_setitem(instance: object, key: Any, value: Any) -> None:
             result = call_special(instance, '__setitem__', key, value)
             if result is NotImplemented:
-                raise TypeError(f"Structure {struct_name!r} does not implement __setitem__")
+                raise IDSTypeError(f"Struktur {struct_name!r} tidak mengimplementasikan __setitem__")
 
         def special_delitem(instance: object, key: Any) -> None:
             result = call_special(instance, '__delitem__', key)
             if result is NotImplemented:
-                raise TypeError(f"Structure {struct_name!r} does not implement __delitem__")
+                raise IDSTypeError(f"Struktur {struct_name!r} tidak mengimplementasikan __delitem__")
 
         def to_dict(instance: object, include_private: bool = False) -> dict[str, Any]:
             fields = object.__getattribute__(instance, '__FIELDS__')
@@ -388,19 +389,27 @@ class Trait:
 
         missing = set(self._data) - set(data_methods)
         if missing:
-            raise AttributeError(
-                f'Trait {self._name!r} missing method(s): '
+            raise IDSAttributeError(
+                f'Trait {self._name!r} kekurangan method: '
                 f"{', '.join(sorted(missing))}"
             )
 
         for name, object_data in self._data.items():
             subject_data = data_methods[name]
             if object_data['type'] != subject_data['type']:
-                raise TypeError(
-                    f'{name}() from implement doesnt same with {name}() from trait '
-                    f"type: {object_data['type']}"
+                raise IDSTypeError(
+                    f'{name}() dari implementasi tidak sama dengan {name}() dari trait '
+                    f"tipe: {object_data['type']}"
                 )
-            
+
+            expected_static = object_data.get('static', False)
+            actual_static = subject_data.get('static', False)
+            if expected_static != actual_static:
+                raise IDSTypeError(
+                    f'{name}() dari implementasi tidak sama dengan {name}() dari trait '
+                    f"statik: {expected_static}"
+                )
+
             expected_annotations = object_data['annotations']
             annotations = subject_data['value'].__annotations__
             expected_names = set(expected_annotations)
@@ -410,16 +419,16 @@ class Trait:
                 missing_names = expected_names - actual_names
                 extra_names = actual_names - expected_names
                 mismatched_names = sorted(missing_names | extra_names)
-                raise TypeError(
-                    f'{name}() from implement doesnt same with {name}() from trait '
-                    f"args: {', '.join(mismatched_names)}"
+                raise IDSTypeError(
+                    f'{name}() dari implementasi tidak sama dengan {name}() dari trait '
+                    f"argumen: {', '.join(mismatched_names)}"
                 )
 
             for arg_name, expected_type in expected_annotations.items():
                 if annotations[arg_name] == expected_type:
                     continue
-                raise TypeError(
-                    f'{name}() from implement doesnt same with {name}() from trait '
+                raise IDSTypeError(
+                    f'{name}() dari implementasi tidak sama dengan {name}() dari trait '
                     f'annotation {arg_name}: {expected_type}'
                 )
 

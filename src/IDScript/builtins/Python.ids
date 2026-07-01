@@ -1,0 +1,13 @@
+dari "_Python.idsm" impor {
+    publik evaluasi,
+    publik jalankan,
+    publik impor,
+    publik ambil,
+    publik atur,
+    publik hapus,
+    publik punya,
+    publik daftar,
+    publik bersihkan,
+    publik pengingatan,
+    publik penungguan,
+};

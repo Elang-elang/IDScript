@@ -1,0 +1,226 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "_Atribut",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Atribut.idsm",
+    "code": [],
+    "functions": {
+        "ambil_atribut": {
+            "name": "ambil_atribut",
+            "args": [
+                "obj",
+                "nama"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.ambil_atribut"
+                ],
+                [
+                    "LOAD_NAME",
+                    "obj"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nama"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "atur_atribut": {
+            "name": "atur_atribut",
+            "args": [
+                "obj",
+                "nama",
+                "nilai"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.atur_atribut"
+                ],
+                [
+                    "LOAD_NAME",
+                    "obj"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nama"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nilai"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    3
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "punya_atribut": {
+            "name": "punya_atribut",
+            "args": [
+                "obj",
+                "nama"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.punya_atribut"
+                ],
+                [
+                    "LOAD_NAME",
+                    "obj"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nama"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "punya_attr": {
+            "name": "punya_attr",
+            "args": [
+                "obj",
+                "nama"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.punya_attr"
+                ],
+                [
+                    "LOAD_NAME",
+                    "obj"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nama"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "hapus_atribut": {
+            "name": "hapus_atribut",
+            "args": [
+                "obj",
+                "nama"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.hapus_atribut"
+                ],
+                [
+                    "LOAD_NAME",
+                    "obj"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nama"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "daftar_atribut": {
+            "name": "daftar_atribut",
+            "args": [
+                "obj"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.daftar_atribut"
+                ],
+                [
+                    "LOAD_NAME",
+                    "obj"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        }
+    },
+    "exports": [
+        "ambil_atribut",
+        "atur_atribut",
+        "punya_atribut",
+        "punya_attr",
+        "hapus_atribut",
+        "daftar_atribut"
+    ],
+    "modules": {},
+    "native_symbols": {
+        "__py_native__.ambil_atribut": {
+            "kind": "function",
+            "module": "IDScript.builtins._Atribut",
+            "qualname": "_ambil_atribut",
+            "registry_key": "IDScript.builtins._Atribut:_ambil_atribut"
+        },
+        "__py_native__.atur_atribut": {
+            "kind": "function",
+            "module": "IDScript.builtins._Atribut",
+            "qualname": "_atur_atribut",
+            "registry_key": "IDScript.builtins._Atribut:_atur_atribut"
+        },
+        "__py_native__.punya_atribut": {
+            "kind": "function",
+            "module": "IDScript.builtins._Atribut",
+            "qualname": "_punya_atribut",
+            "registry_key": "IDScript.builtins._Atribut:_punya_atribut"
+        },
+        "__py_native__.punya_attr": {
+            "kind": "function",
+            "module": "IDScript.builtins._Atribut",
+            "qualname": "_punya_attr",
+            "registry_key": "IDScript.builtins._Atribut:_punya_attr"
+        },
+        "__py_native__.hapus_atribut": {
+            "kind": "function",
+            "module": "IDScript.builtins._Atribut",
+            "qualname": "_hapus_atribut",
+            "registry_key": "IDScript.builtins._Atribut:_hapus_atribut"
+        },
+        "__py_native__.daftar_atribut": {
+            "kind": "function",
+            "module": "IDScript.builtins._Atribut",
+            "qualname": "_daftar_atribut",
+            "registry_key": "IDScript.builtins._Atribut:_daftar_atribut"
+        }
+    }
+}

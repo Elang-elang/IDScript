@@ -1,6 +1,6 @@
 {
   "name": "acode-idscript",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "IDScript syntax highlighting for Acode.",
   "main": "main.js",
   "repository": "https://github.com/Elang-elang/IDScript",
@@ -18,7 +18,7 @@
     "name": "IDScript Syntax",
     "main": "main.js",
     "icon": "small.jpg",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "minVersionCode": 290,
     "readme": "README.md"
   }

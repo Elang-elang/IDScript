@@ -470,8 +470,8 @@ fungsi ambil_id(): ID {
 Dynamic alias:
 
 ```ids
-tipe Kotak[T] = daftar[T]
-var angka: Kotak[Angka] = [1, 2, 3];
+tipe Kotak<T> = daftar<T>
+var angka: Kotak<Angka> = [1, 2, 3];
 ```
 
 </details>
@@ -616,8 +616,8 @@ var kosong_nilai: Kosong = kosong;
 List dan kamus:
 
 ```ids
-var angka: daftar[Angka] = [1, 2, 3];
-var user: kamus[Teks, Apapun] = {"nama": "Budi", "umur": 20};
+var angka: daftar<Angka> = [1, 2, 3];
+var user: kamus<Teks, Apapun> = {"nama": "Budi", "umur": 20};
 ```
 
 Call, attribute, dan index:
@@ -667,12 +667,12 @@ Kategori `info` mencakup `Angka`, `Float`, `Boolean`, `Teks`, `Kosong`, `Daftar`
 
 ```ids
 var mungkin: ?Angka = kosong;
-var angka: daftar[Angka] = [1, 2, 3];
-var data: kamus[Teks, Angka] = {"a": 1};
-var operasi: fungsi[[Angka, Angka], Angka];
-var hasil_operasi: hasil[Angka, Teks];
-var nilai: [Angka, Teks] = 1;
-var mode: ["dev", "prod"] = "dev";
+var angka: daftar<Angka> = [1, 2, 3];
+var data: kamus<Teks, Angka> = {"a": 1};
+var operasi: fungsi<(Angka, Angka): Angka>;
+var hasil_operasi: hasil<Angka, Teks>;
+var nilai: <Angka, Teks> = 1;
+var mode: <"dev", "prod"> = "dev";
 ```
 
 </details>

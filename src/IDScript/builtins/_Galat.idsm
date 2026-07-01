@@ -1,0 +1,286 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "_Galat",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Galat.idsm",
+    "code": [],
+    "functions": {
+        "Galat": {
+            "name": "Galat",
+            "args": [
+                "message"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.Galat"
+                ],
+                [
+                    "LOAD_NAME",
+                    "message"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "GalatTipe": {
+            "name": "GalatTipe",
+            "args": [
+                "message"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.GalatTipe"
+                ],
+                [
+                    "LOAD_NAME",
+                    "message"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "GalatNilai": {
+            "name": "GalatNilai",
+            "args": [
+                "message"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.GalatNilai"
+                ],
+                [
+                    "LOAD_NAME",
+                    "message"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "GalatAtribut": {
+            "name": "GalatAtribut",
+            "args": [
+                "message"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.GalatAtribut"
+                ],
+                [
+                    "LOAD_NAME",
+                    "message"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "GalatIndeks": {
+            "name": "GalatIndeks",
+            "args": [
+                "message"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.GalatIndeks"
+                ],
+                [
+                    "LOAD_NAME",
+                    "message"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "GalatKunci": {
+            "name": "GalatKunci",
+            "args": [
+                "message"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.GalatKunci"
+                ],
+                [
+                    "LOAD_NAME",
+                    "message"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "GalatModul": {
+            "name": "GalatModul",
+            "args": [
+                "message"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.GalatModul"
+                ],
+                [
+                    "LOAD_NAME",
+                    "message"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "GalatLoop": {
+            "name": "GalatLoop",
+            "args": [
+                "message"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.GalatLoop"
+                ],
+                [
+                    "LOAD_NAME",
+                    "message"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "GalatMemori": {
+            "name": "GalatMemori",
+            "args": [
+                "message"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.GalatMemori"
+                ],
+                [
+                    "LOAD_NAME",
+                    "message"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        }
+    },
+    "exports": [
+        "Galat",
+        "GalatTipe",
+        "GalatNilai",
+        "GalatAtribut",
+        "GalatIndeks",
+        "GalatKunci",
+        "GalatModul",
+        "GalatLoop",
+        "GalatMemori"
+    ],
+    "modules": {},
+    "native_symbols": {
+        "__py_native__.Galat": {
+            "kind": "function",
+            "module": "IDScript.builtins._Galat",
+            "qualname": "_galat",
+            "registry_key": "IDScript.builtins._Galat:_galat"
+        },
+        "__py_native__.GalatTipe": {
+            "kind": "function",
+            "module": "IDScript.builtins._Galat",
+            "qualname": "_galat_tipe",
+            "registry_key": "IDScript.builtins._Galat:_galat_tipe"
+        },
+        "__py_native__.GalatNilai": {
+            "kind": "function",
+            "module": "IDScript.builtins._Galat",
+            "qualname": "_galat_nilai",
+            "registry_key": "IDScript.builtins._Galat:_galat_nilai"
+        },
+        "__py_native__.GalatAtribut": {
+            "kind": "function",
+            "module": "IDScript.builtins._Galat",
+            "qualname": "_galat_atribut",
+            "registry_key": "IDScript.builtins._Galat:_galat_atribut"
+        },
+        "__py_native__.GalatIndeks": {
+            "kind": "function",
+            "module": "IDScript.builtins._Galat",
+            "qualname": "_galat_indeks",
+            "registry_key": "IDScript.builtins._Galat:_galat_indeks"
+        },
+        "__py_native__.GalatKunci": {
+            "kind": "function",
+            "module": "IDScript.builtins._Galat",
+            "qualname": "_galat_kunci",
+            "registry_key": "IDScript.builtins._Galat:_galat_kunci"
+        },
+        "__py_native__.GalatModul": {
+            "kind": "function",
+            "module": "IDScript.builtins._Galat",
+            "qualname": "_galat_modul",
+            "registry_key": "IDScript.builtins._Galat:_galat_modul"
+        },
+        "__py_native__.GalatLoop": {
+            "kind": "function",
+            "module": "IDScript.builtins._Galat",
+            "qualname": "_galat_loop",
+            "registry_key": "IDScript.builtins._Galat:_galat_loop"
+        },
+        "__py_native__.GalatMemori": {
+            "kind": "function",
+            "module": "IDScript.builtins._Galat",
+            "qualname": "_galat_memori",
+            "registry_key": "IDScript.builtins._Galat:_galat_memori"
+        }
+    }
+}

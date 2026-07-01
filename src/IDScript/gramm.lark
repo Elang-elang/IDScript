@@ -109,13 +109,14 @@ private_trait: "privat"? trait_attrs
 public_trait: "publik" trait_attrs
 
 trait_attrs: "sifat" name "{" abstract_method abstract_method* "}"
-abstract_method: "metode" name attrs_func ";"
+abstract_method: "metode" name attrs_func ";" -> abstract_plain_method
+               | "statik" "metode" name attrs_func ";" -> abstract_static_method
 
 
 func_decl: private_func | public_func
 private_func: "privat"? "fungsi" name attrs_func block
 public_func: "publik" "fungsi" name attrs_func block
-attrs_func: args ":" type_ann
+attrs_func: typedef_params? args ":" type_ann
 
 args: "(" (arg ("," arg)* ","?)? ")"
 arg: immut_arg | field_arg
@@ -256,10 +257,14 @@ term: subscripts
 subscripts: attr
           | idx
           | call
+          | call_generic
 
 attr: term "." name 
 idx: term "[" expr_ "]"
-call: term "(" (expr_ ("," expr_)* ","?)? ")"
+call: term call_params
+call_generic: term typedef_params call_params
+
+call_params: "(" (expr_ ("," expr_)* ","?)? ")"
 
 struct_field: name kamus
 get_identifier: identifier_name
@@ -292,20 +297,20 @@ type_def: type_object
         | name
 
 type_object: type_result | type_func | type_arr | type_dict | type_union | type_literal | type_dynamic
-type_result: "hasil" "[" type_ann ("," type_ann)? "]"
-type_func: "fungsi" "[" "[" (type_ann ("," type_ann)* ","?)? "]" "," type_ann "]"
-type_arr: "daftar" "[" type_ann "]"
-type_dict: "kamus" "[" type_ann "," type_ann "]"
-type_union: "[" type_ann ("," type_ann)? ","? "]"
-type_literal: "[" constants ("," constants)? ","? "]"
+type_result: "hasil" "<" type_ann ("," type_ann)? ">"
+type_func: "fungsi" "<" "(" (type_ann ("," type_ann)*)? ")" ":" type_ann ">"
+type_arr: "daftar" "<" type_ann ">"
+type_dict: "kamus" "<" type_ann "," type_ann ">"
+type_union: "<" type_ann ("," type_ann)? ","? ">"
+type_literal: "<" constants ("," constants)? ","? ">"
 
-type_dynamic: name "[" name ("," name)* ","? "]"
+type_dynamic: name "<" name ("," name)* ","? ">"
 
 typedef_stmt: private_typedef | public_typedef
 private_typedef: "privat"? typedef_attrs
 public_typedef: "publik" typedef_attrs
 typedef_attrs: "tipe" name typedef_params? "=" type_ann ";"?
-typedef_params: "[" name ("," name)* ","? "]"
+typedef_params: "<" name ("," name)* ","? ">"
 
 interface_stmt: private_interface | public_interface
 private_interface: "privat"? interface_attrs

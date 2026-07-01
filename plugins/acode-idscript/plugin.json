@@ -2,7 +2,7 @@
   "$schema": "https://acode.app/schema/plugin/v0.1.0.json",
   "id": "idscript.syntax",
   "name": "IDScript Syntax",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": "https://github.com/Elang-elang/IDScript",
   "main": "main.js",
   "icon": "small.jpg",
@@ -27,6 +27,8 @@
     "big.jpg",
     "main.js",
     "mode-idscript.js",
+    "mode-idscript-module.js",
+    "theme-idscript-night.js",
     "snippets/idscript.js",
     "README.md"
   ]

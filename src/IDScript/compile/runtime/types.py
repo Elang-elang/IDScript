@@ -7,27 +7,37 @@ from typing import (
     get_args, get_origin
 )
 
+from ..diagnostics import IDSTypeError
+
 EMPTY = object()
 Result = Union
 
 
 def check_types(value: Any, types: Type | str) -> bool:
-    if types is Any:
-        return True
-    if value is None and (types is None or types is type(None)):
-        return True
     try:
-        py_class = object.__getattribute__(types, '__PY_CLASS__')
-    except (AttributeError, TypeError):
-        py_class = None
-    if py_class is not None:
-        return value is types or isinstance(value, py_class)
-    if isinstance(types, str) and type(value).__name__ == types:
+        if types is Any:
+            return True
+        if value is None and (types is None or types is type(None)):
+            return True
+        try:
+            py_class = object.__getattribute__(types, '__PY_CLASS__')
+        except (AttributeError, TypeError):
+            py_class = None
+    
+        if py_class is not None:
+            return value is types or isinstance(value, py_class)
+        if isinstance(types, str) and type(value).__name__ == types:
+            return True
+        if isinstance(types, tuple):
+            return any(check_types(value, item) for item in types)
+        check_type(value, types)
         return True
-    if isinstance(types, tuple):
-        return any(check_types(value, item) for item in types)
-    check_type(value, types)
-    return True
+
+    except Exception as e:
+        raise IDSTypeError(
+            "Tipe tidak sesuai dengan isianya\n"
+            f"tipe {value} != {types}"
+        )
 
 def default_value(ann: Type):
     origin = get_origin(ann)
@@ -38,7 +48,7 @@ def default_value(ann: Type):
             return ann()
         if ann is Result:
             return None
-        raise TypeError(f'Default value can access if type a basic type')
+        raise IDSTypeError('Nilai default hanya tersedia untuk tipe dasar')
     
     args = get_args(ann)
     if origin in (list, dict):

@@ -12,7 +12,6 @@ BUILTIN_TYPES = {
     "Boolean": bool,
     "Kosong": type(None),
     "Apapun": Any,
-    "OBJEK": object,
 }
 
 

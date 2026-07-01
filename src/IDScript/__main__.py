@@ -11,12 +11,12 @@ import click
 
 try:
     from . import __version__
-    from .exceptions import IDSError
+    from .compile.exceptions import IDSError
     from .compile import Compile
     from .compile.Compiler import BytecodeCompiler, ModuleCode, VM
 except ImportError:  # pragma: no cover - fallback for direct source execution
     from IDScript import __version__
-    from IDScript.exceptions import IDSError
+    from IDScript.compile.exceptions import IDSError
     from compile import Compile
     from compile.Compiler import BytecodeCompiler, ModuleCode, VM
 
@@ -107,7 +107,7 @@ def _run_file_with_progress(label: str, callback) -> None:
 
     output = io.StringIO()
     _run_with_progress(label, lambda: _capture_stdout(callback, output))
-    sys.stderr.write("\n\n")
+    sys.stderr.write("\n")
     sys.stderr.flush()
     sys.stdout.write(output.getvalue())
     sys.stdout.flush()
@@ -187,7 +187,7 @@ def main(file: Path, output_file: Path | None, mode: Mode | None, main_name: str
         if mode is None:
             if output_file is not None:
                 raise click.UsageError("OUTPUT_FILE hanya dipakai bersama -m, -c, atau --both.")
-            if file.suffix in {".idsm", ".idsc", ".idbc"}:
+            if file.suffix in {".idsm", ".idsc"}:
                 _run_file_with_progress(
                     f"Menjalankan bytecode {file.name}",
                     lambda: _run_vm_bytecode(file, main_name),

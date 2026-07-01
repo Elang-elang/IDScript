@@ -124,6 +124,7 @@ class Function(_FUNCTION):
 class AttrsFunc(_FUNCTION):
     args: 'Arguments'
     type: 'Type'
+    generic: Optional[List[Name]] = None
 
 @dataclass
 class Arguments(_FUNCTION):
@@ -232,6 +233,7 @@ class _ABSTRACT_METHOD(_STRUCTURE):
 class AbstractMethod(_ABSTRACT_METHOD):
     name: Name
     attrs: AttrsFunc
+    static: bool = False
 
 
 class _CTRL_FLOW(_STATEMENT):
@@ -389,6 +391,7 @@ class Index(_EXPRESSION):
 class Call(_EXPRESSION):
     func: _EXPRESSION
     args: Optional[List[_EXPRESSION]] = None
+    generic: Optional[List[_EXPRESSION]] = None
 
 @dataclass
 class StructFielded(_EXPRESSION):

@@ -1,0 +1,14 @@
+dari "_Permintaan.idsm" impor {
+    publik minta,
+    publik ambil,
+    publik kirim,
+    publik taruh,
+    publik tambal,
+    publik hapus,
+    publik teks,
+    publik json,
+    publik status,
+    publik header,
+    publik url,
+    publik berhasil,
+};

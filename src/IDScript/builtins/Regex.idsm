@@ -1,0 +1,427 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "Regex",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Regex.idsm",
+    "code": [
+        [
+            "IMPORT_NAME",
+            "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Regex.idsm",
+            [
+                [
+                    "cocok",
+                    "cocok"
+                ],
+                [
+                    "cari",
+                    "cari"
+                ],
+                [
+                    "teks_cari",
+                    "teks_cari"
+                ],
+                [
+                    "semua",
+                    "semua"
+                ],
+                [
+                    "ganti",
+                    "ganti"
+                ],
+                [
+                    "pisah",
+                    "pisah"
+                ],
+                [
+                    "kompilasi",
+                    "kompilasi"
+                ],
+                [
+                    "escape",
+                    "escape"
+                ],
+                [
+                    "grup",
+                    "grup"
+                ],
+                [
+                    "grup_dict",
+                    "grup_dict"
+                ]
+            ]
+        ]
+    ],
+    "functions": {},
+    "exports": [
+        "cocok",
+        "cari",
+        "teks_cari",
+        "semua",
+        "ganti",
+        "pisah",
+        "kompilasi",
+        "escape",
+        "grup",
+        "grup_dict"
+    ],
+    "modules": {
+        "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Regex.idsm": {
+            "format": "idsm",
+            "version": 1,
+            "encoding": "utf-8",
+            "name": "_Regex",
+            "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Regex.idsm",
+            "code": [],
+            "functions": {
+                "cocok": {
+                    "name": "cocok",
+                    "args": [
+                        "pattern",
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.cocok"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "pattern"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            2
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "cari": {
+                    "name": "cari",
+                    "args": [
+                        "pattern",
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.cari"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "pattern"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            2
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "teks_cari": {
+                    "name": "teks_cari",
+                    "args": [
+                        "pattern",
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.teks_cari"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "pattern"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            2
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "semua": {
+                    "name": "semua",
+                    "args": [
+                        "pattern",
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.semua"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "pattern"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            2
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "ganti": {
+                    "name": "ganti",
+                    "args": [
+                        "pattern",
+                        "repl",
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.ganti"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "pattern"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "repl"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            3
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "pisah": {
+                    "name": "pisah",
+                    "args": [
+                        "pattern",
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.pisah"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "pattern"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            2
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "kompilasi": {
+                    "name": "kompilasi",
+                    "args": [
+                        "pattern"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.kompilasi"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "pattern"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "escape": {
+                    "name": "escape",
+                    "args": [
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.escape"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "grup": {
+                    "name": "grup",
+                    "args": [
+                        "match",
+                        "index"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.grup"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "match"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "index"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            2
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "grup_dict": {
+                    "name": "grup_dict",
+                    "args": [
+                        "match"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.grup_dict"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "match"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                }
+            },
+            "exports": [
+                "cocok",
+                "cari",
+                "teks_cari",
+                "semua",
+                "ganti",
+                "pisah",
+                "kompilasi",
+                "escape",
+                "grup",
+                "grup_dict"
+            ],
+            "modules": {},
+            "native_symbols": {
+                "__py_native__.cocok": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Regex",
+                    "qualname": "_cocok",
+                    "registry_key": "IDScript.builtins._Regex:_cocok"
+                },
+                "__py_native__.cari": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Regex",
+                    "qualname": "_cari",
+                    "registry_key": "IDScript.builtins._Regex:_cari"
+                },
+                "__py_native__.teks_cari": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Regex",
+                    "qualname": "_teks_cari",
+                    "registry_key": "IDScript.builtins._Regex:_teks_cari"
+                },
+                "__py_native__.semua": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Regex",
+                    "qualname": "_semua",
+                    "registry_key": "IDScript.builtins._Regex:_semua"
+                },
+                "__py_native__.ganti": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Regex",
+                    "qualname": "_ganti",
+                    "registry_key": "IDScript.builtins._Regex:_ganti"
+                },
+                "__py_native__.pisah": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Regex",
+                    "qualname": "_pisah",
+                    "registry_key": "IDScript.builtins._Regex:_pisah"
+                },
+                "__py_native__.kompilasi": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Regex",
+                    "qualname": "_kompilasi",
+                    "registry_key": "IDScript.builtins._Regex:_kompilasi"
+                },
+                "__py_native__.escape": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Regex",
+                    "qualname": "_escape",
+                    "registry_key": "IDScript.builtins._Regex:_escape"
+                },
+                "__py_native__.grup": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Regex",
+                    "qualname": "_grup",
+                    "registry_key": "IDScript.builtins._Regex:_grup"
+                },
+                "__py_native__.grup_dict": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Regex",
+                    "qualname": "_grup_dict",
+                    "registry_key": "IDScript.builtins._Regex:_grup_dict"
+                }
+            }
+        }
+    },
+    "native_symbols": {}
+}

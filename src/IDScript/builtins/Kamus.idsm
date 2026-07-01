@@ -1,0 +1,107 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "Kamus",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Kamus.idsm",
+    "code": [
+        [
+            "IMPORT_NAME",
+            "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Kamus.idsm",
+            [
+                [
+                    "Kamus",
+                    "Kamus"
+                ],
+                [
+                    "adalah_kamus",
+                    "adalah_kamus"
+                ]
+            ]
+        ]
+    ],
+    "functions": {},
+    "exports": [
+        "Kamus",
+        "adalah_kamus"
+    ],
+    "modules": {
+        "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Kamus.idsm": {
+            "format": "idsm",
+            "version": 1,
+            "encoding": "utf-8",
+            "name": "_Kamus",
+            "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Kamus.idsm",
+            "code": [],
+            "functions": {
+                "Kamus": {
+                    "name": "Kamus",
+                    "args": [
+                        "nilai"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.Kamus"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "nilai"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "adalah_kamus": {
+                    "name": "adalah_kamus",
+                    "args": [
+                        "nilai"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.adalah_kamus"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "nilai"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                }
+            },
+            "exports": [
+                "Kamus",
+                "adalah_kamus"
+            ],
+            "modules": {},
+            "native_symbols": {
+                "__py_native__.Kamus": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Kamus",
+                    "qualname": "_kamus",
+                    "registry_key": "IDScript.builtins._Kamus:_kamus"
+                },
+                "__py_native__.adalah_kamus": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Kamus",
+                    "qualname": "_adalah_kamus",
+                    "registry_key": "IDScript.builtins._Kamus:_adalah_kamus"
+                }
+            }
+        }
+    },
+    "native_symbols": {}
+}

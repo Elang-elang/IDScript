@@ -27,12 +27,23 @@
       {
         name: "idscript_module",
         caption: "IDScript Module",
-        mode: "ace/mode/json",
-        extensions: "idsm|idsc",
+        mode: "ace/mode/idscript_module",
+        extensions: "idsm",
         icon,
         fileIcon: icon,
         supportsFile(filename) {
-          return /\.(idsm|idsc)$/i.test(filename || "");
+          return /\.idsm$/i.test(filename || "");
+        },
+      },
+      {
+        name: "idscript_compiled",
+        caption: "IDScript Compiled",
+        mode: "ace/mode/idscript_module",
+        extensions: "idsc",
+        icon,
+        fileIcon: icon,
+        supportsFile(filename) {
+          return /\.idsc$/i.test(filename || "");
         },
       },
     ];
@@ -51,6 +62,8 @@
     const aceModes = typeof acode !== "undefined" && acode.require && acode.require("aceModes");
     if (aceModes && typeof aceModes.addMode === "function") {
       aceModes.addMode("idscript", ["ids"], "IDScript");
+      aceModes.addMode("idscript_module", ["idsm"], "IDScript Module");
+      aceModes.addMode("idscript_compiled", ["idsc"], "IDScript Compiled");
     }
 
     const modelist = aceInstance.require && aceInstance.require("ace/ext/modelist");
@@ -95,6 +108,8 @@
 
     scriptsPromise = Promise.all([
       loadScript(`${base}mode-idscript.js`),
+      loadScript(`${base}mode-idscript-module.js`),
+      loadScript(`${base}theme-idscript-night.js`),
       loadScript(`${base}snippets/idscript.js`),
     ]).then(() => registerModes(base));
     return scriptsPromise;
@@ -107,6 +122,8 @@
     const aceModes = typeof acode !== "undefined" && acode.require && acode.require("aceModes");
     if (aceModes && typeof aceModes.removeMode === "function") {
       aceModes.removeMode("idscript");
+      aceModes.removeMode("idscript_module");
+      aceModes.removeMode("idscript_compiled");
     }
 
     const modelist = aceInstance.require && aceInstance.require("ace/ext/modelist");

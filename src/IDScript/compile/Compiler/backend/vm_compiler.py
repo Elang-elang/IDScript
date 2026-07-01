@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from ...diagnostics import IDSLoopError, IDSValueError
 from ...ids_ast import *
 from ...runtime.types import EMPTY
 from ..bytecode import FunctionCode, Instruction, ModuleCode
@@ -46,7 +47,7 @@ class BytecodeCompiler:
         key = str(path)
         if key in self._path_cache:
             return self._path_cache[key]
-        if path.suffix in {".idsm", ".idsc", ".idbc"}:
+        if path.suffix in {".idsm", ".idsc"}:
             return self._load_binary_module(path)
         return self._compile_program(parse_source(path.read_text(), str(path)), path)
 
@@ -85,7 +86,7 @@ class BytecodeCompiler:
                 self._stmt(body, code, module, file)
             return
         if isinstance(node, FromImport):
-            self._import_stmt(node, code, file)
+            self._import_stmt(node, code, module, file)
             return
         if isinstance(node, Const):
             self._expr(node.expr, code)
@@ -165,13 +166,13 @@ class BytecodeCompiler:
             return
         if isinstance(node, Berhentikan):
             if not self._loop_stack:
-                raise SyntaxError("berhentikan hanya dapat digunakan di dalam loop")
+                raise IDSLoopError("berhentikan hanya dapat digunakan di dalam loop")
             self._loop_stack[-1]["breaks"].append(len(code))
             code.append(["JUMP_ABSOLUTE", None])
             return
         if isinstance(node, Lanjutkan):
             if not self._loop_stack:
-                raise SyntaxError("lanjutkan hanya dapat digunakan di dalam loop")
+                raise IDSLoopError("lanjutkan hanya dapat digunakan di dalam loop")
             code.append(["JUMP_ABSOLUTE", self._loop_stack[-1]["continue"]])
             return
         if isinstance(node, Expression):
@@ -179,8 +180,8 @@ class BytecodeCompiler:
             code.append(["POP_TOP"])
             return
         if isinstance(node, Switch):
-            raise NotImplementedError(f"{type(node).__name__} belum stabil di Compiler VM resmi")
-        raise NotImplementedError(f"Compiler VM belum mendukung statement {type(node).__name__}")
+            raise IDSValueError(f"{type(node).__name__} belum stabil di Compiler VM resmi")
+        raise IDSValueError(f"Compiler VM belum mendukung statement {type(node).__name__}")
 
     def _expr(self, node: Any, code: list[Instruction]) -> None:
         if isinstance(node, Expression):
@@ -206,7 +207,7 @@ class BytecodeCompiler:
             code.append(["UNARY_OP", node.op])
         elif isinstance(node, BoolOp):
             if len(node.values) != 2:
-                raise NotImplementedError("BoolOp multi nilai belum didukung di VM resmi")
+                raise IDSValueError("BoolOp multi nilai belum didukung di VM resmi")
             self._expr(node.values[0], code)
             self._expr(node.values[1], code)
             code.append(["BOOL_AND" if node.op == "and" else "BOOL_OR"])
@@ -216,9 +217,12 @@ class BytecodeCompiler:
             code.append(["COMPARE_OP", node.ops[0]])
         elif isinstance(node, Call):
             self._expr(node.func, code)
+            for g in node.generic or []:
+                self._expr(g, code)
             for arg in node.args or []:
                 self._expr(arg, code)
-            code.append(["CALL_FUNCTION", len(node.args or [])])
+            argc = len(node.args or []) + len(node.generic or [])
+            code.append(["CALL_FUNCTION", argc])
         elif isinstance(node, Attribute):
             self._expr(node.value, code)
             code.append(["LOAD_ATTR", node.attr])
@@ -242,7 +246,7 @@ class BytecodeCompiler:
                 self._expr(value, code)
             code.append(["BUILD_MAP", len(node.keys)])
         else:
-            raise NotImplementedError(f"Compiler VM belum mendukung expression {type(node).__name__}")
+            raise IDSValueError(f"Compiler VM belum mendukung expression {type(node).__name__}")
 
     def _assignment(self, node: Assignment, code: list[Instruction]) -> None:
         if isinstance(node.target, Deferensial):
@@ -264,19 +268,20 @@ class BytecodeCompiler:
             self._expr(node.expr, code)
             code.append(["STORE_ATTR", node.target.attr])
             return
-        raise NotImplementedError("Target assignment belum didukung di VM resmi")
+        raise IDSValueError("Target assignment belum didukung di VM resmi")
 
     def _function(self, name: str, attrs: AttrsFunc, block: Block, module: ModuleCode, file: Path) -> FunctionCode:
         ast_args = list(attrs.args.args or [])
         args = [arg.name.id for arg in ast_args]
         arg_is_def = [arg.is_def for arg in ast_args]
+        generic = [g.id for g in attrs.generic] if attrs.generic else []
         body: list[Instruction] = []
         for stmt in block.bodies or []:
             self._stmt(stmt, body, module, file)
         if not body or body[-1][0] not in {"RETURN", "RETURN_VALUE"}:
             body.append(["LOAD_CONST", None])
             body.append(["RETURN_VALUE"])
-        return FunctionCode(name=name, args=args, code=body, arg_is_def=arg_is_def)
+        return FunctionCode(name=name, args=args, code=body, arg_is_def=arg_is_def, generic=generic)
 
     def _implementation(self, node: Implementation, code: list[Instruction], module: ModuleCode, file: Path) -> None:
         struct_name = node.name.id
@@ -285,7 +290,7 @@ class BytecodeCompiler:
             module.functions[method_name] = self._function(method_name, method.attrs, method.body, module, file)
             code.append(["LOAD_NAME", struct_name])
             code.append(["LOAD_NAME", method_name])
-            code.append(["STORE_METHOD", method.name.id, not method.is_priv])
+            code.append(["STORE_METHOD", method.name.id, not method.is_priv, method.static])
 
     def _if(self, node: If, code: list[Instruction], module: ModuleCode, file: Path) -> None:
         jump_when_true = self._condition(node.test, code)
@@ -350,7 +355,7 @@ class BytecodeCompiler:
         self._stmt(block, block_code, module, file)
         return block_code
 
-    def _import_stmt(self, node: FromImport, code: list[Instruction], file: Path) -> None:
+    def _import_stmt(self, node: FromImport, code: list[Instruction], module: ModuleCode, file: Path) -> None:
         if node._from.startswith("."):
             module_path = (file.parent / Path(node._from)).resolve()
         else:
@@ -361,6 +366,8 @@ class BytecodeCompiler:
             source = item.name.id
             alias = item.alias.id if item.alias is not None else source
             specs.append([source, alias])
+            if not item.is_priv:
+                module.exports.append(alias)
         code.append(["IMPORT_NAME", imported.path, specs])
 
     def _condition(self, node: Any, code: list[Instruction]) -> bool:
@@ -435,14 +442,14 @@ class BytecodeCompiler:
                 "value": self._literal_value(node.value),
                 "is_priv": node.is_priv,
             }
-        raise NotImplementedError(f"Compiler VM belum mendukung enum variant {type(node).__name__}")
+        raise IDSValueError(f"Compiler VM belum mendukung enum variant {type(node).__name__}")
 
     def _literal_value(self, node: Any) -> Any:
         if isinstance(node, Expression):
             return self._literal_value(node.value)
         if isinstance(node, Constant):
             return node.value
-        raise NotImplementedError("Discriminant enum VM sementara hanya mendukung literal")
+        raise IDSValueError("Discriminant enum VM sementara hanya mendukung literal")
 
     def _const_key(self, node: Any) -> Any:
         if isinstance(node, Constant):

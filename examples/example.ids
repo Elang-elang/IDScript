@@ -1,0 +1,16 @@
+dari "Konsol.idsm" impor { println, format };
+
+struktur Struct {}
+
+implementasi Struct {
+    statik metode EditVariabel<T>(*var: T, value: T): Kosong {
+        *var = value;
+    }
+}
+
+fungsi utama(): Angka {
+    var variabel: Teks = "0";
+    Struct.EditVariabel<Teks>(&variabel, "10");
+    println(variabel);
+    kembalikan 0;
+}

@@ -142,7 +142,7 @@ def test_structure_extend_rejects_duplicate_field():
     config = Config()
     makhluk = Structure("Makhluk", config, {"nama": {"type": str}})
 
-    with pytest.raises(AttributeError, match="duplicated field"):
+    with pytest.raises(AttributeError, match="field duplikat"):
         Structure("Orang", config, {"nama": {"type": str}}, makhluk)
 
 
@@ -152,7 +152,7 @@ def test_structure_extend_rejects_duplicate_method():
     makhluk.set_method("sapa", lambda ini: "Halo")
     orang = Structure("Orang", config, {}, makhluk)
 
-    with pytest.raises(AttributeError, match="duplicated method"):
+    with pytest.raises(AttributeError, match="method duplikat"):
         orang.set_method("sapa", lambda ini: "Hai")
 
 
@@ -189,7 +189,7 @@ def test_trait_rejects_missing_method():
         },
     )
 
-    with pytest.raises(AttributeError, match="missing method"):
+    with pytest.raises(AttributeError, match="kekurangan method"):
         sifat([])
 
 

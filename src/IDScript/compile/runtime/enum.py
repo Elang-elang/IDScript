@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import Any
 
+from ..diagnostics import IDSAttributeError, IDSTypeError, IDSValueError
 from .config import Config
 from .types import check_types
 
@@ -78,7 +79,7 @@ class EnumValue:
             method_schema = prototype['schema'].get(name, {})
             config = prototype['config']
             if method_schema.get('is_priv') and not config.is_struct_name(prototype['name']):
-                raise AttributeError(f"Enum {prototype['name']!r} has no attribute {name!r}")
+                raise IDSAttributeError(f"Enum {prototype['name']!r} tidak punya attribute {name!r}")
 
             def bound(*args: Any, **kwargs: Any) -> Any:
                 config.enter_struct(prototype['name'])
@@ -89,14 +90,14 @@ class EnumValue:
 
             return bound
 
-        raise AttributeError(f"Enum value {self.enum_name}.{self.variant} has no attribute {name!r}")
+        raise IDSAttributeError(f"Nilai enum {self.enum_name}.{self.variant} tidak punya attribute {name!r}")
 
     def __getitem__(self, key: int | str) -> Any:
         if self.kind == 'tuple':
             return self.payload[int(key)]
         if self.kind == 'struct':
             return object.__getattribute__(self, '_fields')[str(key)]
-        raise TypeError(f"Enum value {self.enum_name}.{self.variant} has no payload")
+        raise IDSTypeError(f"Nilai enum {self.enum_name}.{self.variant} tidak punya payload")
 
     def __iter__(self):
         if self.kind == 'tuple':
@@ -113,7 +114,7 @@ class EnumValue:
         return 0
 
     def __setattr__(self, name: str, value: Any) -> None:
-        raise AttributeError(f"Enum value {self.enum_name}.{self.variant} is immutable")
+        raise IDSAttributeError(f"Nilai enum {self.enum_name}.{self.variant} tidak dapat diubah")
 
     def __repr__(self) -> str:
         base = f'{self.enum_name}.{self.variant}'
@@ -143,7 +144,7 @@ class UnitVariant(EnumValue):
 
     def __call__(self, *args: Any, **kwargs: Any) -> UnitVariant:
         if args or kwargs:
-            raise TypeError(f'{self.enum_name}.{self.variant} does not take payload')
+            raise IDSTypeError(f'{self.enum_name}.{self.variant} tidak menerima payload')
         return self
 
 
@@ -157,8 +158,8 @@ class TupleVariant:
 
     def __call__(self, *args: Any) -> EnumValue:
         if len(args) != len(self._required):
-            raise TypeError(
-                f'{self}() takes {len(self._required)} arguments but {len(args)} was given'
+            raise IDSTypeError(
+                f'{self}() membutuhkan {len(self._required)} argumen tetapi diberi {len(args)}'
             )
         for index, value in enumerate(args):
             check_types(value, self._required[index])
@@ -181,15 +182,15 @@ class StructVariant:
     def __call__(self, *args: Any, **kwargs: Any) -> EnumValue:
         if args:
             if len(args) != 1 or not isinstance(args[0], Mapping) or kwargs:
-                raise TypeError(f'{self}() expects keyword fields or one mapping payload')
+                raise IDSTypeError(f'{self}() membutuhkan field keyword atau satu mapping payload')
             kwargs = dict(args[0])
 
         unknown = set(kwargs) - set(self._required)
         missing = set(self._required) - set(kwargs)
         if unknown:
-            raise AttributeError(f'{self} has unknown field(s): {", ".join(sorted(unknown))}')
+            raise IDSAttributeError(f'{self} memiliki field tidak dikenal: {", ".join(sorted(unknown))}')
         if missing:
-            raise AttributeError(f'{self} missing field(s): {", ".join(sorted(missing))}')
+            raise IDSAttributeError(f'{self} kekurangan field: {", ".join(sorted(missing))}')
 
         fields: dict[str, Any] = {}
         for name, expected_type in self._required.items():
@@ -229,7 +230,7 @@ class Enum:
         object.__setattr__(self, '__PROTOTYPE__', prototype)
 
     def __call__(self, *args: Any, **kwargs: Any) -> object:
-        raise TypeError('Enum type cannot be called directly; call one of its variants')
+        raise IDSTypeError('Tipe enum tidak dapat dipanggil langsung; panggil salah satu variant')
 
     def __getattr__(self, name: str) -> Any:
         prototype = object.__getattribute__(self, '__PROTOTYPE__')
@@ -250,7 +251,7 @@ class Enum:
                     config.leave_struct()
 
             return bound
-        raise AttributeError(f"Enum {prototype['name']!r} has no attribute {name!r}")
+        raise IDSAttributeError(f"Enum {prototype['name']!r} tidak punya attribute {name!r}")
 
     def set_method(
         self,
@@ -262,7 +263,7 @@ class Enum:
     ) -> None:
         method = value or kwargs.get('method')
         if method is None:
-            raise TypeError('set_method() missing method value')
+            raise IDSTypeError('set_method() membutuhkan nilai method')
         check_types(method, type)
 
         prototype = object.__getattribute__(self, '__PROTOTYPE__')
@@ -356,7 +357,7 @@ class Enum:
             elif kind == 'discriminant':
                 variants[name] = UnitVariant(prototype, name, field['value'])
             else:
-                raise ValueError(f'Unknown enum variant kind {kind!r}')
+                raise IDSValueError(f'Jenis variant enum {kind!r} tidak dikenal')
         return variants
 
     def _ensure_access(self, prototype: dict[str, Any], name: str) -> None:
@@ -365,7 +366,7 @@ class Enum:
         if field.get('is_priv') and \
           not config.is_struct_name(prototype['name']) and \
           config.is_module():
-            raise AttributeError(f"Enum {prototype['name']!r} has no attribute {name!r}")
+            raise IDSAttributeError(f"Enum {prototype['name']!r} tidak punya attribute {name!r}")
 
     def __repr__(self) -> str:
         prototype = object.__getattribute__(self, '__PROTOTYPE__')

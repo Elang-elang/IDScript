@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from ..diagnostics import IDSValueError
+
 
 TOKEN_FILE = Path(__file__).with_name("TOKEN.json")
 
@@ -46,28 +48,28 @@ class TokenRegistry:
         try:
             return self.opcodes[name]
         except KeyError as exc:
-            raise ValueError(f"Opcode {name!r} tidak terdaftar di TOKEN.json") from exc
+            raise IDSValueError(f"Opcode {name!r} tidak terdaftar di TOKEN.json") from exc
 
     def opcode_name(self, code: int) -> str:
         try:
             return self.opcode_names[code]
         except KeyError as exc:
-            raise ValueError(f"Kode opcode {code!r} tidak terdaftar di TOKEN.json") from exc
+            raise IDSValueError(f"Kode opcode {code!r} tidak terdaftar di TOKEN.json") from exc
 
     def magic(self, format_name: str) -> bytes:
         try:
             return str(self.data["file_formats"][format_name]["magic"]).encode("utf-8")
         except KeyError as exc:
-            raise ValueError(f"Format file {format_name!r} tidak terdaftar") from exc
+            raise IDSValueError(f"Format file {format_name!r} tidak terdaftar") from exc
 
     def encode_instruction(self, instruction: list[Any]) -> list[Any]:
         if not instruction:
-            raise ValueError("Instruksi kosong tidak valid")
+            raise IDSValueError("Instruksi kosong tidak valid")
         return [self.opcode_code(str(instruction[0])), *(self._encode_value(item) for item in instruction[1:])]
 
     def decode_instruction(self, instruction: list[Any]) -> list[Any]:
         if not instruction:
-            raise ValueError("Instruksi kosong tidak valid")
+            raise IDSValueError("Instruksi kosong tidak valid")
         return [self.opcode_name(int(instruction[0])), *(self._decode_value(item) for item in instruction[1:])]
 
     def _encode_value(self, value: Any) -> Any:

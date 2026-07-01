@@ -1,0 +1,76 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "_Iterasi",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Iterasi.idsm",
+    "code": [],
+    "functions": {
+        "panjang": {
+            "name": "panjang",
+            "args": [
+                "nilai"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.panjang"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nilai"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "jangkauan": {
+            "name": "jangkauan",
+            "args": [
+                "args"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.jangkauan"
+                ],
+                [
+                    "LOAD_NAME",
+                    "args"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        }
+    },
+    "exports": [
+        "panjang",
+        "jangkauan"
+    ],
+    "modules": {},
+    "native_symbols": {
+        "__py_native__.panjang": {
+            "kind": "function",
+            "module": "IDScript.builtins._Iterasi",
+            "qualname": "_panjang",
+            "registry_key": "IDScript.builtins._Iterasi:_panjang"
+        },
+        "__py_native__.jangkauan": {
+            "kind": "function",
+            "module": "IDScript.builtins._Iterasi",
+            "qualname": "_jangkauan",
+            "registry_key": "IDScript.builtins._Iterasi:_jangkauan"
+        }
+    }
+}

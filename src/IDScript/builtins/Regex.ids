@@ -1,0 +1,12 @@
+dari "_Regex.idsm" impor {
+    publik cocok,
+    publik cari,
+    publik teks_cari,
+    publik semua,
+    publik ganti,
+    publik pisah,
+    publik kompilasi,
+    publik escape,
+    publik grup,
+    publik grup_dict,
+};

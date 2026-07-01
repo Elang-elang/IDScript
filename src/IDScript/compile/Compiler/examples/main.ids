@@ -1,4 +1,5 @@
 dari "./math.ids" impor { tambah, konstan VERSI };
+dari "Konsol.idsm" impor { publik println };
 
 struktur User {
     publik nama: Teks,

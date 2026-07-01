@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import Any
 
+from ..diagnostics import IDSMemoryError, IDSTypeError, IDSNameError
 from .types import check_types
 from .config import Config
 from copy import deepcopy
@@ -20,7 +21,7 @@ class Variable:
     ):
         if is_pointer:
             if not isinstance(value, Variable):
-                raise TypeError(f'Pointer {name!r} membutuhkan referensial variable')
+                raise IDSTypeError(f'Pointer {name!r} membutuhkan referensial variable')
             check_types(value.value, type)
         else:
             check_types(value, type)
@@ -44,6 +45,8 @@ class Variable:
 
     @value.setter
     def value(self, value):
+        if self.is_const:
+            raise IDSNameError(f'{name!r} adalah konstanta dan tidak dapat diubah')
         check_types(value, self.type)
         self.__prototype__['value'] = value
 
@@ -68,7 +71,7 @@ class Variable:
 
     def __repr__(self):
         if self.is_pointer:
-            return hex(id(self.value))
+            return f'<Pointer {self.name} of address {hex(id(self.value))}>'
         return f'<Variable: {self.name}>'
 
     def __getitem__(self, key):
@@ -95,11 +98,13 @@ class Variable:
         if self.is_pointer:
             return self.__prototype__['value'].value
         else:
-            raise MemoryError(f'{self.name} doesnt Pointer')
+            raise IDSMemoryError(f'{self.name!r} bukan pointer')
 
     def pointer_set(self, value):
         if self.is_pointer:
             check_types(value, self.value.type)
+            if self.value.is_const:
+                raise IDSNameError(f'{self.value.name!r} adalah konstanta dan tidak dapat diubah')
             self.value.value = value
         else:
-            raise MemoryError(f'{self.name} doesnt Pointer')
+            raise IDSMemoryError(f'{self.name!r} bukan pointer')

@@ -7,16 +7,17 @@ from ..runtime.types import EMPTY
 
 @v_args(inline=True)
 class _Parse(Transformer):
-    def __init__(self, file: str = "<unknown>"):
+    def __init__(self, file: str = "<unknown>", source: str | None = None):
         self.file = file
+        self.source = source
 
     def _call_userfunc(self, tree, new_children=None):
         result = super()._call_userfunc(tree, new_children)
-        return set_source(result, span_from_meta(tree.meta, self.file))
+        return set_source(result, span_from_meta(tree.meta, self.file, self.source))
 
     def _call_userfunc_token(self, token):
         result = super()._call_userfunc_token(token)
-        return set_source(result, span_from_token(token, self.file))
+        return set_source(result, span_from_token(token, self.file, self.source))
     
     # The PROGRAM
     def start(self, prog):
@@ -238,10 +239,16 @@ class _Parse(Transformer):
             name=name,
             data=list(data)
         )
-    def abstract_method(self, name, attrs):
+    def abstract_plain_method(self, name, attrs):
         return AbstractMethod(
             name=name,
             attrs=attrs
+        )
+    def abstract_static_method(self, name, attrs):
+        return AbstractMethod(
+            name=name,
+            attrs=attrs,
+            static=True,
         )
     
     def func_decl(self, field): return field
@@ -261,8 +268,12 @@ class _Parse(Transformer):
         )
     
     
-    def attrs_func(self, args, type):
+    def attrs_func(self, generic, args, type = None):
+        if isinstance(generic, Arguments) and type is None:
+            generic, args, type = [], generic, args
+            
         return AttrsFunc(
+            generic=generic,
             args=args,
             type=type
         )
@@ -614,11 +625,21 @@ class _Parse(Transformer):
             key=key
         )
     
-    def call(self, func, *args):
+    def call(self, func, args):
         return Call(
             func=func,
             args=args or None
         )
+    
+    def call_generic(self, func, generic, args):
+        return Call(
+            func=func,
+            args=args,
+            generic=generic
+        )
+    
+    def call_params(self, *args):
+        return list(args)
     
     def struct_field(self, struct, kwargs):
         return StructFielded(
@@ -814,8 +835,8 @@ class _Parse(Transformer):
         return Name(id=str(id))
 
 class Parse:
-    def __new__(cls, tree, file: str = "<unknown>"):
-        return _Parse(file).transform(tree)
+    def __new__(cls, tree, file: str = "<unknown>", source: str | None = None):
+        return _Parse(file, source).transform(tree)
     @classmethod
     def __repr__(cls):
         return 'parse.Parse'
