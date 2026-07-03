@@ -549,7 +549,7 @@ def test_vm_can_use_ids_builtin_atribut_and_iterasi():
             final data: Apapun = [1, 2, 3];
             jika (bukan punya_attr(data, "__len__")) { kembalikan 1; }
             final bungkus: Apapun = Daftar(data);
-            bungkus.masukan(4);
+            bungkus.masukkan(4);
             final r: Apapun = jangkauan([3]);
             kembalikan panjang(data) + panjang(r);
         }
@@ -568,7 +568,7 @@ def test_vm_can_use_standalone_daftar_and_kamus_builtins():
 
         fungsi utama(): Angka {
             final daftar: Apapun = Daftar([1, 2]);
-            daftar.masukan(3);
+            daftar.masukkan(3);
 
             final kamus: Apapun = Kamus({"a": 1});
             kamus.atur("b", 2);

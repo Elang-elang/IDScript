@@ -1,0 +1,44 @@
+dari "Konsol.idsm" impor { publik print, publik println };
+
+fungsi utama(): Angka {
+    final nilai: Angka = 85;
+    
+    jika (nilai >= 90) {
+        println("A");
+    } namun jika (nilai >= 80) {
+        println("B");
+    } namun jika (nilai >= 70) {
+        println("C");
+    } jika tidak {
+        println("D");
+    }
+    
+    untuk (final i dari dalam [0, 1, 2, 3, 4]) {
+        print(Teks(i) + " ");
+    }
+    println("");
+    
+    var counter: Angka = 0;
+    selama (counter < 3) {
+        println("counter: " + Teks(counter));
+        counter = counter + 1;
+    }
+    
+    final data: Apapun = {"a": 1, "b": 2};
+    println("a = " + Teks(data["a"]));
+    
+    coba {
+        println("Mencoba...");
+    } tangkap (e) {
+        println("Error: " + e);
+    } diakhiri {
+        println("Selesai");
+    }
+    
+    pilah (nilai) {
+        kasus 85: println("Nilai adalah 85");
+        kasus bawaan: println("Nilai lain");
+    }
+    
+    kembalikan 0;
+}

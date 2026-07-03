@@ -1,7 +1,7 @@
 import pytest
-from typeguard import TypeCheckError
 from typing import Any, Callable
 
+from compile.diagnostics import IDSTypeError
 from compile.runtime import Structure
 from compile.runtime.config import Config
 from compile.runtime.structure import Trait
@@ -121,7 +121,7 @@ def test_structure_validates_required_unknown_and_type_mismatch():
     with pytest.raises(AttributeError):
         orang(nama="Budi", umur=20)
 
-    with pytest.raises(TypeCheckError):
+    with pytest.raises((IDSTypeError, TypeError)):
         orang(nama=123)
 
 

@@ -1,0 +1,156 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "ContohIDSPy",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/examples/IDSPy/contoh_modul.idsm",
+    "code": [
+        [
+            "LOAD_CONST",
+            "1.0.0"
+        ],
+        [
+            "STORE_NAME",
+            "VERSI"
+        ]
+    ],
+    "functions": {
+        "salam": {
+            "name": "salam",
+            "args": [
+                "nama"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.salam"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nama"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "tambah": {
+            "name": "tambah",
+            "args": [
+                "a",
+                "b"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.tambah"
+                ],
+                [
+                    "LOAD_NAME",
+                    "a"
+                ],
+                [
+                    "LOAD_NAME",
+                    "b"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "kali": {
+            "name": "kali",
+            "args": [
+                "a",
+                "b"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.kali"
+                ],
+                [
+                    "LOAD_NAME",
+                    "a"
+                ],
+                [
+                    "LOAD_NAME",
+                    "b"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "gabung": {
+            "name": "gabung",
+            "args": [
+                "items"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.gabung"
+                ],
+                [
+                    "LOAD_NAME",
+                    "items"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        }
+    },
+    "exports": [
+        "salam",
+        "tambah",
+        "kali",
+        "gabung",
+        "VERSI"
+    ],
+    "modules": {},
+    "native_symbols": {
+        "__py_native__.salam": {
+            "kind": "function",
+            "module": "__main__",
+            "qualname": "_salam",
+            "registry_key": "__main__:_salam"
+        },
+        "__py_native__.tambah": {
+            "kind": "function",
+            "module": "__main__",
+            "qualname": "_tambah",
+            "registry_key": "__main__:_tambah"
+        },
+        "__py_native__.kali": {
+            "kind": "function",
+            "module": "__main__",
+            "qualname": "_kali",
+            "registry_key": "__main__:_kali"
+        },
+        "__py_native__.gabung": {
+            "kind": "function",
+            "module": "__main__",
+            "qualname": "_gabung",
+            "registry_key": "__main__:_gabung"
+        }
+    }
+}

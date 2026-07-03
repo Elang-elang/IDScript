@@ -1,4 +1,6 @@
 /* global ace */
+(function () {
+  if (typeof ace === "undefined" || typeof ace.define !== "function") return;
 ace.define(
   "ace/mode/idscript_module_highlight_rules",
   ["require", "exports", "module", "ace/lib/oop", "ace/mode/text_highlight_rules"],
@@ -116,3 +118,4 @@ ace.define(
     exports.Mode = Mode;
   }
 );
+})();

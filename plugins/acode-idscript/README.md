@@ -31,29 +31,42 @@ Plugin ini mendaftarkan mode untuk:
 
 Default-nya plugin memakai token standar Ace, jadi warna mengikuti tema Acode pengguna. Tema opsional `idscript_night` disediakan untuk user yang ingin tampilan gelap khusus IDScript.
 
+## File Icons
+
+Plugin ini menyediakan file icon untuk file IDScript di file manager Acode:
+
+| Ekstensi | Icon |
+|----------|------|
+| `.ids` | `small.jpg` |
+| `.idsm` | `small.jpg` |
+| `.idsc` | `small.jpg` |
+
+Icon didaftarkan via `fileIcon` pada masing-masing language entry di `main.js`. Format `*.jpg` didukung penuh oleh Acode.
+
 ## Icon
 
 Plugin ini menyertakan dua icon agar paket Acode self-contained:
 
-- `big.jpg`: gambar display/README.
-- `small.jpg`: icon plugin dan metadata file IDScript.
+- `big.jpg`: gambar display/README (160px).
+- `small.jpg`: icon plugin, file icon, dan metadata.
 
 ## Struktur
 
 ```text
 plugins/acode-idscript/
 ├── big.jpg
+├── small.jpg
 ├── main.js
 ├── mode-idscript.js
+├── mode-idscript-module.js
 ├── package.json
 ├── plugin.json
 ├── README.md
-├── small.jpg
 ├── theme-idscript-night.js
-└── snippets/
-    └── idscript.js
+├── snippets/
+│   └── idscript.js
 ```
 
 ## Catatan
 
-Tahap awal ini hanya syntax highlighting. Diagnostic real-time dari parser IDScript belum disertakan.
+Tahap awal ini hanya syntax highlighting dan file icon. Diagnostic real-time dari parser IDScript belum disertakan.

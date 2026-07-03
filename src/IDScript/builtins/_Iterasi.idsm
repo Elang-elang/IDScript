@@ -52,11 +52,35 @@ IDSM1
                     "RETURN_VALUE"
                 ]
             ]
+        },
+        "bungkus_argumen": {
+            "name": "bungkus_argumen",
+            "args": [
+                "func"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.bungkus_argumen"
+                ],
+                [
+                    "LOAD_NAME",
+                    "func"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
         }
     },
     "exports": [
         "panjang",
-        "jangkauan"
+        "jangkauan",
+        "bungkus_argumen"
     ],
     "modules": {},
     "native_symbols": {
@@ -71,6 +95,12 @@ IDSM1
             "module": "IDScript.builtins._Iterasi",
             "qualname": "_jangkauan",
             "registry_key": "IDScript.builtins._Iterasi:_jangkauan"
+        },
+        "__py_native__.bungkus_argumen": {
+            "kind": "function",
+            "module": "IDScript.builtins._Iterasi",
+            "qualname": "_bungkus_argumen",
+            "registry_key": "IDScript.builtins._Iterasi:_bungkus_argumen"
         }
     }
 }

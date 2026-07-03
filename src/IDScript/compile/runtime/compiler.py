@@ -605,13 +605,14 @@ class Compiler:
     
     def Arg(self, node: Arg):
         name = node.name.id
-        arg_type = Any
+        arg_type: Any = Any
         try:
             arg_type = self.v(node.type)
         except IDSNameError:
             if not self.config.is_struct_name('<object>'):
-                raise 
-            arg_type = TypeAliasType(node.type.type.id, Any)
+                raise
+            type_name = getattr(getattr(node.type, 'type', None), 'id', None)
+            arg_type = TypeAliasType(type_name, Any)
 
         def wrapper(val):
             if node.is_def:
@@ -882,11 +883,11 @@ class Compiler:
     
     
     def FromImport(self, node: FromImport):
-        path_module = node._from
-        if path_module.startswith('.'):
-            path_module = Path(self.config.path()).parent / Path(path_module)
+        path_module_str = node._from
+        if path_module_str.startswith('.'):
+            path_module = Path(self.config.path()).parent / Path(path_module_str)
         else:
-            path_module = Path(__file__).parent.parent.parent / 'builtins' / Path(path_module)
+            path_module = Path(__file__).parent.parent.parent / 'builtins' / Path(path_module_str)
 
         funcs_wrapp = [ self.v(wrapp) for wrapp in node._imports ]
 

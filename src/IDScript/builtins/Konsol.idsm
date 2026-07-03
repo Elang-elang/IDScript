@@ -4,7 +4,7 @@ IDSM1
     "version": 1,
     "encoding": "utf-8",
     "name": "Konsol",
-    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Konsol.idsm",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Konsol.ids",
     "code": [
         [
             "IMPORT_NAME",

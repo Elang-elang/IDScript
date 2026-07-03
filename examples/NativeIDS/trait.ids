@@ -1,0 +1,21 @@
+dari "Konsol.idsm" impor { publik println };
+
+struktur Kucing {
+    publik nama: Teks
+}
+
+sifat BisaSuara {
+    metode suara(ini: Kucing): Teks;
+}
+
+implementasi BisaSuara untuk Kucing {
+    publik metode suara(ini: Kucing): Teks {
+        kembalikan "Meow!";
+    }
+}
+
+fungsi utama(): Angka {
+    final kucing: Kucing = Kucing { nama: "Kitty" };
+    println(kucing.nama + " bersuara: " + kucing.suara());
+    kembalikan 0;
+}

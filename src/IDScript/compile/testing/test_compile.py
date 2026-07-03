@@ -771,7 +771,7 @@ def test_runtime_can_use_standalone_daftar_and_kamus_builtins():
 
         fungsi utama(): Angka {
             final daftar: Apapun = Daftar([1, 2]);
-            daftar.masukan(3);
+            daftar.masukkan(3);
 
             final kamus: Apapun = Kamus({"a": 1});
             kamus.atur("b", 2);

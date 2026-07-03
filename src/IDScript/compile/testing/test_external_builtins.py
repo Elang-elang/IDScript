@@ -79,7 +79,7 @@ def test_vm_can_import_external_python_wrapped_builtins(capsys):
         fungsi utama(): Angka {
             println("vm");
             final daftar: Apapun = Daftar([1, 2]);
-            daftar.masukan(3);
+                daftar.masukkan(3);
             final kamus: Apapun = Kamus({"x": 4});
             jika (bukan cocok("v+", "vm")) { kembalikan 1; }
             jika (bukan adalah_daftar(daftar)) { kembalikan 2; }
@@ -147,7 +147,7 @@ def test_regex_builtin_returns_match_object_and_text_helpers():
             jika (grup(match, 0) != "ab") { kembalikan 2; }
             jika (grup(match, "nama") != "b") { kembalikan 3; }
             jika (grup_dict(match)["nama"] != "b") { kembalikan 4; }
-            jika (escape("a.b") != "a\\.b") { kembalikan 5; }
+            jika (escape("a.b") != "a\.b") { kembalikan 5; }
             kembalikan 0;
         }
         ''',

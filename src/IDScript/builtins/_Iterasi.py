@@ -15,9 +15,15 @@ def _jangkauan(args: list) -> list:
         return list(range(args[0] + 1))
     return list(range(*args))
 
+@IDSFunction(name="bungkus_argumen", declare="public", arguments={"func": Any}, annotation=Any)
+def _bungkus_argumen(func: Any) -> Any:
+    def pembungkusan_argumen(*args):
+        return func(*args)
+    return pembungkusan_argumen
+
 
 @IDSModule(name="_Iterasi", path=Path(__file__).with_suffix(".idsm"))
 def module(cls):
-    cls.add(_panjang, _jangkauan)
+    cls.add(_panjang, _jangkauan, _bungkus_argumen)
     if __name__ == "__main__":
         cls.write()

@@ -1,4 +1,6 @@
 /* global ace */
+(function () {
+  if (typeof ace === "undefined" || typeof ace.define !== "function") return;
 ace.define(
   "ace/mode/idscript_highlight_rules",
   ["require", "exports", "module", "ace/lib/oop", "ace/mode/text_highlight_rules"],
@@ -171,7 +173,7 @@ ace.define(
           },
           {
             token: ["paren.lparen", "text", "support.type"],
-            regex: `([\\[,])(\\s*)(${typeNames})\\b`,
+            regex: `([\\[,<])(\\s*)(${typeNames})\\b`,
           },
           {
             token: "constant.language",
@@ -210,7 +212,7 @@ ace.define(
           },
           {
             token: "keyword.operator",
-            regex: "==|!=|>=|<=|\\*\\*|[=+\\-*/<>]",
+            regex: "==|!=|>=|<=|\\*\\*|[=+\\-*/]",
           },
           {
             token: "punctuation.operator",
@@ -218,11 +220,11 @@ ace.define(
           },
           {
             token: "paren.lparen",
-            regex: "[({\\[]",
+            regex: "[({\\[<]",
           },
           {
             token: "paren.rparen",
-            regex: "[)}\\]]",
+            regex: "[)\\]>]",
           },
           {
             token: "identifier",
@@ -326,11 +328,11 @@ ace.define(
           },
           {
             token: "paren.lparen",
-            regex: "[({\\[]",
+            regex: "[({\\[<]",
           },
           {
             token: "paren.rparen",
-            regex: "[)\\]]",
+            regex: "[)\\]>]",
           },
           {
             token: "identifier",
@@ -384,11 +386,11 @@ ace.define(
           },
           {
             token: "paren.lparen",
-            regex: "[({\\[]",
+            regex: "[({\\[<]",
           },
           {
             token: "paren.rparen",
-            regex: "[)\\]]",
+            regex: "[)\\]>]",
           },
           {
             token: "text",
@@ -425,11 +427,11 @@ ace.define(
           },
           {
             token: "paren.lparen",
-            regex: "[({\\[]",
+            regex: "[({\\[<]",
           },
           {
             token: "paren.rparen",
-            regex: "[)\\]]",
+            regex: "[)\\]>]",
           },
           {
             token: "identifier",
@@ -578,3 +580,4 @@ ace.define(
     exports.Mode = Mode;
   }
 );
+})();

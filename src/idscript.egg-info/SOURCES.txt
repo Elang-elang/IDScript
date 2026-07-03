@@ -93,6 +93,7 @@ src/IDScript/compile/testing/__init__.py
 src/IDScript/compile/testing/conftest.py
 src/IDScript/compile/testing/test_cli.py
 src/IDScript/compile/testing/test_compile.py
+src/IDScript/compile/testing/test_examples.py
 src/IDScript/compile/testing/test_exceptions.py
 src/IDScript/compile/testing/test_external_builtins.py
 src/IDScript/compile/testing/test_struct_runtime.py

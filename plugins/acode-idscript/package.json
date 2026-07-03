@@ -18,7 +18,7 @@
     "name": "IDScript Syntax",
     "main": "main.js",
     "icon": "small.jpg",
-    "version": "0.1.1",
+"version": "0.2.0",
     "minVersionCode": 290,
     "readme": "README.md"
   }

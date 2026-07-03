@@ -60,14 +60,14 @@ struct_decl: private_struct | public_struct
 private_struct: "privat"? struct_attrs
 public_struct: "publik" struct_attrs
 
-struct_attrs: "struktur" name block_struct struct_extend?
-struct_extend: "turunan" "dari" name ";"?
+struct_attrs: "struktur" NAME block_struct struct_extend?
+struct_extend: "turunan" "dari" NAME ";"?
 
 block_struct: "{" (struct_fields ("," struct_fields)* ","?)? "}"
 struct_fields: private_field | public_field
 private_field: "privat"? attr_field
 public_field: "publik" attr_field
-attr_field: name ":" type_ann
+attr_field: NAME ":" type_ann
 
 impl_stmt: impl_plain | impl_trait
 impl_plain: _implementation_keyword _name block_impl
@@ -79,14 +79,14 @@ body_impl: public_method | private_method
 public_method: "publik" (static_method | method_attrs)
 private_method: "privat"? (static_method | method_attrs)
 static_method: "statik" method_attrs
-method_attrs: "metode" name attrs_func block
+method_attrs: "metode" NAME attrs_func block
 
 
 
 enum_stmt: private_enum | public_enum
 private_enum: "privat"? enum_attrs
 public_enum: "publik" enum_attrs
-enum_attrs: "enum" name enum_block
+enum_attrs: "enum" NAME enum_block
 enum_block: "{" (enum_body ("," enum_body)* ","?)?  "}"
 enum_body: private_field_attr
          | public_field_attr
@@ -98,24 +98,24 @@ field_attr: unit_variant
           | structure_variant
           | discriminant
 
-unit_variant: name
-tuple_variant: name "(" ( type_ann ("," type_ann)* )? ")" 
-structure_variant: name "{" attr_field ("," attr_field)* ","? "}"
-discriminant: name "=" expr
+unit_variant: NAME
+tuple_variant: NAME "(" ( type_ann ("," type_ann)* )? ")" 
+structure_variant: NAME "{" attr_field ("," attr_field)* ","? "}"
+discriminant: NAME "=" expr
 
 
 trait_stmt: private_trait | public_trait
 private_trait: "privat"? trait_attrs
 public_trait: "publik" trait_attrs
 
-trait_attrs: "sifat" name "{" abstract_method abstract_method* "}"
-abstract_method: "metode" name attrs_func ";" -> abstract_plain_method
-               | "statik" "metode" name attrs_func ";" -> abstract_static_method
+trait_attrs: "sifat" NAME "{" abstract_method abstract_method* "}"
+abstract_method: "metode" NAME attrs_func ";" -> abstract_plain_method
+               | "statik" "metode" NAME attrs_func ";" -> abstract_static_method
 
 
 func_decl: private_func | public_func
-private_func: "privat"? "fungsi" name attrs_func block
-public_func: "publik" "fungsi" name attrs_func block
+private_func: "privat"? "fungsi" NAME attrs_func block
+public_func: "publik" "fungsi" NAME attrs_func block
 attrs_func: typedef_params? args ":" type_ann
 
 args: "(" (arg ("," arg)* ","?)? ")"
@@ -145,7 +145,7 @@ for_stmt: "untuk" "(" for_expr ")" block
 for_expr: for_expr_decl "dari" "dalam" expr
 for_expr_decl: _var_keyword for_containns -> for_var_decl
              | _final_keyword for_containns -> for_final_decl
-for_containns: name | "(" name ("," name)* ")"
+for_containns: NAME | "(" NAME ("," NAME)* ")"
 
 
 while_flow: while_stmt else_stmt?
@@ -155,7 +155,7 @@ try_flow: try_stmt catch_stmt+ else_stmt? finally_stmt?
         | try_stmt finally_stmt
 
 try_stmt: "coba" block
-catch_stmt: "tangkap" "(" name ")" block
+catch_stmt: "tangkap" "(" NAME ")" block
 finally_stmt: "diakhiri" block
 
 
@@ -168,7 +168,7 @@ case_attrs: "kasus" pattern -> case_pattern
 
 pattern: or_pattern
 or_pattern: as_pattern ("atau" as_pattern)*
-as_pattern: closed_pattern "sebagai" name
+as_pattern: closed_pattern "sebagai" NAME
           | closed_pattern
 
 closed_pattern: match_value
@@ -193,17 +193,17 @@ match_mapping: "{" mapping_item ("," mapping_item)* ("," match_dots)? "}"
              | "{" "}"
 
 mapping_item: dkey ":" pattern
-match_struct: name "{" pattern_keyword ("," pattern_keyword)* ("," match_dots)? "}"
-            | name "{" match_dots "}"
-            | name "{" "}"
-pattern_keyword: name "=" pattern
+match_struct: NAME "{" pattern_keyword ("," pattern_keyword)* ("," match_dots)? "}"
+            | NAME "{" match_dots "}"
+            | NAME "{" "}"
+pattern_keyword: NAME "=" pattern
 
-match_as_capture: name
+match_as_capture: NAME
 
-match_dots: "..." name
+match_dots: "..." NAME
 pattern_list: pattern ("," pattern)* ("," match_dots)?
 
-dotted_name: name ("." name)*
+dotted_name: NAME ("." NAME)*
 
 
 import_stmt: "dari" TEKS "impor" ("{" import_attr ("," import_attr)* ","? "}" | all_import_attrs) ";"
@@ -214,7 +214,7 @@ import_decl: var_import | const_import | static_import
 var_import: "var"? import_as
 const_import: "konstan" import_as
 static_import: "statik" import_as
-import_as: name ("sebagai" name)?
+import_as: NAME ("sebagai" NAME)?
 
 all_import_attrs: "*Apapun" | "*"
 
@@ -252,25 +252,25 @@ term: subscripts
     | literal
     | expr_
     | "(" expr_ ")"
-    | name
+    | NAME
 
 subscripts: attr
           | idx
           | call
           | call_generic
 
-attr: term "." name 
+attr: term "." NAME 
 idx: term "[" expr_ "]"
 call: term call_params
 call_generic: term typedef_params call_params
 
 call_params: "(" (expr_ ("," expr_)* ","?)? ")"
 
-struct_field: name kamus
+struct_field: NAME kamus
 get_identifier: identifier_name
               | info_expr
-identifier_name: "identifikasi" name
-info_expr: "info" name
+identifier_name: "identifikasi" NAME
+info_expr: "info" NAME
 pointer_expr: "&" NAME -> referensial
             | "*" NAME -> deferensial
             | "salin" NAME -> salin_referensial
@@ -282,9 +282,9 @@ object: daftar | kamus
 daftar: "[" (expr_ ("," expr_)* ","?)? "]"
 kamus: "{" dbodies? ","? "}"
 dbodies: dbody ("," dbody)*
-dbody: dkey ":" dval | name
-dkey: name | name_key | constants
-name_key: "[" name "]"
+dbody: dkey ":" dval | NAME
+dkey: NAME | name_key | constants
+name_key: "[" NAME "]"
 dval: expr_
 
 
@@ -294,7 +294,7 @@ type_ann: optional type_def
 optional: "?"
 
 type_def: type_object
-        | name
+        | NAME
 
 type_object: type_result | type_func | type_arr | type_dict | type_union | type_literal | type_dynamic
 type_result: "hasil" "<" type_ann ("," type_ann)? ">"
@@ -304,18 +304,18 @@ type_dict: "kamus" "<" type_ann "," type_ann ">"
 type_union: "<" type_ann ("," type_ann)? ","? ">"
 type_literal: "<" constants ("," constants)? ","? ">"
 
-type_dynamic: name "<" name ("," name)* ","? ">"
+type_dynamic: NAME "<" NAME ("," NAME)* ","? ">"
 
 typedef_stmt: private_typedef | public_typedef
 private_typedef: "privat"? typedef_attrs
 public_typedef: "publik" typedef_attrs
-typedef_attrs: "tipe" name typedef_params? "=" type_ann ";"?
-typedef_params: "<" name ("," name)* ","? ">"
+typedef_attrs: "tipe" NAME typedef_params? "=" type_ann ";"?
+typedef_params: "<" ","? NAME ("," NAME)* ","? ">"
 
 interface_stmt: private_interface | public_interface
 private_interface: "privat"? interface_attrs
 public_interface: "publik" interface_attrs
-interface_attrs: _interface_keyword name interface_object
+interface_attrs: _interface_keyword NAME interface_object
 interface_object: "{" (interface_body_object ("," interface_body_object)* ","?)? "}" ";"?
 interface_body_object: dkey ":" type_ann | dkey ":" interface_object
 _interface_keyword: "antarmuka"
@@ -329,8 +329,6 @@ TEKS: ESCAPED_STRING
 ANGKA: SIGNED_INT
 BOOLEAN: "benar" | "salah"
 KOSONG: "kosong"
-
-name: NAME
 
 NAME: /[A-Za-z_][A-Za-z0-9_]*/
 
