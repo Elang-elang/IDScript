@@ -28,6 +28,8 @@ class BytecodeCompiler:
         self._path_cache: dict[str, ModuleCode] = {}
         self._loop_stack: list[dict[str, Any]] = []
         self._temp_id = 0
+        self._mod: ModuleCode | None = None
+        self._file: Path | None = None
 
     def compile_source(self, code: str, file: str | Path = "<memory.ids>") -> ModuleCode:
         module = self.compile_ast(parse_source(code, str(file)), Path(file).resolve())
@@ -72,6 +74,8 @@ class BytecodeCompiler:
         self._path_cache[key] = module
         code: list[Instruction] = []
         module.code = code
+        self._mod = module
+        self._file = file
         for body in node.bodies or []:
             self._stmt(body, code, module, file)
         return module
@@ -245,6 +249,10 @@ class BytecodeCompiler:
                 self._expr(key, code)
                 self._expr(value, code)
             code.append(["BUILD_MAP", len(node.keys)])
+        elif isinstance(node, ExprFunc):
+            name = self._temp("anonim")
+            self._mod.functions[name] = self._function(name, node.attrs, node.body, self._mod, self._file)
+            code.append(["MAKE_FUNCTION", name])
         else:
             raise IDSValueError(f"Compiler VM belum mendukung expression {type(node).__name__}")
 

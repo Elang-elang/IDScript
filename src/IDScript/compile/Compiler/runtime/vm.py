@@ -493,6 +493,9 @@ class VM:
                         raise IDSModuleError(f"Nama {source!r} tidak diekspor oleh {inst[1]!r}")
             elif op == "RAISE_ERROR":
                 raise IDSRuntimeError(stack.pop() if stack else "Terjadi kesalahan pada VM IDScript")
+            elif op == "MAKE_FUNCTION":
+                function = state.code.functions[inst[1]]
+                stack.append(VMFunction(module_key=state.code.path, name=function.name, code=function))
             else:
                 raise IDSValueError(f"Opcode VM {op!r} belum diimplementasikan")
             ip += 1

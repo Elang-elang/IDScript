@@ -1142,7 +1142,101 @@ class Compiler:
             res[key] = values[i]
         
         return res
-    
+
+    def ExprFunc(self, node: ExprFunc):
+        name = '<anonim>'
+        return_type = self.v(node.attrs.type)
+        body = node.body.bodies or []
+        
+        generic_params = []
+        if names := node.attrs.generic:
+            generic_params = [name.id for name in names]
+        
+        def wrapper_scope(wrapp) -> Any:
+            parent = self.current_scope
+            self.current_scope = Scope(parent=parent)
+
+            self.config.enter_func()
+            try:
+                return wrapp()
+            except:
+                raise
+            finally:
+                self.current_scope = parent
+                self.config.leave_func()
+        
+        def generic_wrapper(wrapper_func, generic_args = [], arguments = []) -> Any:
+            parent = self.current_scope
+            self.current_scope = Scope(parent=parent)
+            self.config.enter_func()
+            try:
+                for idx, param_name in enumerate(generic_params):
+                    if len(generic_args) <= idx:
+                        raise IDSAttributeError(
+                            f'{name}() kekurangan argumen generik wajib {param_name!r}'
+                        )
+                    
+                    self.current_scope.declare(
+                        param_name, T, generic_args[idx], True, True
+                    )
+                return wrapper_func(*arguments)
+            except:
+                raise
+            finally:
+                self.current_scope = parent
+                self.config.leave_func()
+        
+        def wrapper_func(*arguments) -> Any:
+            args = self.v(node.attrs.args)
+            try:
+                if args and arguments:
+                    for i, arg in enumerate(args['wrapp']):
+                        if i < len(arguments):
+                            arg(arguments[i])
+                        else:
+                            raise IDSAttributeError(f'{name}() kekurangan argumen wajib {arg.__name__!r}')
+                if arguments and not args:
+                    raise IDSAttributeError(f'{name}() menerima 0 argumen tetapi diberi {len(arguments)}')
+
+                for stmt in body:
+                    self.v(stmt)
+            except Return as res:
+                result = None
+                if res.args:
+                    result = res.args[0]
+                
+                check_types(result, return_type)
+                return result
+            except Throw as err:
+                error = err.args[0] if err.args else IDSRuntimeError('Terjadi kesalahan')
+                if not isinstance(error, BaseException):
+                    error = IDSRuntimeError(error)
+                raise error
+            except:
+                raise
+        
+        def wrapper(*args, **kwargs) -> Any:
+            generic_args = kwargs.get('generic_params', [])
+            arguments = kwargs.get('arguments', list(args))
+            def wrapp() -> Any:
+                if generic_args and generic_params:
+                    return generic_wrapper(wrapper_func, generic_args, arguments)
+                return wrapper_func(*arguments)
+            return wrapper_scope(wrapp)
+        
+        func = type(
+            name,
+            (object,),
+            {
+                '__init__': lambda _: None,
+                '__call__': lambda _, *args, **kwargs: wrapper(*args, **kwargs),
+                '__repr__': lambda _: f'<Function: {name}>',
+                '__setattr__': lambda this, name, value: object.__setattr__(this, name, value),
+
+            }
+        )
+        return func()
+
     def Type(self, node: Type):
         t = node.type
         if not isinstance(t, type):

@@ -716,6 +716,13 @@ class _Parse(Transformer):
         return key[0]
         
     def dval(self, val): return val
+
+    def expr_func(self, attrs, body):
+        return ExprFunc(
+            attrs=attrs,
+            body=body
+        )
+    
     def type_ann(self, *types):
         if len(types) == 2 and types[0] is True:
             return Type(

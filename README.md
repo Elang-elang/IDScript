@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="icons/big.jpg" alt="IDScript" width="160">
+<img src="https://github.com/Elang-elang/IDScript/blob/main/icons/big.jpg" alt="IDScript" width="160">
 
 # IDScript
 
@@ -142,7 +142,7 @@ build/program.idsc
 <details>
 <summary><strong>Menjalankan Bytecode</strong></summary>
 
-File `.idsm`, `.idsc`, dan `.idbc` dapat diberikan langsung ke CLI.
+File `.ids`, `.idsm` dan `.idsc` dapat diberikan langsung ke CLI.
 
 ```bash
 idscript build/program.idsc
@@ -155,11 +155,10 @@ idscript build/program.idsc
 ## Format File
 
 | Format | Fungsi |
-|---|---|
+|---|---|---|
 | `.ids` | Source IDScript yang ditulis manusia. |
 | `.idsm` | IDScript Module, format module VM yang masih deskriptif/readable. |
 | `.idsc` | IDScript Compiled, bytecode final yang opcode-nya dikodekan. |
-| `.idbc` | Bytecode legacy dari VMCompiler lama, hanya kompatibilitas baca. |
 
 <details>
 <summary><strong>Alur Compile</strong></summary>
@@ -175,6 +174,8 @@ idscript app.ids --module app.idsm
 idscript app.ids --bytecode app.idsc
 idscript app.idsc
 ```
+
+**Catatan versi:** Format `.idsm`/`.idsc` lawas (sebelum penambahan opcode `MAKE_FUNCTION`) **tidak kompatibel** dengan compiler/VM saat ini. Jika mengalami error "Opcode VM ... belum diimplementasikan", rebuild module dengan compiler terbaru.
 
 </details>
 
@@ -212,7 +213,6 @@ Bagian ini dibuat sebagai referensi cepat. Buka bagian yang dibutuhkan saja.
 | `Boolean` | Boolean |
 | `Kosong` | `kosong` / `None` |
 | `Apapun` | Nilai bebas |
-| `OBJEK` | Alias object Python untuk kebutuhan builtin |
 
 ```ids
 var nama: Teks = "Budi";
@@ -301,6 +301,8 @@ fungsi hitung(): Angka {
 <details open>
 <summary><strong>Fungsi</strong></summary>
 
+Deklarasi fungsi bernama:
+
 ```ids
 fungsi tambah(a: Angka, b: Angka): Angka {
     kembalikan a + b;
@@ -315,10 +317,46 @@ publik fungsi utama(): Angka {
 }
 ```
 
+Fungsi Generik (type parameter):
+
+```ids
+fungsi identitas[T](nilai: T): T {
+    kembalikan nilai;
+}
+
+fungsi utama(): Angka {
+    kembalikan identitas[Angka](5);
+}
+```
+
+Fungsi Ekspresi / Anonymous / Lambda (ExprFunc):
+
+```ids
+fungsi utama(): Angka {
+    var kali: Apapun = fungsi(a: Angka, b: Angka): Angka {
+        kembalikan a * b;
+    };
+    kembalikan kali(3, 4);  // 12
+}
+```
+
+Fungsi ekspresi dapat ditangkap di variabel, dijadikan argumen, dikembalikan, dan juga mendukung generic params:
+
+```ids
+fungsi utama(): Angka {
+    var fn: Apapun = fungsi[T](x: T): T {
+        kembalikan x;
+    };
+    kembalikan fn[Angka](5);  // 5
+}
+```
+
 Catatan:
 
 - Entrypoint default adalah `fungsi utama()`.
 - Interpreter normal memperketat `utama` agar tidak menerima argumen dan mengembalikan `Angka` atau `?Angka`.
+- Fungsi ekspresi memiliki nama sintetis `'<anonim>'` untuk keperluan stack trace.
+- Fungsi ekspresi didukung penuh di interpreter normal (runtime compiler) dan VM bytecode compiler.
 
 </details>
 
@@ -726,7 +764,7 @@ fungsi utama(): Angka {
 VM resmi memakai opcode eksplisit agar mudah dibaca dan didebug.
 
 | Lama | Baru |
-|---|---|
+|---|---|---|
 | `CONST` | `LOAD_CONST` |
 | `LOAD` | `LOAD_NAME` |
 | `STORE` | `STORE_NAME` |
@@ -735,9 +773,10 @@ VM resmi memakai opcode eksplisit agar mudah dibaca dan didebug.
 | `BINARY` | `BINARY_OP` |
 | `COMPARE` | `COMPARE_OP` |
 | `JUMP` | `JUMP_ABSOLUTE` |
-| `JUMP_IF_FALSE` | `POP_JUMP_IF_FALSE` |
+| `POP_JUMP_IF_FALSE` | `POP_JUMP_IF_FALSE` |
 | `CALL` | `CALL_FUNCTION` |
 | `RETURN` | `RETURN_VALUE` |
+| `FUNC` | `MAKE_FUNCTION` |
 
 Opcode lama tetap didukung sebagai alias untuk kompatibilitas.
 
@@ -787,18 +826,27 @@ Catatan: label seperti `L_else` hanya simbol disassembler/compiler. Runtime teta
 
 ## Verifikasi
 
-Jalankan dari folder `src/IDScript/compile`:
+Jalankan dari folder `src`:
 
 ```bash
-python -m pytest testing/test_cli.py Compiler/testing/test_compiler.py -q
-python -m pytest testing/test_compile.py testing/test_struct_runtime.py -q -k 'not test_compile_example_file'
+bash run_tests.sh          # full suite (~10 menit)
+bash run_tests.sh --fast   # hanya test cepat (tanpa parser/VM)
+```
+
+Atau secara manual:
+
+```bash
+cd src
+python -m pytest IDScript/compile/testing/ IDScript/maker/testing/ -q -k 'not test_compile_example_file'
+python -m pytest IDScript/compile/testing/test_compile.py -q -k 'not test_compile_example_file'
+python -m pytest IDScript/compile/Compiler/testing/test_compiler.py -q
 ```
 
 Catatan:
 
-- Test VM dan CLI berjalan dengan command di atas.
-- Test normal runtime penuh masih membutuhkan `Example/main.ids` pada root project.
-- Folder `Example/` sebaiknya diisi kembali sebelum rilis publik final.
+- `test_compile_example_file` membutuhkan `Example/main.ids` pada root project yang belum tersedia.
+- `test_permintaan_builtin_wraps_requests_response` membutuhkan `requests` yang diinstal secara otomatis oleh test.
+- VM bytecode compiler dan interpreter normal sudah mendukung semua fitur bahasa termasuk fungsi ekspresi dan generic.
 
 ---
 

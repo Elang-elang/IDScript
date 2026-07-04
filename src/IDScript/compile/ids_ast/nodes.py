@@ -419,6 +419,11 @@ class Kamus(_OBJECT):
     values: List[_EXPRESSION]
 
 
+@dataclass
+class ExprFunc(_OBJECT):
+    attrs: AttrsFunc
+    body: Block
+
 
 class _TYPE(_STATEMENT):
     pass

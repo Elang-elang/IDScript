@@ -7,10 +7,10 @@
 # Without --fast: runs ALL test suites sequentially (may take 10+ min)
 # With --fast:    runs only the quick suites (skip test_compile & test_compiler)
 #
-# Requires: pytest, mypy, Python 3.13, and IDScript installed in dev mode.
+# Requires: pytest, mypy, Python 3.13+, and IDScript installed in dev mode.
 # =============================================================
 
-PYTHON="/data/data/com.termux/files/usr/bin/python3.13"
+PYTHON="python"
 SRC_DIR="$(dirname "$0")"
 cd "$SRC_DIR" || exit 1
 

@@ -250,6 +250,7 @@ term: subscripts
     | get_identifier
     | pointer_expr
     | literal
+    | expr_func
     | expr_
     | "(" expr_ ")"
     | NAME
@@ -286,6 +287,9 @@ dbody: dkey ":" dval | NAME
 dkey: NAME | name_key | constants
 name_key: "[" NAME "]"
 dval: expr_
+
+
+expr_func: "fungsi" attrs_func block
 
 
 type_ann: optional type_def
