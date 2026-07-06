@@ -793,7 +793,7 @@ fungsi utama(): Angka {
 VM resmi memakai opcode eksplisit agar mudah dibaca dan didebug.
 
 | Lama | Baru |
-|---|---|---|
+|---|---|
 | `CONST` | `LOAD_CONST` |
 | `LOAD` | `LOAD_NAME` |
 | `STORE` | `STORE_NAME` |
