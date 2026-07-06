@@ -807,7 +807,7 @@ VM resmi memakai opcode eksplisit agar mudah dibaca dan didebug.
 | `RETURN` | `RETURN_VALUE` |
 | `FUNC` | `MAKE_FUNCTION` |
 
-Opcode lama `TIDAK` didukung sebagai lagi untuk kompatibilitas.
+Opcode lama **TIDAK** didukung lagi untuk kompatibilitas.
 
 </details>
 
