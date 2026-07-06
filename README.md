@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://github.com/Elang-elang/IDScript/blob/main/icons/big.jpg" alt="IDScript" width="160">
+<img src="https://github.com/Elang-elang/IDScript/blob/main/icons/small.jpg" alt="IDScript" width="160">
 
 # IDScript
 
