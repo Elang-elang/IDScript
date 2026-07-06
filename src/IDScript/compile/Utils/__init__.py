@@ -1,1 +1,1 @@
-"""Compatibility package for legacy runtime helper imports."""
+"""Utility helpers for the IDScript compiler pipeline."""

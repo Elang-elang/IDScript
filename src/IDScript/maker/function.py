@@ -6,6 +6,7 @@ from typing import Any, Callable, Literal
 
 from ..compile.Compiler.bytecode import FunctionCode
 from .errors import IDSMakerError, ensure_type, reject_positional, validate_declare, validate_options
+from .module_path import resolve_module
 from .pyvalue import wrap_py_value
 from .registry import register_native
 from .types import ids_type_name
@@ -36,7 +37,7 @@ class IDSFunctionBinding:
         key = register_native(self.func)
         self.native_symbol = {
             "kind": "function",
-            "module": self.func.__module__,
+            "module": resolve_module(self.func),
             "qualname": self.func.__qualname__,
             "registry_key": key,
         }

@@ -49,9 +49,9 @@ class GlobalScope:
 
     def has(self, name):
         try:
-            return not not self.get(name)
-
-        except NameError:
+            self.get(name)
+            return True
+        except IDSNameError:
             return False
     
     def exports(self):
@@ -115,6 +115,7 @@ class Scope:
 
     def has(self, name):
         try:
-            return not not self.get(name)
-        except NameError:
+            self.get(name)
+            return True
+        except IDSNameError:
             return False

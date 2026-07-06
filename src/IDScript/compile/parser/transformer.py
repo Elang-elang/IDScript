@@ -5,6 +5,8 @@ from ..ids_ast import *
 from ..diagnostics import set_source, span_from_meta, span_from_token
 from ..runtime.types import EMPTY
 
+_OPTIONAL_SENTINEL = object()
+
 @v_args(inline=True)
 class _Parse(Transformer):
     def __init__(self, file: str = "<unknown>", source: str | None = None):
@@ -677,7 +679,7 @@ class _Parse(Transformer):
         )
     def object(self, obj):
         return obj
-    def TEKS(self, s): return str(s)[1:-1]
+    def TEKS(self, s): return str(s)[1:-1].encode().decode('unicode_escape')
     def ANGKA(self, i): return int(i)
     def FLOAT(self, f): return float(f)
     def BOOLEAN(self, b): return str(b) == 'benar'
@@ -724,7 +726,7 @@ class _Parse(Transformer):
         )
     
     def type_ann(self, *types):
-        if len(types) == 2 and types[0] is True:
+        if len(types) == 2 and types[0] is _OPTIONAL_SENTINEL:
             return Type(
                 option=True,
                 type=types[1]
@@ -733,7 +735,7 @@ class _Parse(Transformer):
             type=types[0]
         )
     def optional(self, *args):
-        return True
+        return _OPTIONAL_SENTINEL
     
     
     def typedef_stmt(self, attrs):

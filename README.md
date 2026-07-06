@@ -150,6 +150,21 @@ idscript build/program.idsc
 
 </details>
 
+<details>
+<summary><strong>Mode REPL</strong></summary>
+
+Tanpa argumen file, `idscript` masuk ke **REPL interaktif** dengan syntax highlighting via `prompt_toolkit` + Pygments.
+
+```bash
+idscript
+```
+
+Setiap input **harus diakhiri `;`**. Ekspresi akan langsung dievaluasi, statement akan dieksekusi.
+
+Informasi lebih lanjut: [README IDSRepl](src/IDScript/IDSRepl/README.md)
+
+</details>
+
 ---
 
 ## Format File
@@ -820,7 +835,9 @@ Catatan: label seperti `L_else` hanya simbol disassembler/compiler. Runtime teta
 | `src/IDScript/compile/parser` | Transformer parse tree ke AST. |
 | `src/IDScript/compile/runtime` | Interpreter normal dan runtime model. |
 | `src/IDScript/compile/Compiler` | Compiler VM resmi, bytecode, dan VM runtime. |
-| `src/IDScript/builtins` | Builtin yang ditulis dalam IDScript. |
+| `src/IDScript/IDSRepl` | REPL interaktif — [README](src/IDScript/IDSRepl/README.md) |
+| `src/IDScript/maker` | Python-to-IDScript binding API — [README](src/IDScript/maker/README.md) |
+| `src/IDScript/builtins` | Builtin standar — [README](src/IDScript/builtins/README.md) |
 
 ---
 

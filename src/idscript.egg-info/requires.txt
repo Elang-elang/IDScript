@@ -1,13 +1,15 @@
 click>=8.0
 lark>=1.0
 typeguard>=4.0
+prompt_toolkit>=3.0
+Pygments>=2.0
 
 [all]
 click
 lark
 typeguard
-mypy
-pytest
+prompt_toolkit
+Pygments
 
 [dev]
 mypy

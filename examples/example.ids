@@ -10,7 +10,8 @@ implementasi Struct {
 
 fungsi utama(): Angka {
     var variabel: Teks = "0";
-    Struct.EditVariabel<,Teks>(&variabel, "10");
+    var *pointer: Teks = &variabel;
+    Struct.EditVariabel<,Teks>(pointer, "10");
     println(variabel);
     kembalikan 0;
 }

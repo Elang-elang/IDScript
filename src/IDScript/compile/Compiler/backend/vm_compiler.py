@@ -49,6 +49,8 @@ class BytecodeCompiler:
         key = str(path)
         if key in self._path_cache:
             return self._path_cache[key]
+        if path.suffix == ".idbc":
+            raise IDSValueError("Format .idbc sudah tidak didukung. compile ulang source .ids ke .idsm/.idsc.")
         if path.suffix in {".idsm", ".idsc"}:
             return self._load_binary_module(path)
         return self._compile_program(parse_source(path.read_text(), str(path)), path)
@@ -286,7 +288,7 @@ class BytecodeCompiler:
         body: list[Instruction] = []
         for stmt in block.bodies or []:
             self._stmt(stmt, body, module, file)
-        if not body or body[-1][0] not in {"RETURN", "RETURN_VALUE"}:
+        if not body or body[-1][0] != "RETURN_VALUE":
             body.append(["LOAD_CONST", None])
             body.append(["RETURN_VALUE"])
         return FunctionCode(name=name, args=args, code=body, arg_is_def=arg_is_def, generic=generic)

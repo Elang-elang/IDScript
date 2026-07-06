@@ -21,41 +21,6 @@ from ...diagnostics import (
 from IDScript.maker.pyvalue import IDSPyValue, unwrap_py_args, unwrap_py_value, wrap_py_value
 
 
-OPCODE_ALIASES = {
-    "CONST": "LOAD_CONST",
-    "DEFAULT": "LOAD_DEFAULT",
-    "LOAD": "LOAD_NAME",
-    "STORE": "STORE_NAME",
-    "STORE_LOCAL": "STORE_FAST",
-    "POP": "POP_TOP",
-    "BINARY": "BINARY_OP",
-    "UNARY": "UNARY_OP",
-    "COMPARE": "COMPARE_OP",
-    "JUMP": "JUMP_ABSOLUTE",
-    "JUMP_IF_FALSE": "POP_JUMP_IF_FALSE",
-    "CALL": "CALL_FUNCTION",
-    "RETURN": "RETURN_VALUE",
-    "MAKE_LIST": "BUILD_LIST",
-    "MAKE_MAP": "BUILD_MAP",
-    "GET_INDEX": "BINARY_SUBSCR",
-    "SET_INDEX": "STORE_SUBSCR",
-    "FOR_NEXT": "FOR_ITER",
-    "IMPORT": "IMPORT_NAME",
-    "THROW": "RAISE_ERROR",
-    "GET_ATTR": "LOAD_ATTR",
-    "SET_ATTR": "STORE_ATTR",
-    "MAKE_STRUCT": "BUILD_STRUCT_TYPE",
-    "MAKE_STRUCT_INSTANCE": "BUILD_STRUCT_INSTANCE",
-    "ADD_FIELD": "STORE_FIELD",
-    "ADD_METHOD": "STORE_METHOD",
-    "MATCH": "MATCH_VALUE",
-    "MAKE_ENUM": "BUILD_ENUM_TYPE",
-    "MAKE_TYPE_ALIAS": "BUILD_TYPE_ALIAS",
-    "MAKE_INTERFACE": "BUILD_INTERFACE",
-    "INFO": "LOAD_INFO",
-}
-
-
 class _VMReturn(BaseException):
     def __init__(self, value: Any) -> None:
         self.value = value
@@ -335,7 +300,7 @@ class VM:
         ip = 0
         while ip < len(code):
             inst = code[ip]
-            op = OPCODE_ALIASES.get(inst[0], inst[0])
+            op = inst[0]
 
             if op == "LOAD_CONST":
                 stack.append(inst[1])
@@ -562,17 +527,27 @@ class VM:
     def _resolve_native_symbol(self, name: str, symbol: dict[str, Any]) -> Any:
         module_name = symbol.get("module")
         qualname = symbol.get("qualname")
+        registry_key = symbol.get("registry_key")
         if not module_name:
             raise IDSModuleError(f"Binding native {name!r} tidak lengkap")
+
+        # registry_key is the most reliable — try it first when available
+        if registry_key:
+            try:
+                from IDScript.maker.registry import resolve_native as _resolve
+
+                return _resolve(registry_key)
+            except Exception:
+                pass  # fall through to module-based resolution
+
         try:
             module = importlib.import_module(module_name)
             if symbol.get("kind") == "module":
                 return module
-            registry_key = symbol.get("registry_key")
             if registry_key:
-                from IDScript.maker.registry import resolve_native
+                from IDScript.maker.registry import resolve_native as _resolve
 
-                return resolve_native(registry_key)
+                return _resolve(registry_key)
             if not qualname:
                 raise IDSModuleError(f"Binding native {name!r} tidak punya qualname")
             value: Any = module
@@ -584,6 +559,14 @@ class VM:
         except IDSRuntimeError:
             raise
         except Exception as error:
+            # last resort: try registry_key directly (handles stale __main__ entries)
+            if registry_key:
+                from IDScript.maker.registry import resolve_native as _resolve
+
+                try:
+                    return _resolve(registry_key)
+                except Exception:
+                    pass
             raise IDSRuntimeError.from_exception(error, file=symbol.get("file")) from error
 
     def _execute_try(

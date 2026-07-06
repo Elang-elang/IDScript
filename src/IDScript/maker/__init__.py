@@ -1,3 +1,28 @@
+"""Python-to-IDScript binding API (Maker).
+
+Memungkinkan definisi struktur, fungsi, kelas, trait, dan implementasi
+IDScript langsung dari Python — tanpa menulis file .ids.
+
+Pemakaian:
+    from IDScript.maker import IDSModule, IDSFunctionBinding
+    
+    mod = IDSModule("contoh")
+    mod.bind(IDSFunctionBinding("sapa", lambda nama: f"Halo {nama}", declare="public"))
+    mod.compile()
+    mod.save("contoh.idsm")
+
+Komponen utama:
+    IDSModule          -- Wadah binding, kompilasi ke ModuleCode
+    IDSFunctionBinding -- Binding fungsi biasa
+    IDSMethodBinding   -- Binding method struct
+    IDSStructBinding   -- Binding struktur dengan properti
+    IDSClassBinding    -- Gabungan struct + implementasi
+    IDSImplementBinding-- Binding implementasi method ke struct
+    IDSTraitBinding    -- Binding trait (sifat)
+    IDSPyValue         -- Bungkus nilai Python untuk IDScript
+    IDSMakerError      -- Exception khusus maker
+"""
+
 from .errors import IDSMakerError
 from .function import IDSFunction, IDSFunctionBinding, IDSMethod, IDSMethodBinding
 from .implement import IDSImplement, IDSImplementBinding

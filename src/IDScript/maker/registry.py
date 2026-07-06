@@ -4,6 +4,7 @@ from types import ModuleType
 from typing import Any
 
 from .errors import IDSMakerError
+from .module_path import resolve_module
 
 
 NATIVE_REGISTRY: dict[str, Any] = {}
@@ -12,12 +13,12 @@ NATIVE_REGISTRY: dict[str, Any] = {}
 def native_key(value: Any) -> str:
     if isinstance(value, ModuleType):
         return f"{value.__name__}:<module>"
-    module = getattr(value, "__module__", None)
+    module = resolve_module(value)
     qualname = getattr(value, "__qualname__", None)
-    if not module or not qualname:
+    if not qualname:
         raise IDSMakerError(
             f"Object {value!r} cannot be registered as a native binding. "
-            "Expected a Python module, function, class, or importable object with __module__ and __qualname__."
+            "Expected a Python module, function, class, or importable object with __qualname__."
         )
     return f"{module}:{qualname}"
 

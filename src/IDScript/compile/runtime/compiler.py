@@ -679,7 +679,7 @@ class Compiler:
     def While(self, node: While):
         while self.v(node.test):
             parent = self.current_scope
-            self.current_scope = parent
+            self.current_scope = Scope(parent=parent)
 
             self.config.enter_loop()
             try:

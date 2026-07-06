@@ -9,7 +9,7 @@ os.chdir(ROOT)
 README = ROOT / "README.md"
 setup(
     name="idscript",
-    version="0.1.5",
+    version="0.1.6",
     description="IDScript adalah bahasa pemrograman berbahasa Indonesia penerus Indonesian Script (IS), dengan interpreter dan compiler VM resmi.",
     long_description=README.read_text(encoding="utf-8") if README.exists() else "",
     long_description_content_type="text/markdown",
@@ -31,11 +31,15 @@ setup(
         "IDScript": ["gramm.lark", "icons/*.jpg"],
         "IDScript.builtins": ["*.ids", "*.idsm", "*.idsc"],
         "IDScript.compile.Compiler": ["TOKEN.json"],
+        "IDScript.maker": ["README.md"],
+        "IDScript.IDSRepl": ["README.md"],
     },
     install_requires=[
         "click>=8.0",
         "lark>=1.0",
         "typeguard>=4.0",
+        "prompt_toolkit>=3.0",
+        "Pygments>=2.0",
     ],
     extras_require={
         "dev": [
@@ -46,8 +50,8 @@ setup(
             "click",
             "lark",
             "typeguard",
-            "mypy",
-            "pytest"
+            "prompt_toolkit",
+            "Pygments",
         ]
     },
     python_requires=">=3.13",

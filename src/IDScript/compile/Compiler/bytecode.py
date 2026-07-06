@@ -121,12 +121,16 @@ class ModuleCode:
             payload = json.loads(data[len(TOKEN.magic("module")):].decode("utf-8"))
             return cls.from_module_dict(payload)
         if data.startswith(TOKEN.magic("compiled")):
+            if data[len(TOKEN.magic("compiled")):len(TOKEN.magic("compiled"))+1:].lstrip() == b"{":
+                raise IDSValueError("Format .idsc lawas (JSON) tidak didukung. compile ulang dengan compiler terbaru.")
             payload = _BinaryCodec.decode(data[len(TOKEN.magic("compiled")):])
             return cls.from_compiled_dict(payload)
-        raise IDSValueError("Header bytecode IDScript tidak valid")
+        raise IDSValueError("Header bytecode IDScript tidak valid. File mungkin .idbc lawas atau bukan file IDScript.")
 
     @classmethod
     def from_module_dict(cls, data: dict[str, Any]) -> ModuleCode:
+        if data.get("version") != 1:
+            raise IDSValueError(f"Format .idsm version {data.get('version')!r} tidak didukung. Hanya version 1.")
         return cls(
             name=data["name"],
             path=data["path"],
@@ -139,6 +143,8 @@ class ModuleCode:
 
     @classmethod
     def from_compiled_dict(cls, data: dict[str, Any]) -> ModuleCode:
+        if data.get("version") != 1:
+            raise IDSValueError(f"Format .idsc version {data.get('version')!r} tidak didukung. Hanya version 1.")
         return cls(
             name=data["name"],
             path=data["path"],

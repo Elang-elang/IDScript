@@ -85,10 +85,6 @@ class Variable:
     def get_address(self):
         return self
 
-    def set_address(self):
-        self = self.__prototype__['value']
-        return
-
     def copy_address(self):
         return deepcopy(self)
 

@@ -36,7 +36,7 @@ def check_types(value: Any, types: Type | str) -> bool:
     except Exception as e:
         raise IDSTypeError(
             "Tipe tidak sesuai dengan isianya\n"
-            f"tipe {value} != {types}"
+            f"diharapkan: {types}\ndiberikan: {type(value).__name__}"
         )
 
 def default_value(ann: Type):

@@ -36,7 +36,7 @@ compound_stmt: func_decl
              | trait_stmt
 
 outside_stmt: compound_stmt
-            | const_decl
+             | const_decl
 
 const_decl: "privat"? _const_keyword var_attrs _typed_value ";"? -> const_private
           | "publik" _const_keyword var_attrs _typed_value ";"? -> const_public

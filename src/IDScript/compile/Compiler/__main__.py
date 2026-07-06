@@ -25,6 +25,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     file = Path(args.file).resolve()
+    if file.suffix == ".idbc":
+        print("Format .idbc sudah tidak didukung. compile ulang source .ids.")
+        return 1
     if file.suffix in {".idsm", ".idsc"}:
         _run_bytecode_file(file, args.run)
         return 0

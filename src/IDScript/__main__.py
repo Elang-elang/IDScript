@@ -144,6 +144,8 @@ def _fail_with_idscript_error(error: IDSError) -> None:
 )
 @click.argument(
     "file",
+    required=False,
+    default=None,
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
 )
 @click.argument(
@@ -179,8 +181,12 @@ def _fail_with_idscript_error(error: IDSError) -> None:
     help="Entrypoint function when running source or bytecode.",
 )
 @click.version_option(__version__, "-V", "--version", prog_name="idscript")
-def main(file: Path, output_file: Path | None, mode: Mode | None, main_name: str) -> None:
+def main(file: Path | None, output_file: Path | None, mode: Mode | None, main_name: str) -> None:
     """Public CLI for the ``idscript`` console command."""
+    if file is None:
+        from IDScript.IDSRepl import main as repl_main
+        sys.exit(repl_main())
+
     file = file.resolve()
 
     try:
@@ -192,6 +198,8 @@ def main(file: Path, output_file: Path | None, mode: Mode | None, main_name: str
                     f"Menjalankan bytecode {file.name}",
                     lambda: _run_vm_bytecode(file, main_name),
                 )
+            elif file.suffix == ".idbc":
+                raise click.UsageError("Format .idbc sudah tidak didukung. compile ulang source .ids.")
             else:
                 _run_file_with_progress(
                     f"Menjalankan {file.name}",

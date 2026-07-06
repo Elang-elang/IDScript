@@ -12,22 +12,50 @@ from .diagnostics import IDSAttributeError, IDSSyntaxError
 
 BASE_DIR = Path(__file__).resolve().parent
 
-class Compile:
-    def __init__(self, code, file: str | Path, is_module=False):
-        self.parser = Lark(
+_PARSER: Lark | None = None
+
+def _get_parser() -> Lark:
+    global _PARSER
+    if _PARSER is None:
+        _PARSER = Lark(
             (BASE_DIR.parent / 'gramm.lark').read_text(),
             parser='earley',
             ambiguity='resolve',
             propagate_positions=True,
         )
-        self.__compiler__ = Compiler(str(file), is_module=is_module)
-        try:
-            self.__tree = self.parser.parse(code)
-        except UnexpectedInput as err:
-            raise IDSSyntaxError.from_lark(err, str(file), code) from err
-        self.__raw_code__ = cast(Program, Parse(self.__tree, file=str(file), source=code))
+    return _PARSER
+
+
+class Compile:
+    def __init__(
+        self,
+        code: str,
+        file: str | Path= "<idscript input>",
+        is_module: bool = False
+    ):
+        self.__compiler__ = self.make_interpreter(file, is_module)
+        self.__raw_code__ = cast(Program, self.ast(code, file))
         self.__code__ = self.__compiler__.Program(self.__raw_code__)
     
+    @staticmethod
+    def ast(
+        code: str,
+        file: str | Path = "<idscript input>"
+    ):
+        parser = _get_parser()
+        try:
+            tree = parser.parse(code)
+            return Parse(tree, str(file), source=code)
+        except UnexpectedInput as err:
+            raise IDSSyntaxError.from_lark(err, str(file), code) from err
+    
+    @staticmethod
+    def make_interpreter(
+        file: str | Path = "<idscript input>",
+        is_module: bool = False
+    ):
+        return Compiler(str(file), is_module=is_module)
+
     def _run_func(self, name, *args):
         func = self.__compiler__.current_scope.get(name)
         if func is None:

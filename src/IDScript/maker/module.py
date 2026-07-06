@@ -11,6 +11,7 @@ from .errors import IDSError, IDSMakerError, ensure_type, validate_declare, vali
 from .function import IDSFunctionBinding, IDSMethodBinding
 from .implement import IDSImplementBinding
 from .klass import IDSClassBinding
+from .module_path import resolve_module
 from .registry import register_native
 from .structure import IDSStructBinding
 from .trait import IDSTraitBinding
@@ -178,7 +179,10 @@ class IDSModule:
 
     def _add_function(self, module: ModuleCode, item: IDSFunctionBinding) -> None:
         native_name = f"__py_native__.{item.name}"
-        module.native_symbols[native_name] = item.native_symbol
+        ns = dict(item.native_symbol)
+        if ns.get("module") == "__main__" and self.path:
+            ns["module"] = resolve_module(item.func)
+        module.native_symbols[native_name] = ns
         module.functions[item.name] = item.to_function_code(native_name=native_name)
         if not item.is_priv:
             self._export(module, item.name)
@@ -224,16 +228,15 @@ class IDSModule:
                 "module": value.__name__,
                 "registry_key": key,
             }
-        module = getattr(value, "__module__", None)
         qualname = getattr(value, "__qualname__", None)
-        if not module or not qualname:
+        if not qualname:
             raise IDSMakerError(
                 f"Declaration value {value!r} cannot be serialized or registered as a native binding. "
                 "Use a JSON-compatible value, Python module, function, class, or importable object."
             )
         return {
             "kind": "object",
-            "module": module,
+            "module": resolve_module(value),
             "qualname": qualname,
             "registry_key": key,
         }

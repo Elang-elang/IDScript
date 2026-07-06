@@ -10,10 +10,11 @@ from .compile.ids_ast import nodes as IDSNodes
 from .compile.parser.transformer import Parse
 
 from . import maker
+
 Maker = maker
 
 globals().pop('compile')
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 __name__ = "IDScript"
 __doc__ = "IDScript adalah bahasa pemrograman berbahasa Indonesia penerus Indonesian Script (IS), dengan interpreter dan compiler VM resmi."

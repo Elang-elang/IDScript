@@ -4,7 +4,7 @@ IDSM1
     "version": 1,
     "encoding": "utf-8",
     "name": "Galat",
-    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Galat.idsm",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Galat.ids",
     "code": [
         [
             "IMPORT_NAME",

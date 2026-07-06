@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
-from ..exceptions import IDSError
+from ..compile.exceptions import IDSError
 
 
 class IDSMakerError(IDSError):

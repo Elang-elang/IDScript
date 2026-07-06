@@ -34,7 +34,6 @@ def test_token_registry_can_encode_and_decode_opcode():
 
     assert encoded == [1, 7]
     assert TOKEN.decode_instruction(encoded) == ["LOAD_CONST", 7]
-    assert TOKEN.encode_instruction(["CONST", 7]) == [1, 7]
 
 
 def test_compiler_emits_explicit_python_style_opcodes():
@@ -59,25 +58,6 @@ def test_compiler_emits_explicit_python_style_opcodes():
     ]
     assert code[4][0] == "POP_JUMP_IF_TRUE"
     assert ["RETURN_VALUE"] in [[inst[0]] for inst in code]
-
-
-def test_vm_still_accepts_legacy_opcode_names():
-    module = ModuleCode(
-        name="legacy",
-        path="legacy.ids",
-        functions={
-            "utama": FunctionCode(
-                name="utama",
-                args=[],
-                code=[
-                    ["CONST", 7],
-                    ["RETURN"],
-                ],
-            )
-        },
-    )
-
-    assert VM(module).run() == 7
 
 
 def test_official_compiler_runs_source_direct(capsys):
@@ -106,7 +86,7 @@ def test_official_compiler_writes_idsm_and_idsc(tmp_path, capsys):
 def test_compiled_idsc_rejects_old_json_payload():
     old_payload = b'IDSC1\n{"format":"idsc","version":1}'
 
-    with pytest.raises(Exception, match="Tag binary IDScript"):
+    with pytest.raises(Exception, match="Format .idsc lawas.*JSON.*tidak didukung"):
         ModuleCode.from_bytes(old_payload)
 
 

@@ -33,18 +33,10 @@ class TokenRegistry:
         return {name: int(code) for name, code in self.data["opcodes"].items()}
 
     @property
-    def opcode_names(self) -> dict[int, str]:
+    def     opcode_names(self) -> dict[int, str]:
         return {code: name for name, code in self.opcodes.items()}
 
-    @property
-    def opcode_aliases(self) -> dict[str, str]:
-        return {str(alias): str(name) for alias, name in self.data.get("opcode_aliases", {}).items()}
-
-    def canonical_opcode(self, name: str) -> str:
-        return self.opcode_aliases.get(name, name)
-
     def opcode_code(self, name: str) -> int:
-        name = self.canonical_opcode(name)
         try:
             return self.opcodes[name]
         except KeyError as exc:
@@ -76,7 +68,7 @@ class TokenRegistry:
         if isinstance(value, dict):
             return {key: self._encode_value(item) for key, item in value.items()}
         if isinstance(value, list):
-            if value and isinstance(value[0], str) and self.canonical_opcode(value[0]) in self.opcodes:
+            if value and isinstance(value[0], str) and value[0] in self.opcodes:
                 return self.encode_instruction(value)
             return [self._encode_value(item) for item in value]
         return value

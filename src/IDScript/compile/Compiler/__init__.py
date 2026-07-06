@@ -3,8 +3,6 @@
 import sys
 import types
 
-from ..runtime import Compiler as _LegacyRuntimeCompiler
-
 __all__ = [
     "BytecodeCompiler",
     "FunctionCode",
@@ -61,11 +59,5 @@ class _CompilerPackage(types.ModuleType):
             from .TOKEN import TOKEN, TokenRegistry, load_tokens
             return {"TOKEN": TOKEN, "TokenRegistry": TokenRegistry, "load_tokens": load_tokens}[name]
         return super().__getattribute__(name)
-
-_parent_package = sys.modules.get(__package__.split(".")[0])
-if _parent_package is not None:
-    # Keep the historical API stable: `from compile import Compiler` must still
-    # return the interpreter class, not this `compile.Compiler` subpackage.
-    setattr(_parent_package, "Compiler", _LegacyRuntimeCompiler)
 
 sys.modules[__name__].__class__ = _CompilerPackage
