@@ -170,7 +170,7 @@ Informasi lebih lanjut: [README IDSRepl](src/IDScript/IDSRepl/README.md)
 ## Format File
 
 | Format | Fungsi |
-|---|---|---|
+|---|---|
 | `.ids` | Source IDScript yang ditulis manusia. |
 | `.idsm` | IDScript Module, format module VM yang masih deskriptif/readable. |
 | `.idsc` | IDScript Compiled, bytecode final yang opcode-nya dikodekan. |
