@@ -197,12 +197,27 @@ idscript build/program.idsc
 
 </details>
 
+<details>
+<summary><strong>Mode REPL</strong></summary>
+
+Tanpa argumen file, `idscript` masuk ke **REPL interaktif** dengan syntax highlighting via `prompt_toolkit` + Pygments.
+
+```bash
+idscript
+```
+
+Setiap input **harus diakhiri `;`**. Ekspresi akan langsung dievaluasi, statement akan dieksekusi.
+
+Informasi lebih lanjut: [README IDSRepl](src/IDScript/IDSRepl/README.md)
+
+</details>
+
 ---
 
 ## Format File
 
 | Format | Fungsi |
-|---|---|---|
+|---|---|
 | `.ids` | Source IDScript yang ditulis manusia. |
 | `.idsm` | IDScript Module, format module VM yang masih deskriptif/readable. |
 | `.idsc` | IDScript Compiled, bytecode final yang opcode-nya dikodekan. |
@@ -367,12 +382,12 @@ publik fungsi utama(): Angka {
 Fungsi Generik (type parameter):
 
 ```ids
-fungsi identitas[T](nilai: T): T {
+fungsi identitas<T>(nilai: T): T {
     kembalikan nilai;
 }
 
 fungsi utama(): Angka {
-    kembalikan identitas[Angka](5);
+    kembalikan identitas<Angka>(5);
 }
 ```
 
@@ -391,10 +406,10 @@ Fungsi ekspresi dapat ditangkap di variabel, dijadikan argumen, dikembalikan, da
 
 ```ids
 fungsi utama(): Angka {
-    var fn: Apapun = fungsi[T](x: T): T {
+    var fn: Apapun = fungsi<T>(x: T): T {
         kembalikan x;
     };
-    kembalikan fn[Angka](5);  // 5
+    kembalikan fn<Angka>(5);  // 5
 }
 ```
 
@@ -544,8 +559,8 @@ fungsi total_data(): Angka {
 <summary><strong>Type Alias `tipe`</strong></summary>
 
 ```ids
-tipe ID = Angka
-tipe Nama = Teks
+tipe ID = Angka;
+tipe Nama = Teks;
 
 fungsi ambil_id(): ID {
     kembalikan 7;
@@ -555,7 +570,7 @@ fungsi ambil_id(): ID {
 Dynamic alias:
 
 ```ids
-tipe Kotak<T> = daftar<T>
+tipe Kotak<T> = daftar<T>;
 var angka: Kotak<Angka> = [1, 2, 3];
 ```
 
@@ -598,7 +613,7 @@ struktur Makhluk {
 
 struktur Orang {
     publik umur: Angka,
-} turunan dari Makhluk
+} turunan dari Makhluk;
 ```
 
 Implementasi metode:
@@ -743,7 +758,21 @@ jika (info angka == "Angka") {
 }
 ```
 
-Kategori `info` mencakup `Angka`, `Float`, `Boolean`, `Teks`, `Kosong`, `Daftar`, `Kamus`, `Struktur`, `Enum`, `VarianEnum`, `Tipe`, `Antarmuka`, `Fungsi`, dan `Objek`.
+Hasil dari `info` atau `identifikasi` mencangkup
+| Nama | Penjelasan |
+|---|---|
+| `Teks` | berisi string atau sebuah teks |
+| `Angka` | berisi integer atau angka bulat |
+| `Float` | berisi float atau angka desimal |
+| `Boolean` | berisi kondisi benar atau salah |
+| `Daftar` | berisi list atau daftar |
+| `Kamus` | berisi dictionary atau kamus |
+| `Fungsi` | berisi fungsi atau metode |
+| `Struktur` | berisi struktur dari objek struktur |
+| `Antarmuka` | berisi tipe kamus dari objek tipe |
+| `Tipe` | berisi objek tipe |
+| `Objek` | berisi objek yang tak terdefinisi |
+| `Kosong` | berisi kekosongan |
 
 </details>
 
@@ -811,7 +840,7 @@ fungsi utama(): Angka {
 VM resmi memakai opcode eksplisit agar mudah dibaca dan didebug.
 
 | Lama | Baru |
-|---|---|---|
+|---|---|
 | `CONST` | `LOAD_CONST` |
 | `LOAD` | `LOAD_NAME` |
 | `STORE` | `STORE_NAME` |
@@ -825,7 +854,7 @@ VM resmi memakai opcode eksplisit agar mudah dibaca dan didebug.
 | `RETURN` | `RETURN_VALUE` |
 | `FUNC` | `MAKE_FUNCTION` |
 
-Opcode lama tetap didukung sebagai alias untuk kompatibilitas.
+Opcode lama **TIDAK** didukung lagi untuk kompatibilitas.
 
 </details>
 
@@ -867,7 +896,9 @@ Catatan: label seperti `L_else` hanya simbol disassembler/compiler. Runtime teta
 | `src/IDScript/compile/parser` | Transformer parse tree ke AST. |
 | `src/IDScript/compile/runtime` | Interpreter normal dan runtime model. |
 | `src/IDScript/compile/Compiler` | Compiler VM resmi, bytecode, dan VM runtime. |
-| `src/IDScript/builtins` | Builtin yang ditulis dalam IDScript. |
+| `src/IDScript/IDSRepl` | REPL interaktif — [README](src/IDScript/IDSRepl/README.md) |
+| `src/IDScript/maker` | Python-to-IDScript binding API — [README](src/IDScript/maker/README.md) |
+| `src/IDScript/builtins` | Builtin standar — [README](src/IDScript/builtins/README.md) |
 
 ---
 
