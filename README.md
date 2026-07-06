@@ -335,12 +335,12 @@ publik fungsi utama(): Angka {
 Fungsi Generik (type parameter):
 
 ```ids
-fungsi identitas[T](nilai: T): T {
+fungsi identitas<T>(nilai: T): T {
     kembalikan nilai;
 }
 
 fungsi utama(): Angka {
-    kembalikan identitas[Angka](5);
+    kembalikan identitas<Angka>(5);
 }
 ```
 
@@ -359,10 +359,10 @@ Fungsi ekspresi dapat ditangkap di variabel, dijadikan argumen, dikembalikan, da
 
 ```ids
 fungsi utama(): Angka {
-    var fn: Apapun = fungsi[T](x: T): T {
+    var fn: Apapun = fungsi<T>(x: T): T {
         kembalikan x;
     };
-    kembalikan fn[Angka](5);  // 5
+    kembalikan fn<Angka>(5);  // 5
 }
 ```
 
@@ -512,8 +512,8 @@ fungsi total_data(): Angka {
 <summary><strong>Type Alias `tipe`</strong></summary>
 
 ```ids
-tipe ID = Angka
-tipe Nama = Teks
+tipe ID = Angka;
+tipe Nama = Teks;
 
 fungsi ambil_id(): ID {
     kembalikan 7;
@@ -523,7 +523,7 @@ fungsi ambil_id(): ID {
 Dynamic alias:
 
 ```ids
-tipe Kotak<T> = daftar<T>
+tipe Kotak<T> = daftar<T>;
 var angka: Kotak<Angka> = [1, 2, 3];
 ```
 
@@ -566,7 +566,7 @@ struktur Makhluk {
 
 struktur Orang {
     publik umur: Angka,
-} turunan dari Makhluk
+} turunan dari Makhluk;
 ```
 
 Implementasi metode:
@@ -711,7 +711,21 @@ jika (info angka == "Angka") {
 }
 ```
 
-Kategori `info` mencakup `Angka`, `Float`, `Boolean`, `Teks`, `Kosong`, `Daftar`, `Kamus`, `Struktur`, `Enum`, `VarianEnum`, `Tipe`, `Antarmuka`, `Fungsi`, dan `Objek`.
+Hasil dari `info` atau `identifikasi` mencangkup
+| Nama | Penjelasan |
+|---|---|
+| `Teks` | berisi string atau sebuah teks |
+| `Angka` | berisi integer atau angka bulat |
+| `Float` | berisi float atau angka desimal |
+| `Boolean` | berisi kondisi benar atau salah |
+| `Daftar` | berisi list atau daftar |
+| `Kamus` | berisi dictionary atau kamus |
+| `Fungsi` | berisi fungsi atau metode |
+| `Struktur` | berisi struktur dari objek struktur |
+| `Antarmuka` | berisi tipe kamus dari objek tipe |
+| `Tipe` | berisi objek tipe |
+| `Objek` | berisi objek yang tak terdefinisi |
+| `Kosong` | berisi kekosongan |
 
 </details>
 
