@@ -123,6 +123,15 @@ class VMInterface:
         return f"<Interface: {self.name}>"
 
 
+@dataclass(frozen=True)
+class VMTrait:
+    name: str
+    methods: dict[str, Any]
+
+    def __repr__(self) -> str:
+        return f"<Trait: {self.name}>"
+
+
 @dataclass
 class VMEnumType:
     name: str
@@ -282,6 +291,7 @@ class VM:
             state = self.states[module_key]
             if state.initialized:
                 return state
+            raise IDSModuleError(f"Impor sirkuler terdeteksi: {module_key}")
         else:
             state = ModuleState(code=self.modules[module_key], globals={}, exports={})
             self.states[module_key] = state
@@ -358,6 +368,8 @@ class VM:
                     continue
             elif op == "CALL_FUNCTION":
                 argc = inst[1]
+                if argc > len(stack):
+                    raise IDSRuntimeError(f"CALL_FUNCTION: butuh {argc} argumen, stack cuma {len(stack)}")
                 args = stack[-argc:] if argc else []
                 if argc:
                     del stack[-argc:]
@@ -366,6 +378,8 @@ class VM:
                 raise _VMReturn(stack.pop() if stack else None)
             elif op == "BUILD_LIST":
                 count = inst[1]
+                if count > len(stack):
+                    raise IDSRuntimeError(f"BUILD_LIST: butuh {count} elemen, stack cuma {len(stack)}")
                 values = stack[-count:] if count else []
                 if count:
                     del stack[-count:]
@@ -399,6 +413,8 @@ class VM:
                 stack.append(VMTypeAlias(inst[1], self._resolve_type_descriptor(inst[2], state, locals_), list(inst[3])))
             elif op == "BUILD_INTERFACE":
                 stack.append(VMInterface(inst[1], dict(inst[2])))
+            elif op == "BUILD_TRAIT":
+                stack.append(VMTrait(inst[1], dict(inst[2])))
             elif op == "BUILD_ENUM_TYPE":
                 stack.append(
                     VMEnumType(
@@ -409,6 +425,8 @@ class VM:
                 )
             elif op == "BUILD_STRUCT_INSTANCE":
                 count = inst[1]
+                if count * 2 + 1 > len(stack):
+                    raise IDSRuntimeError(f"BUILD_STRUCT_INSTANCE: butuh {count} pasang + 1 struct, stack cuma {len(stack)}")
                 struct_values: dict[str, Any] = {}
                 for _ in range(count):
                     value = stack.pop()
@@ -431,6 +449,27 @@ class VM:
                     )
                 else:
                     raise IDSTypeError("STORE_METHOD membutuhkan struktur atau enum")
+            elif op == "VALIDATE_TRAIT":
+                target = stack.pop()
+                trait = stack.pop()
+                if not isinstance(trait, VMTrait):
+                    raise IDSTypeError("VALIDATE_TRAIT membutuhkan VMTrait")
+                if not isinstance(target, (VMStructType, VMEnumType)):
+                    raise IDSTypeError("VALIDATE_TRAIT membutuhkan struktur atau enum")
+                trait_methods = set(trait.methods)
+                target_methods = set(target.methods)
+                missing = trait_methods - target_methods
+                if missing:
+                    raise IDSAttributeError(
+                        f"Trait {trait.name!r} kekurangan method: {', '.join(sorted(missing))}"
+                    )
+                for name, info in trait.methods.items():
+                    method = target.methods[name]
+                    if info.get('static', False) != method.is_static:
+                        raise IDSTypeError(
+                            f"Method {name}() dari implementasi tidak sama dengan trait "
+                            f"statik: {info.get('static', False)}"
+                        )
             elif op == "SETUP_TRY":
                 self._execute_try(inst[1], inst[2], inst[3], inst[4], state, locals_)
             elif op == "GET_ITER":
@@ -484,7 +523,7 @@ class VM:
             for i, name in enumerate(func.code.generic):
                 locals_[name] = args[i]
             regular_args = args[generic_count:]
-            arg_is_def = func.code.arg_is_def or [False] * len(func.code.args)
+            arg_is_def = func.code.arg_is_def if func.code.arg_is_def else [False] * len(func.code.args)
             for name, value, is_def in zip(func.code.args, regular_args, arg_is_def):
                 if is_def and not isinstance(value, VMReference):
                     raise IDSTypeError(f"Argumen deferensial {name!r} membutuhkan referensial")
@@ -518,6 +557,7 @@ class VM:
                 VMStructInstance,
                 VMTypeAlias,
                 VMInterface,
+                VMTrait,
                 VMEnumType,
                 VMEnumValue,
                 VMEnumVariantConstructor,
@@ -544,10 +584,6 @@ class VM:
             module = importlib.import_module(module_name)
             if symbol.get("kind") == "module":
                 return module
-            if registry_key:
-                from IDScript.maker.registry import resolve_native as _resolve
-
-                return _resolve(registry_key)
             if not qualname:
                 raise IDSModuleError(f"Binding native {name!r} tidak punya qualname")
             value: Any = module
@@ -585,7 +621,8 @@ class VM:
                 raise
             if not isinstance(err, IDSRuntimeError):
                 err = IDSRuntimeError.from_exception(err, file=state.code.path)
-            self._execute_handler(handlers[0], err, state, locals_)
+            for handler in handlers:
+                self._execute_handler(handler, err, state, locals_)
         else:
             if else_code:
                 self._execute(else_code, state, locals_)
@@ -731,6 +768,8 @@ class VM:
             return "VarianEnum"
         if isinstance(value, (VMStructType, VMStructInstance)):
             return "Struktur"
+        if isinstance(value, VMTrait):
+            return "Sifat"
         if isinstance(value, VMInterface):
             return "Antarmuka"
         if isinstance(value, VMTypeAlias) or isinstance(value, type):

@@ -23,7 +23,7 @@ def _validate_declare(value: str) -> None:
 class IDSFunctionBinding:
     name: str
     func: Callable[..., Any]
-    declare: str = "private"
+    declare: str = "public"
     arguments: dict[str, Any] = field(default_factory=dict)
     annotation: Any = Any
     is_method: bool = False
@@ -81,7 +81,7 @@ class IDSFunction:
         reject_positional("IDSFunction", args)
         validate_options("IDSFunction", options, cls.OPTIONS)
         name = options.get("name")
-        declare = options.get("declare", "private")
+        declare = options.get("declare", "public")
         arguments = options.get("arguments")
         annotation = options.get("annotation", Any)
         if name is not None:
@@ -134,7 +134,7 @@ class IDSMethod:
         reject_positional("IDSMethod", args)
         validate_options("IDSMethod", options, cls.OPTIONS)
         name = options.get("name")
-        declare = options.get("declare", "private")
+        declare = options.get("declare", "public")
         arguments = options.get("arguments")
         annotation = options.get("annotation", Any)
         static = options.get("static", False)

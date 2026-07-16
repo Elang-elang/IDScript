@@ -5,9 +5,30 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from typing import Any as TypingAny
+
 from ...diagnostics import IDSLoopError, IDSValueError
 from ...ids_ast import *
 from ...runtime.types import EMPTY
+
+_BUILTIN_TYPE_NAMES = {
+    'Angka': int,
+    'Teks': str,
+    'Float': float,
+    'Boolean': bool,
+    'Kosong': type(None),
+    'Apapun': TypingAny,
+}
+
+_TYPE_ID_MAP = {
+    int: 'Angka',
+    str: 'Teks',
+    float: 'Float',
+    bool: 'Boolean',
+    type(None): 'Kosong',
+    list: 'Daftar',
+    dict: 'Kamus',
+}
 from ..bytecode import FunctionCode, Instruction, ModuleCode
 from ..frontend import parse_source
 
@@ -30,6 +51,9 @@ class BytecodeCompiler:
         self._temp_id = 0
         self._mod: ModuleCode | None = None
         self._file: Path | None = None
+        self._generic_types: dict[str, dict[str, Any]] = {}
+        self._generic_bindings: dict[str, Any] = {}
+        self._function_scope: bool = False
 
     def compile_source(self, code: str, file: str | Path = "<memory.ids>") -> ModuleCode:
         module = self.compile_ast(parse_source(code, str(file)), Path(file).resolve())
@@ -105,11 +129,11 @@ class BytecodeCompiler:
                 code.append(["LOAD_DEFAULT", self._type_name(node.type)])
             else:
                 self._expr(node.expr, code)
-            code.append(["STORE_FAST" if code is not module.code else "STORE_NAME", node.name.id])
+            code.append(["STORE_FAST" if self._function_scope else "STORE_NAME", node.name.id])
             return
         if isinstance(node, Final):
             self._expr(node.expr, code)
-            code.append(["STORE_FAST" if code is not module.code else "STORE_NAME", node.name.id])
+            code.append(["STORE_FAST" if self._function_scope else "STORE_NAME", node.name.id])
             return
         if isinstance(node, Assignment):
             self._assignment(node, code)
@@ -132,17 +156,65 @@ class BytecodeCompiler:
                 module.exports.append(node.alias.id)
             return
         if isinstance(node, Enum):
+            if node.params:
+                self._generic_types[node.name.id] = {
+                    'kind': 'enum',
+                    'params': node.params,
+                    'fields': node.fields,
+                    'method_asts': [],
+                    'emitted': set(),
+                }
+                code.append(["LOAD_CONST", None])
+                code.append(["STORE_NAME", node.name.id])
+                if not node.is_priv:
+                    module.exports.append(node.name.id)
+                return
             code.append(["BUILD_ENUM_TYPE", node.name.id, [self._enum_variant(field) for field in node.fields]])
             code.append(["STORE_NAME", node.name.id])
             if not node.is_priv:
                 module.exports.append(node.name.id)
             return
         if isinstance(node, Structure):
+            if node.params:
+                self._generic_types[node.name.id] = {
+                    'kind': 'struct',
+                    'params': node.params,
+                    'body': node.body,
+                    'extend': node.extend,
+                    'method_asts': [],
+                    'emitted': set(),
+                }
+                code.append(["LOAD_CONST", None])
+                code.append(["STORE_NAME", node.name.id])
+                if not node.is_priv:
+                    module.exports.append(node.name.id)
+                return
             fields = [
                 {"name": field.name.id, "type": self._type_name(field.type), "is_priv": field.is_priv}
                 for field in node.body.bodies
             ]
             code.append(["BUILD_STRUCT_TYPE", node.name.id, fields])
+            code.append(["STORE_NAME", node.name.id])
+            if not node.is_priv:
+                module.exports.append(node.name.id)
+            return
+        if isinstance(node, Trait):
+            if node.params:
+                raise IDSValueError("Generic trait belum didukung di VM resmi")
+            methods = {}
+            for am in node.data:
+                arg_infos = []
+                for a in (am.attrs.args.args or []):
+                    arg_infos.append({
+                        "name": a.name.id,
+                        "type": self._type_descriptor(a.type),
+                    })
+                methods[am.name.id] = {
+                    "static": am.static,
+                    "args": arg_infos,
+                    "return_type": self._type_descriptor(am.attrs.type),
+                }
+            code.append(["BUILD_TRAIT", node.name.id, methods])
             code.append(["STORE_NAME", node.name.id])
             if not node.is_priv:
                 module.exports.append(node.name.id)
@@ -193,7 +265,10 @@ class BytecodeCompiler:
         if isinstance(node, Expression):
             self._expr(node.value, code)
         elif isinstance(node, Name):
-            code.append(["LOAD_NAME", node.id])
+            if node.id in self._generic_bindings:
+                code.append(["LOAD_CONST", self._generic_bindings[node.id]])
+            else:
+                code.append(["LOAD_NAME", node.id])
         elif isinstance(node, Referensial):
             code.append(["LOAD_REFERENSIAL", node.name.id])
         elif isinstance(node, Deferensial):
@@ -236,8 +311,63 @@ class BytecodeCompiler:
             self._expr(node.value, code)
             self._expr(node.key, code)
             code.append(["BINARY_SUBSCR"])
+        elif isinstance(node, CallDynamic):
+            info = self._generic_types.get(node.name.id)
+            if info is not None:
+                type_args = [self._resolve_type_arg(ta) for ta in node.type_args]
+                if info['kind'] == 'struct':
+                    struct_node = Structure(
+                        name=Name(id=node.name.id),
+                        body=info.get('body'),
+                        params=info['params'],
+                        is_priv=True,
+                    )
+                    struct_node.name = Name(id=node.name.id)
+                    concrete_name = self._monomorphize_struct(struct_node, type_args, code, self._mod, self._file or self._mod.path)
+                    code.append(["LOAD_NAME", concrete_name])
+                elif info['kind'] == 'enum':
+                    raise IDSValueError("Enum generik di ekspresi belum didukung VM resmi")
+                elif info['kind'] == 'typedef':
+                    code.append(["LOAD_NAME", info['target']])
+                return
+            code.append(["LOAD_NAME", node.name.id])
+            for ta in node.type_args:
+                self._expr(ta, code)
+            argc = len(node.type_args)
+            code.append(["CALL_FUNCTION", argc])
         elif isinstance(node, StructFielded):
-            self._expr(node.struct, code)
+            if isinstance(node.struct, CallDynamic):
+                info = self._generic_types.get(node.struct.name.id)
+                if info is not None and info['kind'] == 'struct':
+                    type_args = [self._resolve_type_arg(ta) for ta in node.struct.type_args]
+                    struct_node = Structure(
+                        name=Name(id=node.struct.name.id),
+                        body=info.get('body'),
+                        params=info['params'],
+                        is_priv=True,
+                    )
+                    struct_node.name = Name(id=node.struct.name.id)
+                    concrete_name = self._monomorphize_struct(struct_node, type_args, code, self._mod, self._file or self._mod.path)
+                    code.append(["LOAD_NAME", concrete_name])
+                else:
+                    self._expr(node.struct, code)
+            elif isinstance(node.struct, Name) and node.type_args:
+                info = self._generic_types.get(node.struct.id)
+                if info is not None and info['kind'] == 'struct':
+                    type_args = [self._resolve_type_arg(ta) for ta in node.type_args]
+                    struct_node = Structure(
+                        name=Name(id=node.struct.id),
+                        body=info.get('body'),
+                        params=info['params'],
+                        is_priv=True,
+                    )
+                    struct_node.name = Name(id=node.struct.id)
+                    concrete_name = self._monomorphize_struct(struct_node, type_args, code, self._mod, self._file or self._mod.path)
+                    code.append(["LOAD_NAME", concrete_name])
+                else:
+                    self._expr(node.struct, code)
+            else:
+                self._expr(node.struct, code)
             for key, value in zip(node.kwargs.keys, node.kwargs.values):
                 self._expr(key, code)
                 self._expr(value, code)
@@ -286,8 +416,11 @@ class BytecodeCompiler:
         arg_is_def = [arg.is_def for arg in ast_args]
         generic = [g.id for g in attrs.generic] if attrs.generic else []
         body: list[Instruction] = []
+        old_scope = self._function_scope
+        self._function_scope = True
         for stmt in block.bodies or []:
             self._stmt(stmt, body, module, file)
+        self._function_scope = old_scope
         if not body or body[-1][0] != "RETURN_VALUE":
             body.append(["LOAD_CONST", None])
             body.append(["RETURN_VALUE"])
@@ -295,12 +428,63 @@ class BytecodeCompiler:
 
     def _implementation(self, node: Implementation, code: list[Instruction], module: ModuleCode, file: Path) -> None:
         struct_name = node.name.id
+
+        if node.params:
+            info = self._generic_types.get(struct_name)
+            if info is None:
+                raise IDSValueError(f"Tipe generik {struct_name!r} tidak ditemukan")
+            info['method_asts'].append({
+                'params': node.params,
+                'body': node.body,
+                'trait': node.trait,
+            })
+            return
+
+        if node.type_args:
+            info = self._generic_types.get(struct_name)
+            if info is None:
+                raise IDSValueError(f"Tipe generik {struct_name!r} tidak ditemukan")
+            type_args = [self._resolve_type_arg(ta) for ta in node.type_args]
+            if info['kind'] == 'struct':
+                struct_node = Structure(
+                    name=Name(id=struct_name),
+                    body=info.get('body'),
+                    params=info['params'],
+                    is_priv=True,
+                )
+                struct_node.name = Name(id=struct_name)
+                concrete_name = self._monomorphize_struct(struct_node, type_args, code, module, file)
+            else:
+                raise IDSValueError(f"Enum generik belum didukung di implementasi")
+            old_bindings = self._generic_bindings.copy()
+            impl_param_names = [p.name.id for p in node.params]
+            type_args_dict = dict(zip(impl_param_names, type_args))
+            self._generic_bindings.update(type_args_dict)
+            try:
+                for method in node.body.bodies:
+                    method_name = f"{concrete_name}.{method.name.id}"
+                    module.functions[method_name] = self._function(method_name, method.attrs, method.body, module, file)
+                    code.append(["LOAD_NAME", concrete_name])
+                    code.append(["LOAD_NAME", method_name])
+                    code.append(["STORE_METHOD", method.name.id, not method.is_priv, method.static])
+                if node.trait:
+                    code.append(["LOAD_NAME", node.trait.id])
+                    code.append(["LOAD_NAME", concrete_name])
+                    code.append(["VALIDATE_TRAIT"])
+            finally:
+                self._generic_bindings = old_bindings
+            return
+
         for method in node.body.bodies:
             method_name = f"{struct_name}.{method.name.id}"
             module.functions[method_name] = self._function(method_name, method.attrs, method.body, module, file)
             code.append(["LOAD_NAME", struct_name])
             code.append(["LOAD_NAME", method_name])
             code.append(["STORE_METHOD", method.name.id, not method.is_priv, method.static])
+        if node.trait:
+            code.append(["LOAD_NAME", node.trait.id])
+            code.append(["LOAD_NAME", struct_name])
+            code.append(["VALIDATE_TRAIT"])
 
     def _if(self, node: If, code: list[Instruction], module: ModuleCode, file: Path) -> None:
         jump_when_true = self._condition(node.test, code)
@@ -392,11 +576,20 @@ class BytecodeCompiler:
         return False
 
     def _type_name(self, node: Type) -> str:
-        if isinstance(node.type, Name):
-            return node.type.id
-        if isinstance(node.type, type):
-            return node.type.__name__
-        return type(node.type).__name__
+        if isinstance(node, Type):
+            if isinstance(node.type, Name):
+                name = node.type.id
+                if name in self._generic_bindings:
+                    return self._type_to_name(self._generic_bindings[name])
+                return name
+            if isinstance(node.type, type):
+                return node.type.__name__
+            if isinstance(node.type, Dynamic):
+                return self._resolve_generic_type_name(node)
+            return type(node.type).__name__
+        if isinstance(node, Name):
+            return node.id if node.id not in self._generic_bindings else self._type_to_name(self._generic_bindings[node.id])
+        return type(node).__name__
 
     def _type_descriptor(self, node: Any) -> Any:
         if isinstance(node, Type):
@@ -417,7 +610,16 @@ class BytecodeCompiler:
         if isinstance(node, LITERAL):
             return {"kind": "literal", "items": [self._literal_value(item) for item in node.bodies]}
         if isinstance(node, Dynamic):
-            return {"kind": "dynamic", "name": node.name.id, "args": [arg.id for arg in node.args]}
+            resolved_args = []
+            for arg in node.args:
+                if isinstance(arg, Name) and arg.id in self._generic_bindings:
+                    bound = self._generic_bindings[arg.id]
+                    resolved_args.append({"kind": "python", "name": self._type_to_name(bound)})
+                elif isinstance(arg, Name):
+                    resolved_args.append({"kind": "name", "name": arg.id})
+                else:
+                    resolved_args.append(self._type_descriptor(arg))
+            return {"kind": "dynamic", "name": node.name.id, "args": resolved_args}
         return {"kind": "raw", "name": type(node).__name__}
 
     def _interface_descriptor(self, node: InterFaceBody | list[InterFaceBody]) -> dict[str, Any]:
@@ -471,3 +673,105 @@ class BytecodeCompiler:
     def _temp(self, prefix: str) -> str:
         self._temp_id += 1
         return f"__compiler_{prefix}_{self._temp_id}"
+
+    def _type_to_name(self, tp: Any) -> str:
+        if tp is TypingAny:
+            return 'Apapun'
+        return _TYPE_ID_MAP.get(tp, getattr(tp, '__name__', 'Apapun'))
+
+    def _resolve_type_arg(self, node: Any) -> Any:
+        if isinstance(node, Type):
+            if node.option:
+                inner = self._resolve_type_arg(node.type)
+                if inner is TypingAny:
+                    return TypingAny
+                return Optional[inner]
+            return self._resolve_type_arg(node.type)
+        if isinstance(node, Name):
+            if node.id in self._generic_bindings:
+                return self._generic_bindings[node.id]
+            if node.id in _BUILTIN_TYPE_NAMES:
+                return _BUILTIN_TYPE_NAMES[node.id]
+            return TypingAny
+        if isinstance(node, Dynamic):
+            return self._resolve_type_arg(node.name)
+        return TypingAny
+
+    def _resolve_generic_type_name(self, node: Type) -> str:
+        if isinstance(node.type, Name):
+            name = node.type.id
+            if name in self._generic_bindings:
+                return self._type_to_name(self._generic_bindings[name])
+            return name
+        if isinstance(node.type, Dynamic):
+            parts = [node.type.name.id]
+            for arg in node.type.args:
+                parts.append(self._resolve_generic_type_name(Type(arg)))
+            return '_'.join(parts)
+        if isinstance(node, Type):
+            return self._resolve_generic_type_name(node)
+        if isinstance(node, type):
+            return node.__name__
+        return type(node).__name__
+
+    def _make_concrete_type_name(self, generic_name: str, type_args: tuple[Any, ...]) -> str:
+        parts = [generic_name]
+        for arg in type_args:
+            if arg is TypingAny:
+                parts.append('Apapun')
+            elif arg is type(None):
+                parts.append('Kosong')
+            elif isinstance(arg, type):
+                parts.append(arg.__name__)
+            else:
+                parts.append(str(arg).replace('.', '_'))
+        return '_'.join(parts)
+
+    def _monomorphize_struct(self, node: Structure, type_args: list[Any], code: list[Instruction], module: ModuleCode, file: Path) -> str:
+        generic_name = node.name.id
+        key = tuple(type_args)
+        info = self._generic_types[generic_name]
+        concrete_name = self._make_concrete_type_name(generic_name, key)
+        if concrete_name in info['emitted']:
+            return concrete_name
+        info['emitted'].add(concrete_name)
+        old_bindings = self._generic_bindings.copy()
+        param_names = [p.name.id for p in node.params]
+        self._generic_bindings.update(dict(zip(param_names, type_args)))
+        try:
+            fields = []
+            if node.body:
+                for field in node.body.bodies:
+                    resolved_type = self._resolve_type_arg(field.type)
+                    fields.append({
+                        "name": field.name.id,
+                        "type": self._type_to_name(resolved_type),
+                        "is_priv": field.is_priv,
+                    })
+            code.append(["BUILD_STRUCT_TYPE", concrete_name, fields])
+            code.append(["STORE_NAME", concrete_name])
+            if not node.is_priv:
+                module.exports.append(concrete_name)
+            for impl_info in info['method_asts']:
+                impl_bindings = self._generic_bindings.copy()
+                if impl_info['params']:
+                    impl_param_names = [p.name.id for p in impl_info['params']]
+                    self._generic_bindings.update(dict(zip(impl_param_names, type_args)))
+                try:
+                    for method in impl_info['body'].bodies:
+                        method_name = f"{concrete_name}.{method.name.id}"
+                        module.functions[method_name] = self._function(
+                            method_name, method.attrs, method.body, module, file
+                        )
+                        code.append(["LOAD_NAME", concrete_name])
+                        code.append(["LOAD_NAME", method_name])
+                        code.append(["STORE_METHOD", method.name.id, not method.is_priv, method.static])
+                    if impl_info['trait']:
+                        code.append(["LOAD_NAME", impl_info['trait'].id])
+                        code.append(["LOAD_NAME", concrete_name])
+                        code.append(["VALIDATE_TRAIT"])
+                finally:
+                    self._generic_bindings = impl_bindings
+        finally:
+            self._generic_bindings = old_bindings
+        return concrete_name

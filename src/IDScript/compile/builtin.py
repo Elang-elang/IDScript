@@ -15,6 +15,11 @@ ALL = [
     ("Kosong",    T.Type, type(None)),
     ("Apapun",    T.Type,      T.Any),
     
+    # Builtin container type names (for Dynamic lookup)
+    ("daftar",    T.Type,       list),
+    ("kamus",     T.Type,       dict),
+    ("hasil",     T.Type,      tuple),
+    
     # Keyword boolean
     ("benar",   bool,       True),
     ("salah",   bool,      False),

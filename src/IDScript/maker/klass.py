@@ -54,7 +54,7 @@ class IDSClass:
         reject_positional("IDSClass", args)
         validate_options("IDSClass", options, cls.OPTIONS)
         name = options.get("name")
-        declare = options.get("declare", "private")
+        declare = options.get("declare", "public")
         properties = options.get("properties")
         extend = options.get("extend")
         trait = options.get("trait")

@@ -15,7 +15,7 @@ Declare = Literal["private", "public"]
 class IDSStructBinding:
     name: str
     cls: type
-    declare: str = "private"
+    declare: str = "public"
     properties: dict[str, tuple[str, Any] | Any] = field(default_factory=dict)
     extend: Any = None
 
@@ -53,7 +53,7 @@ class IDSStruct:
         reject_positional("IDSStruct", args)
         validate_options("IDSStruct", options, cls.OPTIONS)
         name = options.get("name")
-        declare = options.get("declare", "private")
+        declare = options.get("declare", "public")
         properties = options.get("properties")
         extend = options.get("extend")
         if name is not None:

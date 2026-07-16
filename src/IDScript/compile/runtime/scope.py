@@ -1,51 +1,52 @@
-"""Nested runtime scope used by the IDScript compiler."""
+"""Nested runtime scope using ChainMap for efficient lookup."""
 
 from __future__ import annotations
 
+from collections import ChainMap
 from typing import Any, Dict
+
 from ..diagnostics import IDSNameError
 from .types import check_types
 from .variable import Variable as Var
 
+
 class GlobalScope:
     def __init__(self):
-        self.__scope: Dict[str, Var] = {}
+        self._maps: list[Dict[str, Var]] = [{}]
+
+    def _scope(self) -> ChainMap[str, Var]:
+        return ChainMap(*self._maps)
 
     def getThis(self, name):
-        this = self.__scope.get(name)
-        if not this:
+        try:
+            return self._scope()[name]
+        except KeyError:
             raise IDSNameError(f'{name!r} tidak terdefinisi')
-        return this
 
     def declare(self, name, type, value=None, constant=False, is_priv=True, is_pointer=False, *arg, **kwargs):
-        if name in self.__scope:
+        if name in self._maps[0]:
             raise IDSNameError(f'{name!r} sudah dideklarasikan')
-
-        self.__scope[name] = Var(
-            **{
-                'name': name,
-                'type': type,
-                'value': value,
-                'constant': constant,
-                'is_priv': is_priv,
-                'is_pointer': is_pointer
-            }
+        self._maps[0][name] = Var(
+            name=name, type=type, value=value,
+            constant=constant, is_priv=is_priv, is_pointer=is_pointer,
         )
-    
-    def set(self, name, value):
-        this = self.getThis(name)
-        if this.is_const:
-            raise IDSNameError(f'{name!r} adalah konstanta dan tidak dapat diubah')
 
-        if this.is_pointer:
-            this.pointer_set(value)
-        else:
-            check_types(value, this.type)
-            this.value = value
+    def set(self, name, value):
+        for m in self._maps:
+            if name in m:
+                var = m[name]
+                if var.is_const:
+                    raise IDSNameError(f'{name!r} adalah konstanta dan tidak dapat diubah')
+                if var.is_pointer:
+                    var.pointer_set(value)
+                else:
+                    check_types(value, var.type)
+                    var.value = value
+                return
+        raise IDSNameError(f'{name!r} tidak terdefinisi')
 
     def get(self, name):
-        this = self.getThis(name)
-        return this.value
+        return self.getThis(name).value
 
     def has(self, name):
         try:
@@ -53,65 +54,56 @@ class GlobalScope:
             return True
         except IDSNameError:
             return False
-    
+
     def exports(self):
         exports = {}
-        if not self.__scope:
-            return exports
-        
-        for k, v in self.__scope.items():
-            if v.is_priv:
-                continue
-
-            exports[k] = v
+        for m in self._maps:
+            for k, v in m.items():
+                if not v.is_priv and k not in exports:
+                    exports[k] = v
         return exports
 
 
 class Scope:
     def __init__(self, *, parent: GlobalScope | Scope | None = None):
-        self.__parent: GlobalScope | Scope | None = parent
-        self.__scope: Dict[str, Var] = {}
+        self._maps: list[Dict[str, Var]] = [{}]
+        if parent is not None:
+            self._maps.extend(parent._maps)
+
+    def _scope(self) -> ChainMap[str, Var]:
+        return ChainMap(*self._maps)
 
     def getThis(self, name):
-        this = self.__scope.get(name)
-        if not this and self.__parent:
-            this = self.__parent.getThis(name)
-    
-        if not this:
+        try:
+            return self._scope()[name]
+        except KeyError:
             raise IDSNameError(f'{name!r} tidak terdefinisi')
 
-        return this
-
     def declare(self, name, type, value=None, constant=False, is_priv=True, is_pointer=False):
-        if name in self.__scope:
+        if name in self._maps[0]:
             raise IDSNameError(f'{name!r} sudah dideklarasikan')
-
         if is_pointer or check_types(value, type):
-            self.__scope[name] = Var(
-                **{
-                    'name': name,
-                    'type': type,
-                    'value': value,
-                    'constant': constant,
-                    'is_priv': is_priv,
-                    'is_pointer': is_pointer
-                }
+            self._maps[0][name] = Var(
+                name=name, type=type, value=value,
+                constant=constant, is_priv=is_priv, is_pointer=is_pointer,
             )
-    
-    def set(self, name, value):
-        this = self.getThis(name)
-        if this.is_const:
-            raise IDSNameError(f'{name!r} adalah konstanta dan tidak dapat diubah')
 
-        if this.is_pointer:
-            this.pointer_set(value)
-        else:
-            check_types(value, this.type)
-            this.value = value
+    def set(self, name, value):
+        for m in self._maps:
+            if name in m:
+                var = m[name]
+                if var.is_const:
+                    raise IDSNameError(f'{name!r} adalah konstanta dan tidak dapat diubah')
+                if var.is_pointer:
+                    var.pointer_set(value)
+                else:
+                    check_types(value, var.type)
+                    var.value = value
+                return
+        raise IDSNameError(f'{name!r} tidak terdefinisi')
 
     def get(self, name):
-        this = self.getThis(name)
-        return this.value
+        return self.getThis(name).value
 
     def has(self, name):
         try:

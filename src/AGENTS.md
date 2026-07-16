@@ -13,5 +13,3 @@ pengimplementasian dari `Implementasi` itu:
 ### Ciri-ciri implemen
 - membuat metode untuk sebuah struktur
 - metode itu ada dua tipe, yakni: indenpenden (tanpa extends) dan pembungkus (dengan extends)
-
-

@@ -17,8 +17,8 @@ try:
 except ImportError:  # pragma: no cover - fallback for direct source execution
     from IDScript import __version__
     from IDScript.compile.exceptions import IDSError
-    from compile import Compile
-    from compile.Compiler import BytecodeCompiler, ModuleCode, VM
+    from IDScript.compile import Compile
+    from IDScript.compile.Compiler import BytecodeCompiler, ModuleCode, VM
 
 
 Mode = Literal["module", "bytecode", "both"]

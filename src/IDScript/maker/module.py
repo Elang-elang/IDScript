@@ -4,10 +4,11 @@ from dataclasses import dataclass, field
 import json
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Callable, Literal
+from typing import Any, Callable
 
+from ..compile.ids_ast import GenericParam as _GenericParam
 from ..compile.Compiler.bytecode import ModuleCode
-from .errors import IDSError, IDSMakerError, ensure_type, validate_declare, validate_options
+from .errors import IDSError, IDSMakerError, ensure_type, validate_options
 from .function import IDSFunctionBinding, IDSMethodBinding
 from .implement import IDSImplementBinding
 from .klass import IDSClassBinding
@@ -18,22 +19,18 @@ from .trait import IDSTraitBinding
 from .types import type_descriptor
 
 
-Declare = Literal["private", "public"]
-
-
 @dataclass
 class IDSDeclaration:
     name: str
     type: Any
     value: Any = None
-    declare: str = "private"
 
 
 @dataclass
 class IDSTypedef:
     name: str
     value: Any
-    declare: str = "private"
+    params: list[_GenericParam] | None = None
 
 
 @dataclass(init=False)
@@ -84,16 +81,14 @@ class IDSModule:
         self.items.extend(items)
         return self
 
-    def declare(self, name: str, type: Any, value: Any = None, *, declare: Declare = "private") -> IDSModule:
-        self._validate_declare(declare)
+    def declare(self, name: str, type: Any, value: Any = None) -> IDSModule:
         ensure_type("IDSModule.declare", "name", name, str)
-        self.declarations.append(IDSDeclaration(name=name, type=type, value=value, declare=declare))
+        self.declarations.append(IDSDeclaration(name=name, type=type, value=value))
         return self
 
-    def typedef(self, name: str, value: Any, *, declare: Declare = "private") -> IDSModule:
-        self._validate_declare(declare)
+    def typedef(self, name: str, value: Any, params: list[_GenericParam] | None = None) -> IDSModule:
         ensure_type("IDSModule.typedef", "name", name, str)
-        self.typedefs.append(IDSTypedef(name=name, value=value, declare=declare))
+        self.typedefs.append(IDSTypedef(name=name, value=value, params=params))
         return self
 
     def build(self) -> ModuleCode:
@@ -109,13 +104,12 @@ class IDSModule:
                 module.native_symbols[native_name] = self._native_symbol(declaration.value)
                 module.code.append(["LOAD_NAME", native_name])
             module.code.append(["STORE_NAME", declaration.name])
-            if declaration.declare == "public":
-                self._export(module, declaration.name)
+            self._export(module, declaration.name)
         for typedef in self.typedefs:
-            module.code.append(["BUILD_TYPE_ALIAS", typedef.name, type_descriptor(typedef.value), []])
+            params = [p.name.id if hasattr(p, 'name') else str(p) for p in (typedef.params or [])]
+            module.code.append(["BUILD_TYPE_ALIAS", typedef.name, type_descriptor(typedef.value), params])
             module.code.append(["STORE_NAME", typedef.name])
-            if typedef.declare == "public":
-                self._export(module, typedef.name)
+            self._export(module, typedef.name)
         return module
 
     def write(self, path: str | Path | None = None, *, compiled: bool = False, both: bool = False) -> Path | tuple[Path, Path] | None:
@@ -240,6 +234,3 @@ class IDSModule:
             "qualname": qualname,
             "registry_key": key,
         }
-
-    def _validate_declare(self, value: str) -> None:
-        validate_declare(value)

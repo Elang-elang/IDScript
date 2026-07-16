@@ -3,12 +3,26 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import Any
+from typing import Any, Type
 
 from ..diagnostics import IDSAttributeError, IDSTypeError
 from .types import check_types
 from .config import Config
 from copy import deepcopy
+
+# Sentinel for unresolved generic parameters
+_UNBOUND_GENERIC = Type
+
+
+def _contains_unbound(tp: Any) -> bool:
+    """Check if a type contains any unbound generic (Type) recursively."""
+    if tp is _UNBOUND_GENERIC:
+        return True
+    origin = getattr(tp, '__origin__', None)
+    if origin is not None:
+        args = getattr(tp, '__args__', ())
+        return any(_contains_unbound(a) for a in args)
+    return False
 
 
 class Structure:
@@ -55,6 +69,13 @@ class Structure:
                     config.leave_struct()
 
             return bound
+        try:
+            factory = object.__getattribute__(self, '__generic_factory__')
+        except AttributeError:
+            factory = None
+        if factory is not None:
+            concrete = factory()
+            return getattr(concrete, name)
         raise IDSAttributeError(f"Struktur {prototype['name']!r} tidak punya attribute {name!r}")
 
     def set_method(
@@ -87,8 +108,6 @@ class Structure:
             'default': None,
         }
         prototype['methods'][name] = method
-
-    add_method = set_method
 
     def has_property(self, name: str) -> bool:
         prototype = object.__getattribute__(self, '__PROTOTYPE__')
@@ -170,8 +189,8 @@ class Structure:
                 f"{', '.join(sorted(duplicated_methods))}"
             )
 
-        parent_schema = deepcopy(extend_schema)
-        parent_methods = deepcopy(extend_methods)
+        parent_schema = {**extend_schema}
+        parent_methods = {**extend_methods}
         parent_schema.update(this_schema)
         parent_methods.update(this_methods)
 
@@ -396,10 +415,10 @@ class Trait:
 
         for name, object_data in self._data.items():
             subject_data = data_methods[name]
-            if object_data['type'] != subject_data['type']:
+            if not _contains_unbound(object_data['type']) and object_data['type'] != subject_data['type']:
                 raise IDSTypeError(
                     f'{name}() dari implementasi tidak sama dengan {name}() dari trait '
-                    f"tipe: {object_data['type']}"
+                    f"annotation return: {object_data['type']}"
                 )
 
             expected_static = object_data.get('static', False)
@@ -425,7 +444,10 @@ class Trait:
                 )
 
             for arg_name, expected_type in expected_annotations.items():
-                if annotations[arg_name] == expected_type:
+                actual_type = annotations[arg_name]
+                if _contains_unbound(expected_type):
+                    continue
+                if actual_type == expected_type:
                     continue
                 raise IDSTypeError(
                     f'{name}() dari implementasi tidak sama dengan {name}() dari trait '

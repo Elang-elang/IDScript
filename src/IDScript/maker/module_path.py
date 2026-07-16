@@ -30,15 +30,15 @@ def resolve_module(value: Any) -> str:
 
     # Strategy 1: walk up from the file's own directory,
     # collecting package dirs (with __init__.py) along the way.
-    parts: list[str] = [file_path.parent.name]  # file's own dir is always included
-    for parent in file_path.parent.parents:  # grandparent up
-        if (parent / "__init__.py").exists():
+    parts: list[str] = []
+    for parent in file_path.parent.parents:
+        if (parent / "__init__").exists() or (parent / "__init__.py").exists():
             parts.append(parent.name)
         else:
             break
     parts.reverse()
     parts.append(file_path.stem)
-    return ".".join(parts)
+    result = ".".join(parts)
 
     # Strategy 2: find highest-matching sys.path entry
     for src in sys.path:
@@ -56,4 +56,4 @@ def resolve_module(value: Any) -> str:
                 break
         return result.replace("/", ".").replace("\\", ".")
 
-    return file_path.stem
+    return result

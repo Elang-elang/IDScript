@@ -252,8 +252,8 @@ class Bernama:
 
 mod = IDSModule("native_trait")
 mod.add(Bernama)
-mod.declare("versi", str, "1.0", declare="public")
-mod.typedef("ID", int, declare="public")
+mod.declare("versi", str, "1.0")
+mod.typedef("ID", int)
 """,
     )
     exports = VM(native.mod.build()).exports()
@@ -268,7 +268,7 @@ def test_module_declare_can_export_native_python_module(tmp_path):
     from IDScript.maker import IDSModule
 
     mod = IDSModule("native_regex")
-    mod.declare("regex", object, re, declare="public")
+    mod.declare("regex", object, re)
     output = mod.write(tmp_path / "native_regex.idsm")
     module = ModuleCode.from_bytes(output.read_bytes())
     exports = VM(module).exports()

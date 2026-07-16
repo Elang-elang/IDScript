@@ -275,8 +275,6 @@ class Enum:
         }
         prototype['methods'][name] = method
 
-    add_method = set_method
-
     def has_property(self, name: str) -> bool:
         prototype = object.__getattribute__(self, '__PROTOTYPE__')
         return name in prototype['variants']

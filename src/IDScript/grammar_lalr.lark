@@ -1,0 +1,94 @@
+start: top_stmt*
+
+top_stmt: outside_stmt
+        | const_stmt
+
+outside_stmt: func_decl
+            | struct_decl
+            | impl_stmt
+            | import_stmt
+            | typedef_stmt
+            | interface_stmt
+            | enum_stmt
+            | trait_stmt
+
+block: "{" stmt+ "}"
+
+stmt: simple_stmt
+    | compound_stmt
+
+simple_stmt: "var" NAME ":" type_ann "=" expr? ";" -> var_decl
+           | "final" NAME ":" type_ann "=" expr ";" -> final_decl
+           | term NAME "=" expr -> assignment
+           | "kembalikan" expr ";" -> return_stmt
+           | "kesalahan" expr ";" -> throw_stmt
+           | "berhentikan" ";" -> break_stmt
+           | "lanjutkan" ";" -> continue_stmt
+           | expr ";" -> call_expr
+
+compound_stmt: outside_stmt
+             | ctrl_flow
+
+
+
+const_stmt: "privat"? "konst" NAME ":" type_ann "=" expr ";" -> const_private
+          | "publik" "konst" NAME ":" type_ann "=" expr ";" -> const_public
+
+
+_var_attr: "*" NAME -> set_var_pointer
+         | NAME -> set_var_assignment
+
+
+struct_decl: "privat"? "struktur" NAME generic_params? block_struct struct_extend? -> struct_private
+           | "publik" "struktur" NAME generic_params? block_struct struct_extend? -> struct_public
+
+struct_extend: "turunan" NAME generic_params? ";"
+block_struct: "{" struct_field ("," struct_field)* "}"
+struct_field: "privat"? NAME ":" type_ann -> private_struct_field
+            | "publik" NAME ":" type_ann -> public_struct_field
+
+
+impl_stmt: "implementasi" generic_params? NAME generic_params? block_impl -> impl_plain
+         | "implementasi" generic_params NAME generic_params? "untuk" NAME generic_params? block_impl -> impl_trait
+
+block_impl: "{" body_impl+ "}"
+body_impl: "privat"? (static_method | attrs_method) -> private_method
+         | "publik" (static_method | attrs_method) -> public_method
+         | "statik" attrs_method -> statik_method
+         | "metode" NAME generic_params? params ":" type_ann block -> attrs_method
+
+enum_stmt: "privat"? NAME generic_params? block_enum -> private_enum
+         | "publik" NAME generic_params? block_enum -> public_enum
+
+block_enum: "{" enum_field ("," enum_field)* "}"
+enum_field: "privat"? (NAME | tuple_variant | structure_variant | discriminant) -> private_enum_field
+          | "publik" (NAME | tuple_variant | structure_variant | discriminant) -> public_enum_field
+
+tuple_variant: NAME "(" type_ann ("," type_ann) ")"
+structure_variant: NAME generic_params? block_struct
+discriminant: NAME "=" expr
+
+
+trait_stmt: "privat"? "sifat" NAME generic_params? "{" abstract_method+ "}" -> private_trait
+          | "publik" "sifat" NAME generic_params? "{" abstract_method+ "}" -> public_trait
+
+abstract_method: "statik" "metode" NAME generic_params? params ":" type_ann ";" -> static_abstract_method
+               | "metode" NAME generic_params? params ":" type_ann ";" -> normal_abstract_method
+
+
+func_decl: "privat"? "fungsi" NAME generic_params? params ":" type_ann block -> private_func
+         | "publik" "fungsi" NAME generic_params? params ":" type_ann block -> public_func
+
+params: "(" param ("," param)* ","? ")"
+param: "final" NAME ":" type_ann -> immut_normal_arg
+     | "final" "*" NAME ":" type_ann -> immut_deferensial_arg
+     | NAME ":" type_ann -> mut_normal_arg
+     | "*" NAME ":" type_ann -> mut_deferensial_arg
+
+
+ctrl_flow: if_stmt elif_stmt* else_stmt? -> if_flow
+         | while_stmt else_stmt? -> while_flow  
+         | for_stmt else_stmt? -> for_flow
+         | try_stmt (catch_stmt else_stmt? finally_stmt? | finally_stmt) -> try_flow
+         | switch_stmt -> switch_flow
+

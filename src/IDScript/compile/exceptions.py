@@ -79,21 +79,24 @@ class IDSError(Exception):
         return self.format_message()
 
     def format_message(self) -> str:
-        if self.span is not None:
-            location = _paint(self.span.label(), "bold", "cyan")
-            kind = _paint(self.kind, "bold", "red")
-            message = f"{location}: {kind}: {self.message}"
-        else:
-            kind = _paint(self.kind, "bold", "red")
-            message = f"{kind}: {self.message}"
-        context = self.context
-        if context is None and self.span is not None and self.span.source:
+        kind = _paint(self.kind, "bold", "red")
+        message = f"error[{kind}]: {self.message}"
+
+        if self.context is not None:
+            context = self.context
+        elif self.span is not None and self.span.source:
             context = _source_context(self.span.source, self.span)
+        else:
+            context = None
+
         if context:
             message = f"{message}\n{context}"
+
         if self.help_text:
-            help_label = _paint("bantuan:", "bold", "cyan")
-            message = f"{message}\n{help_label} {self.help_text}"
+            help_label = _paint("=", "bold", "blue")
+            help_kind = _paint("bantuan", "bold", "cyan")
+            message = f"{message}\n   {help_label} {help_kind}: {self.help_text}"
+
         return message
 
 
@@ -105,7 +108,6 @@ class IDSSyntaxError(IDSError, SyntaxError):
     @classmethod
     def from_lark(cls, error: UnexpectedInput, file: str, source: str) -> IDSSyntaxError:
         span = SourceSpan(file=file, line=error.line, column=error.column, source=source)
-        context = _source_context(source, span) if source else None
         expected = getattr(error, "expected", None) or getattr(error, "allowed", None)
         expected_text = _expected_list(expected)
 
@@ -123,7 +125,7 @@ class IDSSyntaxError(IDSError, SyntaxError):
         help_text = None
         if expected_text:
             help_text = f"di posisi ini diharapkan salah satu dari: {expected_text}"
-        return cls(message, span=span, context=context, help_text=help_text, cause=error)
+        return cls(message, span=span, help_text=help_text, cause=error)
 
 
 class IDSRuntimeError(IDSError, RuntimeError):
@@ -550,7 +552,7 @@ def _highlight_source_line(line: str) -> str:
     return "".join(result)
 
 
-def _source_context(source: str, span: SourceSpan) -> str:
+def _source_context(source: str, span: SourceSpan, label: str | None = None) -> str:
     lines = source.splitlines()
     if span.line < 1 or span.line > len(lines):
         return ""
@@ -560,11 +562,15 @@ def _source_context(source: str, span: SourceSpan) -> str:
     end_line = min(span.line + radius, len(lines))
     line_number_width = len(str(end_line))
     gutter = " " * line_number_width
-    caret_offset = max(span.column - 1, 0)
     bar = _paint("|", "blue")
-    caret = _paint("^", "bold", "red")
+    arrow = _paint("-->", "bold", "blue")
+    location = _paint(span.label(), "bold", "cyan")
 
-    context = [f" {gutter} {bar}"]
+    result: list[str] = []
+
+    result.append(f" {arrow} {location}")
+    result.append(f" {gutter} {bar}")
+
     for line_number in range(start_line, end_line + 1):
         raw_line = lines[line_number - 1]
         display_number = str(line_number).rjust(line_number_width)
@@ -572,10 +578,20 @@ def _source_context(source: str, span: SourceSpan) -> str:
             display_number = _paint(display_number, "bold", "red")
         else:
             display_number = _paint(display_number, "blue")
-        context.append(f" {display_number} {bar} {_highlight_source_line(raw_line)}")
+
+        result.append(f" {display_number} {bar} {_highlight_source_line(raw_line)}")
+
         if line_number == span.line:
-            context.append(f" {gutter} {bar} {' ' * caret_offset}{caret}")
-    return "\n".join(context)
+            col = max(span.column - 1, 0)
+            if span.end_column is not None and span.end_column > span.column:
+                ulen = span.end_column - span.column
+            else:
+                ulen = 1
+            underline = _paint("^" * ulen, "bold", "red")
+            annotation = f" {label}" if label else ""
+            result.append(f" {gutter} {bar} {' ' * col}{underline}{annotation}")
+
+    return "\n".join(result)
 
 
 # Compatibility with the earlier temporary name.

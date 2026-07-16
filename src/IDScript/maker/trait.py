@@ -14,7 +14,7 @@ Declare = Literal["private", "public"]
 class IDSTraitBinding:
     name: str
     cls: type
-    declare: str = "private"
+    declare: str = "public"
     methods: list[IDSMethodBinding] = field(default_factory=list)
 
     def __post_init__(self) -> None:
@@ -47,7 +47,7 @@ class IDSTrait:
         reject_positional("IDSTrait", args)
         validate_options("IDSTrait", options, cls.OPTIONS)
         name = options.get("name")
-        declare = options.get("declare", "private")
+        declare = options.get("declare", "public")
         if name is not None:
             ensure_type("IDSTrait", "name", name, str)
         _validate_declare(declare)

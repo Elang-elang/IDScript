@@ -7,6 +7,18 @@ from ..runtime.types import EMPTY
 
 _OPTIONAL_SENTINEL = object()
 
+class _ParamList(list):
+    pass
+
+class _TypeArgList(list):
+    pass
+
+def _is_params(x):
+    return isinstance(x, _ParamList)
+
+def _is_type_args(x):
+    return isinstance(x, _TypeArgList)
+
 @v_args(inline=True)
 class _Parse(Transformer):
     def __init__(self, file: str = "<unknown>", source: str | None = None):
@@ -17,9 +29,35 @@ class _Parse(Transformer):
         result = super()._call_userfunc(tree, new_children)
         return set_source(result, span_from_meta(tree.meta, self.file, self.source))
 
+    def _ambig(self, *trees):
+        from ..ids_ast import Compare, StructFielded, CallDynamic
+        flat = []
+        for t in trees:
+            if isinstance(t, list):
+                flat.extend(t)
+            else:
+                flat.append(t)
+        non_compare = [t for t in flat if not isinstance(t, Compare)]
+        if non_compare:
+            return non_compare[0]
+        return flat[0]
+
     def _call_userfunc_token(self, token):
         result = super()._call_userfunc_token(token)
         return set_source(result, span_from_token(token, self.file, self.source))
+
+    _PASSTHROUGH_RULES = {
+        'const_decl', 'struct_decl', 'private_struct',
+        'struct_fields', 'impl_stmt', 'enum_body', 'private_field_attr',
+        'field_attr', 'trait_stmt', 'func_decl', 'pattern', 'import_decl',
+        'dval',
+    }
+
+    def __default__(self, data, children, meta):
+        if data in self._PASSTHROUGH_RULES:
+            result = children[0] if len(children) == 1 else (list(children) if children else None)
+            return set_source(result, span_from_meta(meta, self.file, self.source))
+        return super().__default__(data, children, meta)
     
     # The PROGRAM
     def start(self, prog):
@@ -54,7 +92,10 @@ class _Parse(Transformer):
 
     def throw_stmt(self, value):
         return Kesalahan(value=value)
-    
+
+    def throw_stmt_nosemi(self, value):
+        return Kesalahan(value=value)
+
     def break_stmt(self):
         return Berhentikan()
     
@@ -62,7 +103,6 @@ class _Parse(Transformer):
         return Lanjutkan()
     
     # VARIABLES
-    def const_decl(self, field): return field
     def const_private(self, attrs, type, expr):
         return Const(
             name=attrs[0],
@@ -109,21 +149,31 @@ class _Parse(Transformer):
             expr=expr
         )
     
-    def struct_decl(self, field): return field
-    def private_struct(self, field): return field
     def public_struct(self, field):
         field.is_priv = False
         return field
     
-    def struct_attrs(self, name, body, extend=None):
-        return Structure(name=name, body=body, extend=extend)
-    def struct_extend(self, name): return name
+    def struct_attrs(self, *args):
+        name = args[0]
+        body = next(a for a in args if isinstance(a, BlockStruct))
+        params = next((a for a in args if _is_params(a)), [])
+        extend = next(
+            (a for a in args if isinstance(a, Dynamic)),
+            next((a for a in args if isinstance(a, Name) and a.id != name.id), None)
+        )
+        return Structure(name=name, body=body, extend=extend, params=params)
+    def struct_extend(self, *args):
+        name = args[0]
+        generic_args = next((a for a in args[1:] if isinstance(a, _TypeArgList)), None)
+        if generic_args:
+            return Dynamic(name=name, args=list(generic_args))
+        return name
+
     def block_struct(self, *attrs):
         return BlockStruct(
             bodies=list(attrs)
         )
     
-    def struct_fields(self, field): return field
     def attr_field(self, name, type):
         return StructField(
             name=name,
@@ -138,19 +188,31 @@ class _Parse(Transformer):
         field.is_priv = True
         return field
     
-    def impl_stmt(self, field): return field
-
-    def impl_plain(self, name, body):
+    def impl_plain(self, *args):
+        body = next(a for a in args if isinstance(a, ImplBlock))
+        names = [a for a in args if isinstance(a, Name)]
+        params = next((a for a in args if _is_params(a)), [])
+        type_args = next((a for a in args if _is_type_args(a)), [])
         return Implementation(
-            name=name,
-            body=body
+            name=names[0],
+            body=body,
+            params=params,
+            type_args=type_args,
         )
     
-    def impl_trait(self, trait, name, body):
+    def impl_trait(self, *args):
+        body = next(a for a in args if isinstance(a, ImplBlock))
+        names = [a for a in args if isinstance(a, Name)]
+        params = next((a for a in args if _is_params(a)), [])
+        all_type_lists = [a for a in args if _is_type_args(a)]
+        trait_type_args = all_type_lists[-1] if len(all_type_lists) > 1 else []
+        self_type_args = all_type_lists[0] if all_type_lists else []
         return Implementation(
-            name=name,
+            name=names[-1],
             body=body,
-            trait=trait
+            trait=names[0] if len(names) > 1 else names[-1],
+            params=params,
+            type_args=self_type_args,
         )
     
     def block_impl(self, *bodies):
@@ -193,9 +255,13 @@ class _Parse(Transformer):
             **attrs
         }
     
-    def enum_attrs(self, name, attrs):
+    def enum_attrs(self, *args):
+        name = args[0]
+        attrs = next(a for a in args if isinstance(a, dict))
+        params = next((a for a in args if _is_params(a)), [])
         return {
             'name': name,
+            'params': params,
             **attrs
         }
     
@@ -204,13 +270,10 @@ class _Parse(Transformer):
             'fields': list(fields)
         }
     
-    def enum_body(self, field): return field
-    def private_field_attr(self, field): return field
     def public_field_attr(self, field):
         field.is_priv = False
         return field
     
-    def field_attr(self, field): return field
     def unit_variant(self, name): return TupleVariant(name=name, args=[])
     def tuple_variant(self, name, *args):
         return TupleVariant(
@@ -227,7 +290,6 @@ class _Parse(Transformer):
     def discriminant(self, name, value):
         return Discriminant(name=name, value=value)
     
-    def trait_stmt(self, field): return field
     def private_trait(self, field):
         field.is_priv = True
         return field
@@ -236,10 +298,13 @@ class _Parse(Transformer):
         field.is_priv = False
         return field
     
-    def trait_attrs(self, name, *data):
+    def trait_attrs(self, name, *args):
+        params = next((a for a in args if _is_params(a)), [])
+        methods = [a for a in args if not _is_params(a)]
         return Trait(
             name=name,
-            data=list(data)
+            data=list(methods),
+            params=params
         )
     def abstract_plain_method(self, name, attrs):
         return AbstractMethod(
@@ -253,7 +318,6 @@ class _Parse(Transformer):
             static=True,
         )
     
-    def func_decl(self, field): return field
     def private_func(self, name, attrs, body):
         return Function(
             name=name,
@@ -398,8 +462,6 @@ class _Parse(Transformer):
     def default_case(self):
         return None
 
-    def pattern(self, pattern): return pattern
-
     def or_pattern(self, pattern, *patterns):
         if not patterns:
             return pattern
@@ -496,7 +558,6 @@ class _Parse(Transformer):
             **attrs
         }
     
-    def import_decl(self, attrs): return attrs
     def var_import(self, attrs):
         return {
             'is_const': False,
@@ -595,10 +656,10 @@ class _Parse(Transformer):
     
     def eq_(self, *exprs): return self.__comp_op__('==', *exprs)
     def neq_(self, *exprs): return self.__comp_op__('!=', *exprs)
-    def ge_(self, *exprs): return self.__comp_op__('>', *exprs)
-    def gt_(self, *exprs): return self.__comp_op__('>=', *exprs)
-    def le_(self, *exprs): return self.__comp_op__('<', *exprs)
-    def lt_(self, *exprs): return self.__comp_op__('<=', *exprs)
+    def gt_(self, *exprs): return self.__comp_op__('>', *exprs)
+    def ge_(self, *exprs): return self.__comp_op__('>=', *exprs)
+    def lt_(self, *exprs): return self.__comp_op__('<', *exprs)
+    def le_(self, *exprs): return self.__comp_op__('<=', *exprs)
     
     def add_(self, *exprs): return self.__bin_op__('+', *exprs)
     def min_(self, *exprs): return self.__bin_op__('-', *exprs)
@@ -609,7 +670,7 @@ class _Parse(Transformer):
     def term(self, expr):
         return expr
 
-    def name(self, name):
+    def name_key(self, name):
         return name
     
     def subscripts(self, subscript):
@@ -643,11 +704,24 @@ class _Parse(Transformer):
     def call_params(self, *args):
         return list(args)
     
-    def struct_field(self, struct, kwargs):
+    def struct_field(self, *args):
+        struct = args[0]
+        kwargs = next(a for a in args if isinstance(a, Kamus))
+        type_args = []
+        if isinstance(struct, CallDynamic):
+            type_args = struct.type_args
+            struct = struct.name
         return StructFielded(
             struct=struct,
-            kwargs=kwargs
+            kwargs=kwargs,
+            type_args=type_args
         )
+    
+    def call_dynamic(self, name, type_args):
+        return CallDynamic(name=name, type_args=type_args)
+    
+    def type_args(self, *args):
+        return _TypeArgList(args)
     
     def get_identifier(self, value):
         return value
@@ -716,8 +790,6 @@ class _Parse(Transformer):
                 return Constant(value=key[0].id)
             return key[0]
         return key[0]
-        
-    def dval(self, val): return val
 
     def expr_func(self, attrs, body):
         return ExprFunc(
@@ -762,8 +834,23 @@ class _Parse(Transformer):
             'args': args,
             'value': value
         }
-    def typedef_params(self, *names):
-        return list(names)
+    def typedef_params(self, *params):
+        return _ParamList(params)
+    
+    def generic_params(self, *args):
+        return _TypeArgList(args)
+    
+    def generic_param_name(self, name):
+        return GenericParam(name=name)
+    
+    def generic_param_bound(self, name, bound):
+        return GenericParam(name=name, bound=bound)
+    
+    def generic_param_default(self, name, default):
+        return GenericParam(name=name, default=default)
+    
+    def generic_param_full(self, name, bound, default):
+        return GenericParam(name=name, bound=bound, default=default)
     
     
     def interface_stmt(self, attrs):
@@ -832,6 +919,15 @@ class _Parse(Transformer):
         return SERIKAT(
             bodies=bodies
         )
+    def type_union_plus(self, *args):
+        bodies = []
+        for a in args:
+            inner = a.type if isinstance(a, Type) else a
+            if isinstance(inner, SERIKAT):
+                bodies.extend(inner.bodies)
+            else:
+                bodies.append(a)
+        return SERIKAT(bodies=bodies)
     def type_literal(self, *bodies):
         return LITERAL(
             bodies=bodies

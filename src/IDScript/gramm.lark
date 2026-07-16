@@ -26,14 +26,17 @@ continue_stmt: "lanjutkan"
 
 
 compound_stmt: func_decl
-             | struct_decl
-             | impl_stmt
-             | ctrl_flow
-             | import_stmt
-             | typedef_stmt
-             | interface_stmt
-             | enum_stmt
-             | trait_stmt
+              | struct_decl
+              | impl_stmt
+              | ctrl_flow
+              | import_stmt
+              | typedef_stmt
+              | interface_stmt
+              | enum_stmt
+              | trait_stmt
+              | throw_stmt_nosemi
+
+throw_stmt_nosemi: "kesalahan" return_value
 
 outside_stmt: compound_stmt
              | const_decl
@@ -45,7 +48,7 @@ var_decl: _var_keyword var_attrs _optional_typed_value
 final_decl: _final_keyword var_attrs _typed_value
 assignment: term _assign_operator expr
 
-_const_keyword: "KONSTANTA" | "konst"
+_const_keyword: "KONSTANTA" | "konstanta" | "konst"
 _var_keyword: "var"
 _final_keyword: "final"
 _assign_operator: "="
@@ -60,8 +63,8 @@ struct_decl: private_struct | public_struct
 private_struct: "privat"? struct_attrs
 public_struct: "publik" struct_attrs
 
-struct_attrs: "struktur" NAME block_struct struct_extend?
-struct_extend: "turunan" "dari" NAME ";"?
+struct_attrs: "struktur" NAME typedef_params? block_struct struct_extend?
+struct_extend: "turunan" "dari" NAME generic_params? ";"?
 
 block_struct: "{" (struct_fields ("," struct_fields)* ","?)? "}"
 struct_fields: private_field | public_field
@@ -70,8 +73,9 @@ public_field: "publik" attr_field
 attr_field: NAME ":" type_ann
 
 impl_stmt: impl_plain | impl_trait
-impl_plain: _implementation_keyword _name block_impl
-impl_trait: _implementation_keyword _name "untuk" _name block_impl
+impl_plain: _implementation_keyword typedef_params? _name generic_params? block_impl
+impl_trait: _implementation_keyword typedef_params? _name generic_params? "untuk" _name generic_params? block_impl
+generic_params: "<" type_ann ("," type_ann)* ","? ">"
 _implementation_keyword: "implementasi"
 
 block_impl: "{" body_impl+ "}"
@@ -86,7 +90,7 @@ method_attrs: "metode" NAME attrs_func block
 enum_stmt: private_enum | public_enum
 private_enum: "privat"? enum_attrs
 public_enum: "publik" enum_attrs
-enum_attrs: "enum" NAME enum_block
+enum_attrs: "enum" NAME typedef_params? enum_block
 enum_block: "{" (enum_body ("," enum_body)* ","?)?  "}"
 enum_body: private_field_attr
          | public_field_attr
@@ -108,7 +112,7 @@ trait_stmt: private_trait | public_trait
 private_trait: "privat"? trait_attrs
 public_trait: "publik" trait_attrs
 
-trait_attrs: "sifat" NAME "{" abstract_method abstract_method* "}"
+trait_attrs: "sifat" NAME typedef_params? "{" abstract_method abstract_method* "}"
 abstract_method: "metode" NAME attrs_func ";" -> abstract_plain_method
                | "statik" "metode" NAME attrs_func ";" -> abstract_static_method
 
@@ -151,7 +155,7 @@ for_containns: NAME | "(" NAME ("," NAME)* ")"
 while_flow: while_stmt else_stmt?
 while_stmt: "selama" "(" expr ")" block
 
-try_flow: try_stmt catch_stmt+ else_stmt? finally_stmt?
+try_flow: try_stmt catch_stmt else_stmt? finally_stmt?
         | try_stmt finally_stmt
 
 try_stmt: "coba" block
@@ -233,11 +237,11 @@ is_: isnot_ ("adalah" expr_)*
 isnot_: eq_ ("bukanlah" expr_)*
 
 eq_: neq_ ("==" expr_)?
-neq_: ge_ ("!=" expr_)?
-ge_: gt_ (">" expr_)?
-gt_: le_ (">=" expr_)?
-le_: lt_ ("<" expr_)?
-lt_: add_ ("<=" expr_)?
+neq_: gt_ ("!=" expr_)?
+gt_: ge_ (">" expr_)?
+ge_: lt_ (">=" expr_)?
+lt_: le_ ("<" expr_)?
+le_: add_ ("<=" expr_)?
 
 add_: (expr_ "+")? min_
 min_: (expr_ "-")? mul_
@@ -247,6 +251,7 @@ pow_: (expr_ "**")? term
 
 term: subscripts
     | struct_field
+    | call_dynamic
     | get_identifier
     | pointer_expr
     | literal
@@ -254,6 +259,9 @@ term: subscripts
     | expr_
     | "(" expr_ ")"
     | NAME
+
+call_dynamic: NAME type_args
+type_args: "<" type_ann ("," type_ann)* ","? ">"
 
 subscripts: attr
           | idx
@@ -268,6 +276,7 @@ call_generic: term typedef_params call_params
 call_params: "(" (expr_ ("," expr_)* ","?)? ")"
 
 struct_field: NAME kamus
+            | call_dynamic kamus
 get_identifier: identifier_name
               | info_expr
 identifier_name: "identifikasi" NAME
@@ -300,7 +309,8 @@ optional: "?"
 type_def: type_object
         | NAME
 
-type_object: type_result | type_func | type_arr | type_dict | type_union | type_literal | type_dynamic
+type_object: type_result | type_func | type_arr | type_dict | type_union | type_literal | type_dynamic | type_union_plus
+type_union_plus: type_ann "+" type_ann
 type_result: "hasil" "<" type_ann ("," type_ann)? ">"
 type_func: "fungsi" "<" "(" (type_ann ("," type_ann)*)? ")" ":" type_ann ">"
 type_arr: "daftar" "<" type_ann ">"
@@ -308,13 +318,17 @@ type_dict: "kamus" "<" type_ann "," type_ann ">"
 type_union: "<" type_ann ("," type_ann)? ","? ">"
 type_literal: "<" constants ("," constants)? ","? ">"
 
-type_dynamic: NAME "<" NAME ("," NAME)* ","? ">"
+type_dynamic: NAME "<" type_ann ("," type_ann)* ","? ">"
 
 typedef_stmt: private_typedef | public_typedef
 private_typedef: "privat"? typedef_attrs
 public_typedef: "publik" typedef_attrs
 typedef_attrs: "tipe" NAME typedef_params? "=" type_ann ";"?
-typedef_params: "<" ","? NAME ("," NAME)* ","? ">"
+typedef_params: "<" ","? generic_param ("," generic_param)* ","? ">"
+generic_param: NAME ":" type_ann "=" type_ann -> generic_param_full
+             | NAME ":" type_ann -> generic_param_bound
+             | NAME "=" type_ann -> generic_param_default
+             | NAME -> generic_param_name
 
 interface_stmt: private_interface | public_interface
 private_interface: "privat"? interface_attrs

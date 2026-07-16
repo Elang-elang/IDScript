@@ -13,9 +13,21 @@ EMPTY = object()
 Result = Union
 
 
+class IniType:
+    """Sentinel type for 'Ini' (Self) in trait definitions."""
+    def __repr__(self): return '<Ini>'
+    def __eq__(self, other): return True
+    def __hash__(self): return hash('<Ini>')
+    def __call__(self, *args, **kwargs):
+        raise IDSTypeError('Ini tidak dapat digunakan di luar sifat/antarmuka')
+
+
 def check_types(value: Any, types: Type | str) -> bool:
     try:
         if types is Any:
+            return True
+        if types is Type:
+            # Bare typing.Type (unbound generic) accepts any value
             return True
         if value is None and (types is None or types is type(None)):
             return True
@@ -25,11 +37,26 @@ def check_types(value: Any, types: Type | str) -> bool:
             py_class = None
     
         if py_class is not None:
-            return value is types or isinstance(value, py_class)
+            if value is types or isinstance(value, py_class):
+                return True
+            # Struct inheritance: check if value's struct has all properties
+            # that the target type requires (structural subtyping via extend)
+            if hasattr(value, '__PROTOTYPE__'):
+                value_schema = value.__PROTOTYPE__.get('schema', {})
+                target_schema = types.__PROTOTYPE__.get('schema', {})
+                value_props = {n for n, f in value_schema.items() if not f.get('is_method')}
+                target_props = {n for n, f in target_schema.items() if not f.get('is_method')}
+                return target_props.issubset(value_props)
+            return False
         if isinstance(types, str) and type(value).__name__ == types:
             return True
         if isinstance(types, tuple):
             return any(check_types(value, item) for item in types)
+        # Optional[Type] (Union[Type, None]) — treat like bare Type for unbound generics
+        origin = getattr(types, '__origin__', None)
+        args = getattr(types, '__args__', ())
+        if origin is Union and Type in args:
+            return True
         check_type(value, types)
         return True
 
@@ -38,6 +65,7 @@ def check_types(value: Any, types: Type | str) -> bool:
             "Tipe tidak sesuai dengan isianya\n"
             f"diharapkan: {types}\ndiberikan: {type(value).__name__}"
         )
+
 
 def default_value(ann: Type):
     origin = get_origin(ann)
@@ -67,57 +95,3 @@ def default_value(ann: Type):
                 '__repr__': lambda _: '<Function: <Anonymous>>',
             }
         )()
-
-
-# class Typedef:
-#     def __init__(self, wrapp):
-#         self.wrapp = wrapp
-#     def __call__(self, *args):
-#         return self.wrapp(*args)
-#     def __repr__(self):
-#         return f'<Typedef: {self.wrapp.name}>'
-# 
-# class Interface:
-#     def __init__(self, keys: List[str], values: List[Type]):
-#         self._keys = keys
-#         self._values = values
-#         self._dict = {}
-#     def __getitem__(self, key, /):
-#         if key not in self._keys:
-#             return KeyError(key)
-#         if key not in self._dict:
-#             return EMPTY
-#         return self._dict[key]
-#     def __setitem__(self, key, value, /):
-#         if key not in self._keys:
-#             raise KeyError(key)
-#         if not isinstance(value, self._values[self._keys.index(key)]):
-#             raise TypeError(value)
-#         self._dict[key] = value
-#     def __delitem__(self, key):
-#         return NotImplemented
-#     def get(self, key, default=EMPTY, /):
-#         try:
-#             return self[key]
-#         except:
-#             return default
-#     def has(self, key, /):
-#         return key in self._keys
-#     def set(self, key, value, /):
-#         self[key] = value
-#     def default(self):
-#         for key in self._keys:
-#             self[key] = EMPTY
-#     def setdefault(self):
-#         self.default()
-#     def __repr__(self):
-#         return f'<InterFace <Protected Dict> >'
-#     def __str__(self):
-#         return str(self._dict)
-#     def __dict__(self):
-#         return self._dict
-#     def __iter__(self):
-#         return iter(self._dict)
-#     def __contains__(self, instance, /):
-#         return instance in self._dict
-#     ...

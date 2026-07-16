@@ -3,7 +3,7 @@ from __future__ import annotations
 """AST dataclasses used by the IDScript parser and compiler."""
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Type as T
+from typing import List, Dict, Any, Optional
 
 class _PROGRAM:
     pass
@@ -147,7 +147,8 @@ class Structure(_STRUCTURE):
     name: Name
     body: Optional[BlockStruct] = None
     is_priv: bool = True
-    extend: Optional[Name] = None
+    extend: Name | Dynamic | None = None
+    params: List['GenericParam'] = field(default_factory=list)
 
 @dataclass
 class BlockStruct(_STRUCTURE):
@@ -169,6 +170,8 @@ class Implementation(_IMPLEMENTATION):
     name: Name
     body: 'ImplBlock'
     trait: Optional[Name] = None
+    params: List['GenericParam'] = field(default_factory=list)
+    type_args: List['Type'] = field(default_factory=list)
 
 @dataclass
 class ImplBlock(_IMPLEMENTATION):
@@ -192,6 +195,7 @@ class Enum(_ENUM):
     name: Name
     fields: List['_ENUM_ATTR']
     is_priv: bool = True
+    params: List['GenericParam'] = field(default_factory=list)
 
 
 
@@ -201,7 +205,7 @@ class _ENUM_ATTR(_ENUM):
 @dataclass
 class TupleVariant(_ENUM_ATTR):
     name: Name
-    args: List[T]
+    args: List['Type']
     is_priv: bool = True
 
 
@@ -224,6 +228,7 @@ class Trait(_STRUCTURE):
     name: Name
     data: List['_ABSTRACT_METHOD']
     is_priv: bool = True
+    params: List['GenericParam'] = field(default_factory=list)
 
 
 class _ABSTRACT_METHOD(_STRUCTURE):
@@ -395,8 +400,15 @@ class Call(_EXPRESSION):
 
 @dataclass
 class StructFielded(_EXPRESSION):
-    struct: Structure | Name
+    struct: Structure | Name | CallDynamic
     kwargs: Kamus
+    type_args: List['Type'] = field(default_factory=list)
+
+
+@dataclass
+class CallDynamic(_EXPRESSION):
+    name: Name
+    type_args: List['Type']
 
 
 class _LITERAL(_EXPRESSION):
@@ -434,7 +446,7 @@ class _TYPEDEF(_TYPE):
 
 @dataclass
 class Type(_TYPE):
-    type: Name | _TYPEDEF | T
+    type: Name | _TYPEDEF | type
     option: bool = False
 
 
@@ -445,6 +457,12 @@ class TypeDef(_TYPEDEF):
     value: _TYPEDEF
     is_priv: bool = True
     
+
+@dataclass
+class GenericParam:
+    name: Name
+    bound: Optional['Type'] = None
+    default: Optional['Type'] = None
 
 @dataclass
 class InterFace(_TYPEDEF):

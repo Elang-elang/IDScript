@@ -3,24 +3,6 @@
 from .types import EMPTY
 from pathlib import Path
 
-def getattr(cls, name, default=EMPTY, /):
-    try:
-        return object.__getattribute__(cls, name)
-    except AttributeError:
-        if default is EMPTY:
-            raise
-        return default
-
-def setattr(cls, name, value, /):
-    return object.__setattr__(cls, name, value)
-
-def hasattr(cls, name, /):
-    try:
-        getattr(cls, name)
-        return True
-    except AttributeError:
-        return False
-
 class Config:
     def __init__(
         self,
@@ -45,12 +27,6 @@ class Config:
     def leave_struct(self):
         previous_stack = self._stack_struct_name.pop(-1)
         self._struct_name = previous_stack
-
-    def enter(self, name):
-        self.enter_struct(name)
-
-    def leave(self, previous=None):
-        self.leave_struct()
 
     def is_struct_name(self, name: str | None):
         return self._struct_name == name
@@ -80,8 +56,6 @@ class Config:
 
     def path(self):
         return str(self._filepath)
-    
-    filepath = path
     
     @property
     def filename(self):

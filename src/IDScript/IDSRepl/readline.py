@@ -12,17 +12,7 @@ try:
     from prompt_toolkit.lexers import PygmentsLexer
     _HAS_PT = True
 except ImportError:
-    try:
-        import pip
-        pip.main(["install", "prompt_toolkit", "--quiet"])
-        from prompt_toolkit import PromptSession
-        from prompt_toolkit.history import FileHistory
-        from prompt_toolkit.styles import Style
-        from prompt_toolkit.key_binding import KeyBindings
-        from prompt_toolkit.lexers import PygmentsLexer
-        _HAS_PT = True
-    except Exception:
-        _HAS_PT = False
+    _HAS_PT = False
 
 
 _pt_style = Style.from_dict({
@@ -53,9 +43,9 @@ _pt_style = Style.from_dict({
 def _imbang(kode: str) -> bool:
     n = 0
     for ch in kode:
-        if ch in ("{", "[", "(", "<"):
+        if ch in ("{", "[", "("):
             n += 1
-        elif ch in ("}", "]", ")", ">"):
+        elif ch in ("}", "]", ")"):
             n -= 1
     return n == 0
 

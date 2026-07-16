@@ -521,9 +521,9 @@ def test_vm_module_exports_with_public_const_without_global_builtin(tmp_path):
 def test_vm_can_use_ids_builtin_atribut_and_iterasi():
     module = BytecodeCompiler().compile_source(
         '''
-        dari "Atribut.ids" impor { publik punya_attr };
-        dari "Iterasi.ids" impor { publik panjang, publik jangkauan };
-        dari "Daftar.ids" impor { var Daftar };
+        dari "Atribut.idsm" impor { publik punya_attr };
+        dari "Iterasi.idsm" impor { publik panjang, publik jangkauan };
+        dari "Daftar.idsm" impor { var Daftar };
 
         fungsi utama(): Angka {
             final data: Apapun = [1, 2, 3];
@@ -543,8 +543,8 @@ def test_vm_can_use_ids_builtin_atribut_and_iterasi():
 def test_vm_can_use_standalone_daftar_and_kamus_builtins():
     module = BytecodeCompiler().compile_source(
         '''
-        dari "Daftar.ids" impor { var Daftar, var adalah_daftar };
-        dari "Kamus.ids" impor { var Kamus, var adalah_kamus };
+        dari "Daftar.idsm" impor { var Daftar, var adalah_daftar };
+        dari "Kamus.idsm" impor { var Kamus, var adalah_kamus };
 
         fungsi utama(): Angka {
             final daftar: Apapun = Daftar([1, 2]);
@@ -601,3 +601,131 @@ def test_vm_can_import_compiled_idsm_and_idsc_modules(tmp_path):
         module = BytecodeCompiler().compile_file(source)
 
         assert VM(module).run() == 20
+
+
+def test_trait_definition_and_validation():
+    """Sifat definitions emit BUILD_TRAIT and VALIDATE_TRAIT."""
+    module = BytecodeCompiler().compile_source(
+        """
+        sifat BisaSapa {
+            metode sapa(ini: BisaSapa): Teks;
+        }
+        struktur Orang {
+            nama: Teks
+        }
+        implementasi BisaSapa untuk Orang {
+            metode sapa(ini: Orang): Teks {
+                kembalikan ini.nama;
+            }
+        }
+        fungsi utama(): Angka {
+            var o: Orang = Orang { nama: "Budi" };
+            var s: Teks = o.sapa();
+            jika (s == "Budi") { kembalikan 1; }
+            kembalikan 0;
+        }
+        """,
+        "trait.ids",
+    )
+    assert VM(module).run() == 1
+
+
+def test_generic_struct_creation():
+    """Generic structs are monomorphized at compile time."""
+    module = BytecodeCompiler().compile_source(
+        """
+        struktur Result<T> {
+            data: T
+        }
+        fungsi utama(): Angka {
+            var r: Result<Angka> = Result<Angka> { data: 42 };
+            kembalikan r.data;
+        }
+        """,
+        "generic_struct.ids",
+    )
+    assert VM(module).run() == 42
+
+
+def test_generic_struct_multiple_types():
+    """Multiple type instantiations create separate monomorphized types."""
+    mod = BytecodeCompiler().compile_source(
+        """
+        struktur Kotak<T> {
+            isi: T
+        }
+        fungsi utama(): Angka {
+            var a: Kotak<Angka> = Kotak<Angka> { isi: 10 };
+            var b: Kotak<Teks> = Kotak<Teks> { isi: "halo" };
+            var hasil: Angka = a.isi + 5;
+            kembalikan hasil;
+        }
+        """,
+        "generic_multi.ids",
+    )
+    assert VM(mod).run() == 15
+
+
+def test_generic_implementation():
+    """Implementations with concrete type args monomorphize and compile methods."""
+    mod = BytecodeCompiler().compile_source(
+        """
+        struktur Bungkus<T> {
+            nilai: T
+        }
+        implementasi Bungkus<Angka> {
+            metode dapatkan(ini: Bungkus<Angka>): Angka {
+                kembalikan ini.nilai;
+            }
+        }
+        fungsi utama(): Angka {
+            var b: Bungkus<Angka> = Bungkus<Angka> { nilai: 99 };
+            kembalikan b.dapatkan();
+        }
+        """,
+        "generic_impl.ids",
+    )
+    assert VM(mod).run() == 99
+
+
+def test_trait_with_generic_struct():
+    """Trait implementation on a monomorphized struct works end-to-end."""
+    mod = BytecodeCompiler().compile_source(
+        """
+        sifat Buat {
+            metode baru(ini: Buat, val: Angka): Buat;
+        }
+        struktur Titik<T> {
+            x: T
+        }
+        implementasi Buat untuk Titik<Angka> {
+            metode baru(ini: Titik<Angka>, val: Angka): Titik<Angka> {
+                kembalikan Titik<Angka> { x: val };
+            }
+        }
+        fungsi utama(): Angka {
+            var t: Titik<Angka> = Titik<Angka> { x: 5 };
+            kembalikan t.x;
+        }
+        """,
+        "trait_generic.ids",
+    )
+    assert VM(mod).run() == 5
+
+
+def test_generic_enum_usage_raises_error():
+    """Using a generic enum type raises a compile-time error."""
+    with pytest.raises(Exception, match="belum.*dukung"):
+        BytecodeCompiler().compile_source(
+            """
+            enum Opsional<T> {
+                TidakAda,
+                Isi(T),
+            }
+            fungsi utama(): Angka {
+                var o: Opsional<Angka> = Opsional<Angka>.TidakAda();
+                kembalikan 0;
+            }
+            """,
+            "generic_enum_usage.ids",
+        )

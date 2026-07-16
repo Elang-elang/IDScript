@@ -1,0 +1,85 @@
+dari "Konsol.idsm" impor *;
+dari "Galat.idsm" impor { Galat };
+
+enum Hasil<Ok, Err> {
+    Baik(Ok),
+    Salah(Err),
+}
+
+struktur Kamus<Key: Teks + Angka + Float + Boolean, Value> {
+    keys: daftar<Key>,
+    values: daftar<Value>
+}
+
+sifat Map<K, V> {
+    metode ambil(ini: Ini, key: K): ?V;
+    metode atur(ini: Ini, key: K, value: V): Kosong;
+    metode kunci(ini: Ini): daftar<K>;
+    metode isi(ini: Ini): daftar<V>;
+    metode item(ini: Ini): daftar<daftar<V>, daftar<V>>;
+}
+
+implementasi<A, B> Kamus<A, B> {
+    publik statik metode inisiasi(): Ini {
+        kembalikan Kamus<A, B>{
+            keys: [],
+            values: [],
+        };
+    }
+    metode get_idx(ini: Ini, key: A): ?Angka {
+        var idx: ?Angka = kosong;
+        coba {
+            idx = ini.keys.index(key);
+        } tangkap (err) {
+            kembalikan kosong;
+        }
+        kembalikan idx;
+    }
+}
+implementasi<X, Y> Map<X, Y> untuk Kamus<X, Y> {
+    publik metode ambil(ini: Ini, key: X): ?Y {
+        final idx: ?Angka = ini.get_idx(key);
+        jika (idx bukanlah kosong) { kembalikan ini.values[idx]; }
+        final galat: Apapun = Galat(format("galat nama: {}", [key]));
+        kesalahan galat;
+    }
+    publik metode atur(ini: Ini, key: X, value: Y): Kosong {
+        final idx: ?Angka = ini.get_idx(key);
+        jika (idx bukanlah kosong) {
+            ini.values[idx] = value;
+        } jika tidak {
+            ini.keys.append(key);
+            ini.values.append(value);
+        }
+    }
+    publik metode kunci(ini: Ini): daftar<X> { kembalikan ini.keys; }
+    publik metode isi(ini: Ini): daftar<Y> { kembalikan ini.values; }
+    publik metode item(ini: Ini): daftar<daftar<X>, daftar<Y>> {
+        kembalikan [ini.keys, ini.values];
+    }
+}
+
+publik struktur HashMap<A, B> {} turunan dari Kamus<A, B>;
+
+fungsi utama(): Angka {
+    final kamus: HashMap<Teks, <Teks, Angka>> = Kamus.inisiasi();
+    kamus.atur("nama", "elang");
+    kamus.atur("id", 1);
+
+    final handler: fungsi<(Teks): Kamus<Teks, Teks>> = fungsi(key_name: Teks): Kamus<Teks, Teks> {
+        final response: Kamus = Kamus.inisiasi();
+        coba {
+            response.atur(
+                "result", kamus.ambil(key_name)
+            );
+        } tangkap (err) {
+            response.atur(
+                "result", format("errkey: {}", [err])
+            );
+        }
+        kembalikan response;
+    };
+    println(handler("nama").ambil("result"));
+    println(handler("uid").ambil("result"));
+    kembalikan 0;
+}
