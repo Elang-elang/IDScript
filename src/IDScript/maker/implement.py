@@ -5,6 +5,7 @@ from typing import Any, Callable
 
 from .errors import IDSMakerError, reject_positional, validate_options
 from .function import IDSMethodBinding
+from .generic import IDSGeneric, normalize_generic_params
 from .types import ids_type_name
 
 
@@ -14,6 +15,8 @@ class IDSImplementBinding:
     py_cls: type
     trait: Any = None
     methods: list[IDSMethodBinding] = field(default_factory=list)
+    params: list[IDSGeneric] = field(default_factory=list)
+    type_args: list[Any] = field(default_factory=list)
 
     @property
     def name(self) -> str:
@@ -28,7 +31,7 @@ class IDSImplementBinding:
 
 
 class IDSImplement:
-    OPTIONS = {"cls", "cls_", "trait"}
+    OPTIONS = {"cls", "cls_", "trait", "params", "type_args"}
 
     def __new__(klass, *args: Any, **options: Any) -> Callable[[type], IDSImplementBinding]:
         reject_positional("IDSImplement", args)
@@ -37,8 +40,12 @@ class IDSImplement:
             raise IDSMakerError("IDSImplement received both 'cls' and 'cls_'; use only 'cls'.")
         target = options.get("cls", options.get("cls_"))
         trait = options.get("trait")
+        raw_params = options.get("params")
+        raw_type_args = options.get("type_args")
         if target is None:
             raise IDSMakerError("IDSImplement requires option 'cls'.")
+        params = normalize_generic_params(raw_params, label="IDSImplement.params")
+        type_args = list(raw_type_args) if raw_type_args is not None else []
 
         def wrapper(value: type) -> IDSImplementBinding:
             if not isinstance(value, type):
@@ -48,6 +55,9 @@ class IDSImplement:
                 for item in value.__dict__.values()
                 if isinstance(item, IDSMethodBinding)
             ]
-            return IDSImplementBinding(cls=target, py_cls=value, trait=trait, methods=methods)
+            return IDSImplementBinding(
+                cls=target, py_cls=value, trait=trait,
+                methods=methods, params=params, type_args=type_args,
+            )
 
         return wrapper

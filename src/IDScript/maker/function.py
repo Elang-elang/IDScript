@@ -6,6 +6,7 @@ from typing import Any, Callable, Literal
 
 from ..compile.Compiler.bytecode import FunctionCode
 from .errors import IDSMakerError, ensure_type, reject_positional, validate_declare, validate_options
+from .generic import IDSGeneric, normalize_generic_params
 from .module_path import resolve_module
 from .pyvalue import wrap_py_value
 from .registry import register_native
@@ -29,6 +30,7 @@ class IDSFunctionBinding:
     is_method: bool = False
     native_name: str = ""
     native_symbol: dict[str, Any] = field(default_factory=dict)
+    generic: list[IDSGeneric] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         _validate_declare(self.declare)
@@ -59,7 +61,8 @@ class IDSFunctionBinding:
         code.extend(["LOAD_NAME", arg] for arg in args)
         code.append(["CALL_FUNCTION", len(args)])
         code.append(["RETURN_VALUE"])
-        return FunctionCode(name=name or self.name, args=args, code=code)
+        generic_names = [g.name for g in self.generic]
+        return FunctionCode(name=name or self.name, args=args, code=code, generic=generic_names)
 
     def abstract_descriptor(self) -> dict[str, Any]:
         return {
@@ -71,7 +74,7 @@ class IDSFunctionBinding:
 
 
 class IDSFunction:
-    OPTIONS = {"name", "declare", "arguments", "annotation"}
+    OPTIONS = {"name", "declare", "arguments", "annotation", "generic"}
 
     def __new__(
         cls,
@@ -84,6 +87,8 @@ class IDSFunction:
         declare = options.get("declare", "public")
         arguments = options.get("arguments")
         annotation = options.get("annotation", Any)
+        raw_generic = options.get("generic")
+        generic = normalize_generic_params(raw_generic, label="IDSFunction.generic")
         if name is not None:
             ensure_type("IDSFunction", "name", name, str)
         if arguments is not None:
@@ -101,6 +106,7 @@ class IDSFunction:
                 declare=declare,
                 arguments=normalized_args,
                 annotation=normalized_annotation,
+                generic=generic,
             )
 
         return wrapper
@@ -138,6 +144,8 @@ class IDSMethod:
         arguments = options.get("arguments")
         annotation = options.get("annotation", Any)
         static = options.get("static", False)
+        raw_generic = options.get("generic")
+        generic = normalize_generic_params(raw_generic, label="IDSMethod.generic")
         if name is not None:
             ensure_type("IDSMethod", "name", name, str)
         if arguments is not None:
@@ -157,6 +165,7 @@ class IDSMethod:
                 arguments=normalized_args,
                 annotation=normalized_annotation,
                 static=static,
+                generic=generic,
             )
 
         return wrapper

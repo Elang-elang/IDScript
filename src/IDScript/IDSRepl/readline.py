@@ -6,6 +6,8 @@ from IDScript.IDSRepl.colour import BOLD, GREEN, YELLOW, RESET
 
 try:
     from prompt_toolkit import PromptSession
+    from prompt_toolkit.auto_suggest import AutoSuggest, Suggestion
+    from prompt_toolkit.completion import Completer, Completion
     from prompt_toolkit.history import FileHistory
     from prompt_toolkit.styles import Style
     from prompt_toolkit.key_binding import KeyBindings
@@ -37,6 +39,7 @@ _pt_style = Style.from_dict({
     "pygments.operator": "#5b9bd5",
     "pygments.punctuation": "#ffffff",
     "pygments.text": "#e0e0e0",
+    "pygments.text.whitespace": "#e0e0e0",
 })
 
 
@@ -50,7 +53,40 @@ def _imbang(kode: str) -> bool:
     return n == 0
 
 
-def _build_kb():
+class IDSAutoSuggest(AutoSuggest):
+    def __init__(self, completer):
+        self._completer = completer
+
+    def get_suggestion(self, buffer, document):
+        text = document.text
+        ghost = self._completer.ghost_suggestion(text)
+        if ghost is not None:
+            return Suggestion(ghost)
+        return None
+
+
+class IDSCompleter(Completer):
+    def __init__(self, completer):
+        self._completer = completer
+
+    def get_completions(self, document, complete_event):
+        text = document.text_before_cursor
+        dot = text.rfind('.')
+        if dot >= 0 and dot > 0:
+            before_dot = text[:dot]
+            after_dot = text[dot + 1:]
+            results = self._completer.complete_attribute(before_dot, after_dot)
+            for name in results:
+                yield Completion(name, start_position=-len(after_dot))
+            return
+        word = self._completer.last_word(text)
+        if not word:
+            return
+        for name in self._completer.complete_prefix(word):
+            yield Completion(name, start_position=-len(word))
+
+
+def _build_kb_with_completer():
     kb = KeyBindings()
     @kb.add("enter")
     def _enter(event):
@@ -62,15 +98,25 @@ def _build_kb():
             buf.validate_and_handle()
         else:
             buf.insert_text("\n")
+
+    @kb.add("tab")
+    def _tab(event):
+        buf = event.current_buffer
+        if buf.suggestion:
+            buf.insert_text(buf.suggestion.text)
+            buf.suggestion = None
+        else:
+            buf.complete_next()
+
     return kb
 
 
-def make_session(lexer):
+def make_session(lexer, completer=None):
     if not _HAS_PT or not sys.stdin.isatty():
         return None
     hist = FileHistory(str(Path.home() / '.idscript_history'))
-    kb = _build_kb()
-    return PromptSession(
+    kb = _build_kb_with_completer()
+    kwargs = dict(
         lexer=PygmentsLexer(lexer),
         history=hist,
         style=_pt_style,
@@ -78,6 +124,11 @@ def make_session(lexer):
         multiline=True,
         wrap_lines=False,
     )
+    if completer is not None:
+        kwargs["auto_suggest"] = IDSAutoSuggest(completer)
+        kwargs["completer"] = IDSCompleter(completer)
+        kwargs["complete_while_typing"] = False
+    return PromptSession(**kwargs)
 
 
 def readline_input() -> str:

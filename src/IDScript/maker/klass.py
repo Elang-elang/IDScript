@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, Literal
 
 from .errors import IDSMakerError, ensure_type, reject_positional, validate_options
 from .function import IDSMethodBinding, _validate_declare
+from .generic import IDSGeneric, normalize_generic_params
 from .implement import IDSImplementBinding
 from .structure import IDSStructBinding, _annotation_properties, normalize_properties
 
@@ -18,6 +19,8 @@ class IDSClassBinding:
     cls: type
     struct: IDSStructBinding
     implement: IDSImplementBinding | None = None
+    struct_params: list[IDSGeneric] = field(default_factory=list)
+    impl_params: list[IDSGeneric] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.ids_name = self.name
@@ -44,7 +47,7 @@ class IDSClassBinding:
 
 
 class IDSClass:
-    OPTIONS = {"name", "declare", "properties", "extend", "trait"}
+    OPTIONS = {"name", "declare", "properties", "extend", "trait", "generic_params", "impl_params"}
 
     def __new__(
         cls,
@@ -58,6 +61,10 @@ class IDSClass:
         properties = options.get("properties")
         extend = options.get("extend")
         trait = options.get("trait")
+        raw_generic_params = options.get("generic_params")
+        raw_impl_params = options.get("impl_params")
+        struct_params = normalize_generic_params(raw_generic_params, label="IDSClass.generic_params")
+        impl_params = normalize_generic_params(raw_impl_params, label="IDSClass.impl_params")
         if name is not None:
             ensure_type("IDSClass", "name", name, str)
         if properties is not None:
@@ -77,13 +84,24 @@ class IDSClass:
                 declare=declare,
                 properties=annotations,
                 extend=extend,
+                params=struct_params,
             )
             methods = [
                 item
                 for item in value.__dict__.values()
                 if isinstance(item, IDSMethodBinding)
             ]
-            implement = IDSImplementBinding(cls=struct, py_cls=value, trait=trait, methods=methods) if methods else None
-            return IDSClassBinding(name=class_name, cls=value, struct=struct, implement=implement)
+            if methods:
+                implement = IDSImplementBinding(
+                    cls=struct, py_cls=value, trait=trait,
+                    methods=methods, params=impl_params,
+                )
+            else:
+                implement = None
+            return IDSClassBinding(
+                name=class_name, cls=value, struct=struct,
+                implement=implement,
+                struct_params=struct_params, impl_params=impl_params,
+            )
 
         return wrapper

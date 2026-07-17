@@ -19,12 +19,15 @@ Komponen utama:
     IDSClassBinding    -- Gabungan struct + implementasi
     IDSImplementBinding-- Binding implementasi method ke struct
     IDSTraitBinding    -- Binding trait (sifat)
+    IDSGeneric         -- Deklarasi parameter generik
+    IDSTyped           -- Penanda type annotation yang mengacu generic param
     IDSPyValue         -- Bungkus nilai Python untuk IDScript
     IDSMakerError      -- Exception khusus maker
 """
 
 from .errors import IDSMakerError
 from .function import IDSFunction, IDSFunctionBinding, IDSMethod, IDSMethodBinding
+from .generic import IDSGeneric, normalize_generic_params
 from .implement import IDSImplement, IDSImplementBinding
 from .klass import IDSClass, IDSClassBinding
 from .module import IDSModule
@@ -32,10 +35,12 @@ from .pyvalue import IDSPyValue, unwrap_py_value, wrap_py_value
 from .registry import clear_registry, register_native, unregister_native
 from .structure import IDSStruct, IDSStructBinding
 from .trait import IDSTrait, IDSTraitBinding
+from .types import IDSTyped
 
 __all__ = [
     "IDSFunction",
     "IDSFunctionBinding",
+    "IDSGeneric",
     "IDSMethod",
     "IDSMethodBinding",
     "IDSMakerError",
@@ -47,6 +52,7 @@ __all__ = [
     "IDSClassBinding",
     "IDSTrait",
     "IDSTraitBinding",
+    "IDSTyped",
     "IDSModule",
     "IDSPyValue",
     "wrap_py_value",

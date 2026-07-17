@@ -29,6 +29,17 @@ ALLOWED_NATIVE_MODULES: tuple[str, ...] = (
     "builtins",
 )
 
+# Subset of builtins.* that IDScript legitimately needs.
+# Functions like exec, eval, open, __import__, getattr, compile are
+# intentionally excluded — a crafted .idsc must not reach them.
+_SAFE_BUILTIN_QUALNAMES: frozenset[str] = frozenset({
+    "object", "int", "float", "str", "bool", "type",
+    "list", "dict", "tuple", "set", "frozenset",
+    "Exception", "BaseException", "ValueError", "TypeError",
+    "KeyError", "AttributeError", "IndexError", "NameError",
+    "RuntimeError", "ImportError", "ModuleNotFoundError",
+})
+
 
 class _VMReturn(BaseException):
     def __init__(self, value: Any) -> None:
@@ -625,6 +636,15 @@ class VM:
                 f"Native symbol {name!r} merujuk ke module {module_name!r} "
                 f"yang tidak ada dalam daftar izin"
             )
+
+        # Additional qualname restrictions for the "builtins" module:
+        # only allow a hand-picked safe subset (no exec/eval/open/...).
+        if module_name == "builtins":
+            if qualname not in _SAFE_BUILTIN_QUALNAMES:
+                raise IDSModuleError(
+                    f"Native symbol {name!r} merujuk ke qualname "
+                    f"{qualname!r} pada module builtins yang tidak diizinkan"
+                )
 
         try:
             module = importlib.import_module(module_name)

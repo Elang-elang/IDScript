@@ -26,8 +26,6 @@ from . import maker
 
 Maker = maker
 
-globals().pop('compile')
-
 __version__ = "0.1.7"
 __name__ = "IDScript"
 __doc__ = "IDScript adalah bahasa pemrograman berbahasa Indonesia penerus Indonesian Script (IS), dengan interpreter dan compiler VM resmi."

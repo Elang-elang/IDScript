@@ -3,7 +3,10 @@ from pathlib import Path
 from typing import Any
 
 from IDScript.maker import IDSFunction, IDSModule
+from IDScript.compile.exceptions import _paint
 
+kind = _paint("kesalahan", "bold", "red")
+error_text = f"error[{kind}]: "
 
 @IDSFunction(name="format", arguments={"text": Any, "args": list}, annotation=str)
 def _format(text, args: list) -> str:
@@ -12,22 +15,22 @@ def _format(text, args: list) -> str:
 
 @IDSFunction(name="print", arguments={"text": Any}, annotation=None)
 def _print(text) -> None:
-    sys.stdout.write(str(text))
+    print(text, flush=True, end='')
 
 
 @IDSFunction(name="println", arguments={"text": Any}, annotation=None)
 def _println(text) -> None:
-    sys.stdout.write(f"{text}\n")
+    print(text, flush=True)
 
 
 @IDSFunction(name="eprint", arguments={"text": Any}, annotation=None)
 def _eprint(text) -> None:
-    sys.stderr.write(str(text))
+    print(f'{error_text}{str(text)}', flush=True, end='')
 
 
 @IDSFunction(name="eprintln", arguments={"text": Any}, annotation=None)
 def _eprintln(text) -> None:
-    sys.stderr.write(f"{text}\n")
+    print(f'{error_text}{str(text)}', flush=True)
 
 
 @IDSFunction(name="input_teks", arguments={}, annotation=str)

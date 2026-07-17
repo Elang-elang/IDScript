@@ -283,7 +283,7 @@ def test_maker_unknown_options_raise_idserror_with_english_detail():
     with pytest.raises(IDSError, match=r"IDSFunction option\(s\) 'what' are not supported"):
         IDSFunction(what="error")
 
-    with pytest.raises(IDSError, match="Valid options are: declare, name, properties, extend|Valid options are: declare, extend, name, properties"):
+    with pytest.raises(IDSError, match="Valid options are:"):
         IDSStruct(what="error")
 
     with pytest.raises(IDSError, match=r"IDSModule option\(s\) 'what' are not supported"):

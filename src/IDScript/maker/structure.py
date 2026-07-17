@@ -5,6 +5,7 @@ from typing import Any, Callable, Literal
 
 from .errors import IDSMakerError, ensure_type, reject_positional, validate_declare, validate_options
 from .function import _validate_declare
+from .generic import IDSGeneric, normalize_generic_params
 from .types import ids_type_name
 
 
@@ -18,6 +19,7 @@ class IDSStructBinding:
     declare: str = "public"
     properties: dict[str, tuple[str, Any] | Any] = field(default_factory=dict)
     extend: Any = None
+    params: list[IDSGeneric] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         _validate_declare(self.declare)
@@ -43,7 +45,7 @@ class IDSStructBinding:
 
 
 class IDSStruct:
-    OPTIONS = {"name", "declare", "properties", "extend"}
+    OPTIONS = {"name", "declare", "properties", "extend", "generic_params"}
 
     def __new__(
         cls,
@@ -56,6 +58,8 @@ class IDSStruct:
         declare = options.get("declare", "public")
         properties = options.get("properties")
         extend = options.get("extend")
+        raw_generic_params = options.get("generic_params")
+        generic_params = normalize_generic_params(raw_generic_params, label="IDSStruct.generic_params")
         if name is not None:
             ensure_type("IDSStruct", "name", name, str)
         if properties is not None:
@@ -69,7 +73,7 @@ class IDSStruct:
             annotations = _annotation_properties(getattr(value, "__annotations__", {}))
             if properties is not None:
                 annotations.update(normalize_properties("IDSStruct", properties))
-            if not annotations:
+            if not annotations and not generic_params:
                 raise IDSMakerError(
                     f"IDSStruct {struct_name!r} has no properties. "
                     "Define class annotations or pass the 'properties' option."
@@ -80,6 +84,7 @@ class IDSStruct:
                 declare=declare,
                 properties=annotations,
                 extend=extend,
+                params=generic_params,
             )
 
         return wrapper

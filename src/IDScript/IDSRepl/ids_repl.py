@@ -1,7 +1,8 @@
-from IDScript.IDSRepl.execute import _eval, _exec
+from IDScript.IDSRepl.execute import _eval, _exec, _RUNTIME
 from IDScript.IDSRepl.colour import BOLD, CYAN, YELLOW, RED, RESET, fmt_val
 from IDScript.IDSRepl.lexer import IDScriptLexer
 from IDScript.IDSRepl.readline import make_session, readline_input
+from IDScript.IDSRepl.completion import IDSScopeCompleter
 import sys
 
 
@@ -47,7 +48,8 @@ def run_one(bersih: str):
 
 
 def main() -> int:
-    session = make_session(IDScriptLexer)
+    completer = IDSScopeCompleter(_RUNTIME)
+    session = make_session(IDScriptLexer, completer=completer)
 
     print(f"{BOLD}{CYAN}IDScript REPL — .keluar untuk keluar{RESET}")
 

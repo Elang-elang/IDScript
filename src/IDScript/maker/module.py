@@ -10,6 +10,7 @@ from ..compile.ids_ast import GenericParam as _GenericParam
 from ..compile.Compiler.bytecode import ModuleCode
 from .errors import IDSError, IDSMakerError, ensure_type, validate_options
 from .function import IDSFunctionBinding, IDSMethodBinding
+from .generic import IDSGeneric, normalize_generic_params
 from .implement import IDSImplementBinding
 from .klass import IDSClassBinding
 from .module_path import resolve_module
@@ -86,9 +87,16 @@ class IDSModule:
         self.declarations.append(IDSDeclaration(name=name, type=type, value=value))
         return self
 
-    def typedef(self, name: str, value: Any, params: list[_GenericParam] | None = None) -> IDSModule:
+    def typedef(
+        self,
+        name: str,
+        value: Any,
+        params: str | list[str | tuple | IDSGeneric] | None = None,
+    ) -> IDSModule:
         ensure_type("IDSModule.typedef", "name", name, str)
-        self.typedefs.append(IDSTypedef(name=name, value=value, params=params))
+        normalized = normalize_generic_params(params, label="IDSModule.typedef")
+        ast_params = [g.to_ast_param() for g in normalized]
+        self.typedefs.append(IDSTypedef(name=name, value=value, params=ast_params))
         return self
 
     def build(self) -> ModuleCode:
@@ -188,6 +196,16 @@ class IDSModule:
             self._export(module, item.name)
 
     def _add_implement(self, module: ModuleCode, item: IDSImplementBinding) -> None:
+        if item.params:
+            raise IDSMakerError(
+                f"IDSImplement {item.name!r}: impl-level generics ({[p.name for p in item.params]}) "
+                "not yet supported by the VM runtime. Use concrete type_args instead."
+            )
+        if item.type_args:
+            raise IDSMakerError(
+                f"IDSImplement {item.name!r}: monomorphization with type_args={item.type_args} "
+                "not yet supported by the VM runtime."
+            )
         for method in item.methods:
             function_name = f"{item.name}.{method.name}"
             native_name = f"__py_native__.{function_name}"
@@ -198,6 +216,11 @@ class IDSModule:
             module.code.append(["STORE_METHOD", method.name, not method.is_priv, method.static])
 
     def _add_trait(self, module: ModuleCode, item: IDSTraitBinding) -> None:
+        if item.params:
+            raise IDSMakerError(
+                f"IDSTrait {item.name!r}: generic traits "
+                "not yet supported by the VM runtime."
+            )
         module.code.append(["LOAD_CONST", item.descriptor()])
         module.code.append(["STORE_NAME", item.name])
         if not item.is_priv:

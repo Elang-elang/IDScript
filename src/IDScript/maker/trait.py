@@ -5,6 +5,7 @@ from typing import Any, Callable, Literal
 
 from .errors import IDSMakerError, ensure_type, reject_positional, validate_options
 from .function import IDSMethodBinding, _validate_declare
+from .generic import IDSGeneric, normalize_generic_params
 
 
 Declare = Literal["private", "public"]
@@ -16,6 +17,7 @@ class IDSTraitBinding:
     cls: type
     declare: str = "public"
     methods: list[IDSMethodBinding] = field(default_factory=list)
+    params: list[IDSGeneric] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         _validate_declare(self.declare)
@@ -37,7 +39,7 @@ class IDSTraitBinding:
 
 
 class IDSTrait:
-    OPTIONS = {"name", "declare"}
+    OPTIONS = {"name", "declare", "generic_params"}
 
     def __new__(
         cls,
@@ -48,6 +50,8 @@ class IDSTrait:
         validate_options("IDSTrait", options, cls.OPTIONS)
         name = options.get("name")
         declare = options.get("declare", "public")
+        raw_generic_params = options.get("generic_params")
+        generic_params = normalize_generic_params(raw_generic_params, label="IDSTrait.generic_params")
         if name is not None:
             ensure_type("IDSTrait", "name", name, str)
         _validate_declare(declare)
@@ -60,6 +64,10 @@ class IDSTrait:
                 for item in value.__dict__.values()
                 if isinstance(item, IDSMethodBinding)
             ]
-            return IDSTraitBinding(name=name or value.__name__, cls=value, declare=declare, methods=methods)
+            return IDSTraitBinding(
+                name=name or value.__name__, cls=value,
+                declare=declare, methods=methods,
+                params=generic_params,
+            )
 
         return wrapper
