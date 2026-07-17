@@ -26,6 +26,16 @@ class _VMReturn(BaseException):
         self.value = value
 
 
+class _VMBreak(BaseException):
+    def __init__(self, target: int) -> None:
+        self.target = target
+
+
+class _VMContinue(BaseException):
+    def __init__(self, target: int) -> None:
+        self.target = target
+
+
 @dataclass(frozen=True)
 class VMReference:
     scope: dict[str, Any]
@@ -305,7 +315,7 @@ class VM:
         state.initialized = True
         return state
 
-    def _execute(self, code: list[list[Any]], state: ModuleState, locals_: dict[str, Any]) -> Any:
+    def _execute(self, code: list[list[Any]], state: ModuleState, locals_: dict[str, Any], catch_break: bool = True) -> Any:
         stack: list[Any] = []
         ip = 0
         while ip < len(code):
@@ -471,7 +481,22 @@ class VM:
                             f"statik: {info.get('static', False)}"
                         )
             elif op == "SETUP_TRY":
-                self._execute_try(inst[1], inst[2], inst[3], inst[4], state, locals_)
+                try:
+                    self._execute_try(inst[1], inst[2], inst[3], inst[4], state, locals_)
+                except _VMBreak as brk:
+                    if catch_break:
+                        ip = brk.target
+                        continue
+                    raise
+                except _VMContinue as cont:
+                    if catch_break:
+                        ip = cont.target
+                        continue
+                    raise
+            elif op == "BREAK":
+                raise _VMBreak(inst[1])
+            elif op == "CONTINUE":
+                raise _VMContinue(inst[1])
             elif op == "GET_ITER":
                 locals_[inst[1]] = iter(stack.pop())
             elif op == "FOR_ITER":
@@ -614,21 +639,28 @@ class VM:
         state: ModuleState,
         locals_: dict[str, Any],
     ) -> None:
+        ran_finally = False
         try:
-            self._execute(body_code, state, locals_)
-        except Exception as err:
-            if not handlers:
+            try:
+                self._execute(body_code, state, locals_, catch_break=False)
+            except (_VMBreak, _VMContinue):
+                if finally_code:
+                    self._execute(finally_code, state, locals_, catch_break=False)
+                    ran_finally = True
                 raise
-            if not isinstance(err, IDSRuntimeError):
-                err = IDSRuntimeError.from_exception(err, file=state.code.path)
-            for handler in handlers:
-                self._execute_handler(handler, err, state, locals_)
-        else:
-            if else_code:
-                self._execute(else_code, state, locals_)
+            except Exception as err:
+                if not handlers:
+                    raise
+                if not isinstance(err, IDSRuntimeError):
+                    err = IDSRuntimeError.from_exception(err, file=state.code.path)
+                for handler in handlers:
+                    self._execute_handler(handler, err, state, locals_)
+            else:
+                if else_code:
+                    self._execute(else_code, state, locals_, catch_break=False)
         finally:
-            if finally_code:
-                self._execute(finally_code, state, locals_)
+            if finally_code and not ran_finally:
+                self._execute(finally_code, state, locals_, catch_break=False)
 
     def _execute_handler(
         self,
@@ -642,7 +674,7 @@ class VM:
         previous = locals_.get(alias, missing)
         locals_[alias] = error
         try:
-            self._execute(handler["code"], state, locals_)
+            self._execute(handler["code"], state, locals_, catch_break=False)
         finally:
             if previous is missing:
                 locals_.pop(alias, None)

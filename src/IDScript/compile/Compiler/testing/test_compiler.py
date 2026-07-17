@@ -713,6 +713,163 @@ def test_trait_with_generic_struct():
     assert VM(mod).run() == 5
 
 
+def test_break_inside_try_in_while_loop():
+    """berhentikan inside a try block inside a while loop exits the loop."""
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var i: Angka = 0;
+            var hasil: Angka = 0;
+            selama (i < 10) {
+                coba {
+                    jika (i == 3) {
+                        berhentikan;
+                    }
+                    hasil = hasil + 1;
+                } tangkap (e) {
+                    hasil = 99;
+                }
+                i = i + 1;
+            }
+            kembalikan hasil;
+        }
+        """,
+        "break_in_try_while.ids",
+    )
+    assert VM(module).run() == 3
+
+
+def test_break_inside_try_in_for_loop():
+    """berhentikan inside a try block inside a for loop exits the loop."""
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var hasil: Angka = 0;
+            untuk (var x dari dalam [10, 20, 30, 40]) {
+                coba {
+                    jika (x == 30) {
+                        berhentikan;
+                    }
+                    hasil = hasil + x;
+                } tangkap (e) {
+                    hasil = 99;
+                }
+            }
+            kembalikan hasil;
+        }
+        """,
+        "break_in_try_for.ids",
+    )
+    assert VM(module).run() == 30  # 10 + 20
+
+
+def test_continue_inside_try_in_loop():
+    """lanjutkan inside a try block skips to next iteration."""
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var hasil: Angka = 0;
+            var x: Angka = 0;
+            selama (x < 5) {
+                x = x + 1;
+                coba {
+                    jika (x == 2 atau x == 4) {
+                        lanjutkan;
+                    }
+                    hasil = hasil + x;
+                } tangkap (e) {
+                    hasil = 99;
+                }
+            }
+            kembalikan hasil;
+        }
+        """,
+        "continue_in_try.ids",
+    )
+    assert VM(module).run() == 9  # 1 + 3 + 5
+
+
+def test_break_inside_nested_try_in_loop():
+    """berhentikan inside nested try blocks still exits the loop correctly."""
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var i: Angka = 0;
+            var hasil: Angka = 0;
+            selama (i < 10) {
+                coba {
+                    coba {
+                        jika (i == 2) {
+                            berhentikan;
+                        }
+                    } tangkap (e2) {
+                        hasil = 99;
+                    }
+                    hasil = hasil + 1;
+                } tangkap (e1) {
+                    hasil = 88;
+                }
+                i = i + 1;
+            }
+            kembalikan hasil;
+        }
+        """,
+        "break_in_nested_try.ids",
+    )
+    assert VM(module).run() == 2
+
+
+def test_break_in_try_finally_still_runs():
+    """finally block runs before break exits the try."""
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var hasil: Angka = 0;
+            selama (hasil < 5) {
+                coba {
+                    berhentikan;
+                } diakhiri {
+                    hasil = hasil + 1;
+                }
+            }
+            kembalikan hasil;
+        }
+        """,
+        "break_try_finally.ids",
+    )
+    assert VM(module).run() == 1
+
+
+def test_break_inside_try_catch_no_match():
+    """Error inside try triggers catch, break still works after."""
+    module = BytecodeCompiler().compile_source(
+        """
+        fungsi utama(): Angka {
+            var i: Angka = 0;
+            var hasil: Angka = 0;
+            selama (i < 5) {
+                coba {
+                    jika (i == 2) {
+                        kesalahan "skip";
+                    }
+                    jika (i == 4) {
+                        berhentikan;
+                    }
+                    hasil = hasil + 1;
+                } tangkap (e) {
+                    // skip on error, continue loop
+                }
+                i = i + 1;
+            }
+            kembalikan hasil;
+        }
+        """,
+        "break_try_catch.ids",
+    )
+    # i=0: ok+1, i=1: ok+1, i=2: error, i=3: ok+1, i=4: break
+    assert VM(module).run() == 3
+
+
 def test_generic_enum_usage_raises_error():
     """Using a generic enum type raises a compile-time error."""
     with pytest.raises(Exception, match="belum.*dukung"):

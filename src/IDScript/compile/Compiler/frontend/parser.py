@@ -65,7 +65,8 @@ def _fix_generic_ambiguity(node):
                     pass  
         elif (isinstance(node.left, Name) and
               node.ops == ['<'] and len(node.comparators) == 1 and
-              isinstance(node.comparators[0], Name)):
+              isinstance(node.comparators[0], Name) and
+              node.left.id[0].isupper() and node.comparators[0].id[0].isupper()):
             node = CallDynamic(
                 name=node.left,
                 type_args=[node.comparators[0]]

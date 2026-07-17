@@ -54,6 +54,7 @@ class BytecodeCompiler:
         self._generic_types: dict[str, dict[str, Any]] = {}
         self._generic_bindings: dict[str, Any] = {}
         self._function_scope: bool = False
+        self._try_depth: int = 0
 
     def compile_source(self, code: str, file: str | Path = "<memory.ids>") -> ModuleCode:
         module = self.compile_ast(parse_source(code, str(file)), Path(file).resolve())
@@ -245,13 +246,20 @@ class BytecodeCompiler:
         if isinstance(node, Berhentikan):
             if not self._loop_stack:
                 raise IDSLoopError("berhentikan hanya dapat digunakan di dalam loop")
-            self._loop_stack[-1]["breaks"].append(len(code))
-            code.append(["JUMP_ABSOLUTE", None])
+            if self._try_depth > 0:
+                self._loop_stack[-1]["breaks_try"].append((code, len(code)))
+                code.append(["BREAK", None])
+            else:
+                self._loop_stack[-1]["breaks"].append(len(code))
+                code.append(["JUMP_ABSOLUTE", None])
             return
         if isinstance(node, Lanjutkan):
             if not self._loop_stack:
                 raise IDSLoopError("lanjutkan hanya dapat digunakan di dalam loop")
-            code.append(["JUMP_ABSOLUTE", self._loop_stack[-1]["continue"]])
+            if self._try_depth > 0:
+                code.append(["CONTINUE", self._loop_stack[-1]["continue"]])
+            else:
+                code.append(["JUMP_ABSOLUTE", self._loop_stack[-1]["continue"]])
             return
         if isinstance(node, Expression):
             self._expr(node, code)
@@ -417,10 +425,16 @@ class BytecodeCompiler:
         generic = [g.id for g in attrs.generic] if attrs.generic else []
         body: list[Instruction] = []
         old_scope = self._function_scope
+        old_loop_stack = self._loop_stack
+        old_try_depth = self._try_depth
         self._function_scope = True
+        self._loop_stack = []
+        self._try_depth = 0
         for stmt in block.bodies or []:
             self._stmt(stmt, body, module, file)
         self._function_scope = old_scope
+        self._loop_stack = old_loop_stack
+        self._try_depth = old_try_depth
         if not body or body[-1][0] != "RETURN_VALUE":
             body.append(["LOAD_CONST", None])
             body.append(["RETURN_VALUE"])
@@ -504,13 +518,16 @@ class BytecodeCompiler:
         jump_false = len(code)
         code.append(["POP_JUMP_IF_TRUE" if jump_when_true else "POP_JUMP_IF_FALSE", None])
         breaks: list[int] = []
-        self._loop_stack.append({"breaks": breaks, "continue": start})
+        breaks_try: list[tuple[list[Instruction], int]] = []
+        self._loop_stack.append({"breaks": breaks, "breaks_try": breaks_try, "continue": start})
         self._stmt(node.body, code, module, file)
         code.append(["JUMP_ABSOLUTE", start])
         end = len(code)
         code[jump_false][1] = end
         for pos in breaks:
             code[pos][1] = end
+        for codelist, pos in breaks_try:
+            codelist[pos][1] = end
         self._loop_stack.pop()
 
     def _for(self, node: For, code: list[Instruction], module: ModuleCode, file: Path) -> None:
@@ -522,16 +539,20 @@ class BytecodeCompiler:
         for_next = len(code)
         code.append(["FOR_ITER", iterator_name, targets, None])
         breaks: list[int] = []
-        self._loop_stack.append({"breaks": breaks, "continue": start})
+        breaks_try: list[tuple[list[Instruction], int]] = []
+        self._loop_stack.append({"breaks": breaks, "breaks_try": breaks_try, "continue": start})
         self._stmt(node.body, code, module, file)
         code.append(["JUMP_ABSOLUTE", start])
         end = len(code)
         code[for_next][3] = end
         for pos in breaks:
             code[pos][1] = end
+        for codelist, pos in breaks_try:
+            codelist[pos][1] = end
         self._loop_stack.pop()
 
     def _try(self, node: Try, code: list[Instruction], module: ModuleCode, file: Path) -> None:
+        self._try_depth += 1
         body_code = self._block_code(node.body, module, file)
         handlers = [
             {
@@ -543,6 +564,7 @@ class BytecodeCompiler:
         else_code = self._block_code(node.orelse, module, file) if node.orelse is not None else []
         finally_code = self._block_code(node.finalbody, module, file) if node.finalbody is not None else []
         code.append(["SETUP_TRY", body_code, handlers, else_code, finally_code])
+        self._try_depth -= 1
 
     def _block_code(self, block: Block, module: ModuleCode, file: Path) -> list[Instruction]:
         block_code: list[Instruction] = []
