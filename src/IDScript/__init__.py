@@ -1,13 +1,26 @@
 """IDScript package root."""
 
-# Compiler untuk running code/file (runtime)
-from .compile.compile import Compile as Interpreter
-from .compile.Compiler.__main__ import _run_bytecode_file as Compiler
+# Compiler utama — VM bytecode compiler + runtime (default)
+from .compile import (
+    BytecodeCompiler,
+    FunctionCode,
+    ModuleCode,
+    VM,
+    compile_bytecode_file,
+    compile_module_file,
+    compile_pipeline,
+    compile_source,
+    run_bytecode,
+    run_source_direct,
+)
+
+# Legacy interpreter (masih dipakai REPL, tidak disarankan untuk kode baru)
+from .compile import LegacyCompile as Interpreter
 
 # Utils
+from .compile import Parse
 from .compile import exceptions as Exceptions
 from .compile.ids_ast import nodes as IDSNodes
-from .compile.parser.transformer import Parse
 
 from . import maker
 

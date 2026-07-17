@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from IDScript.compile import Compile
+from IDScript.compile.entrypoint import Compile
 from IDScript.compile.Compiler import BytecodeCompiler, VM
 from IDScript.compile.diagnostics import IDSNameError, IDSRuntimeError
 from IDScript.maker import IDSPyValue

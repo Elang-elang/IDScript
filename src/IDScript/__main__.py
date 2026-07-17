@@ -12,13 +12,11 @@ import click
 try:
     from . import __version__
     from .compile.exceptions import IDSError
-    from .compile import Compile
-    from .compile.Compiler import BytecodeCompiler, ModuleCode, VM
+    from .compile.Compiler import BytecodeCompiler, ModuleCode, VM, run_source_direct
 except ImportError:  # pragma: no cover - fallback for direct source execution
     from IDScript import __version__
     from IDScript.compile.exceptions import IDSError
-    from IDScript.compile import Compile
-    from IDScript.compile.Compiler import BytecodeCompiler, ModuleCode, VM
+    from IDScript.compile.Compiler import BytecodeCompiler, ModuleCode, VM, run_source_direct
 
 
 Mode = Literal["module", "bytecode", "both"]
@@ -69,14 +67,6 @@ def _both_outputs(output: Path) -> tuple[Path, Path]:
 
 def _compile_source(file: Path) -> ModuleCode:
     return BytecodeCompiler().compile_file(file)
-
-
-def _run_interpreter(file: Path, main_name: str) -> None:
-    runtime = Compile(file.read_text(encoding="utf-8"), file, False)
-    if main_name == "utama":
-        runtime.main()
-        return
-    runtime.run(main_name)
 
 
 def _run_vm_bytecode(file: Path, main_name: str) -> None:
@@ -203,7 +193,7 @@ def main(file: Path | None, output_file: Path | None, mode: Mode | None, main_na
             else:
                 _run_file_with_progress(
                     f"Menjalankan {file.name}",
-                    lambda: _run_interpreter(file, main_name),
+                    lambda: run_source_direct(file, main_name),
                 )
             return
 

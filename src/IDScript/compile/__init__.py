@@ -1,31 +1,40 @@
-"""IDScript Compiler - package root."""
+"""IDScript Compiler - package root.
 
-import sys
-import types
+Compiler utama adalah IDScript.compile.Compiler (VM bytecode compiler).
+Compiler lama (AST interpreter) masih tersedia sebagai LegacyCompiler
+untuk kompatibilitas REPL dan kode lama.
+"""
 
-from .runtime import Compiler as _RuntimeCompiler
+from .Compiler import (
+    BytecodeCompiler,
+    FunctionCode,
+    ModuleCode,
+    VM,
+    compile_bytecode_file,
+    compile_module_file,
+    compile_pipeline,
+    compile_source,
+    run_bytecode,
+    run_source_direct,
+)
 
-Compiler = _RuntimeCompiler
-__all__ = ["Compile", "Compiler", "Parse"]
+from .entrypoint import Compile as LegacyCompile
+from .parser import Parse
 
+# Backward compatibility alias
+Compile = LegacyCompile
 
-def __getattr__(name):
-    if name == "Compile":
-        from .entrypoint import Compile
-        return Compile
-    if name == "Parse":
-        from .parser import Parse
-        return Parse
-    if name == "Compiler":
-        return _RuntimeCompiler
-    raise AttributeError(name)
-
-
-class _CompilePackage(types.ModuleType):
-    def __getattribute__(self, name):
-        if name == "Compiler":
-            return _RuntimeCompiler
-        return super().__getattribute__(name)
-
-
-sys.modules[__name__].__class__ = _CompilePackage
+__all__ = [
+    "BytecodeCompiler",
+    "FunctionCode",
+    "ModuleCode",
+    "VM",
+    "compile_bytecode_file",
+    "compile_module_file",
+    "compile_pipeline",
+    "compile_source",
+    "run_bytecode",
+    "run_source_direct",
+    "LegacyCompile",
+    "Parse",
+]

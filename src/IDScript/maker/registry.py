@@ -33,3 +33,13 @@ def resolve_native(key: str) -> Any:
     if key not in NATIVE_REGISTRY:
         raise IDSMakerError(f"Native binding {key!r} is not registered.")
     return NATIVE_REGISTRY[key]
+
+
+def unregister_native(key: str) -> None:
+    """Remove a single entry from NATIVE_REGISTRY to avoid stale references."""
+    NATIVE_REGISTRY.pop(key, None)
+
+
+def clear_registry() -> None:
+    """Remove all native bindings. Useful during testing or module reload."""
+    NATIVE_REGISTRY.clear()

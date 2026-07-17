@@ -20,6 +20,15 @@ from ...diagnostics import (
 )
 from IDScript.maker.pyvalue import IDSPyValue, unwrap_py_args, unwrap_py_value, wrap_py_value
 
+# Only these module trees may be resolved via importlib fallback.
+# Using importlib to load an arbitrary module from a crafted .idsc
+# would be a serious security hole (RCE).
+ALLOWED_NATIVE_MODULES: tuple[str, ...] = (
+    "IDScript.builtins",
+    "IDScript.maker",
+    "builtins",
+)
+
 
 class _VMReturn(BaseException):
     def __init__(self, value: Any) -> None:
@@ -604,6 +613,18 @@ class VM:
                 return _resolve(registry_key)
             except Exception:
                 pass  # fall through to module-based resolution
+
+        # Security: only allow known-safe module trees via importlib.
+        # A crafted .idsc could specify arbitrary module/qualname pairs.
+        allowed = any(
+            module_name == prefix or module_name.startswith(f"{prefix}.")
+            for prefix in ALLOWED_NATIVE_MODULES
+        )
+        if not allowed:
+            raise IDSModuleError(
+                f"Native symbol {name!r} merujuk ke module {module_name!r} "
+                f"yang tidak ada dalam daftar izin"
+            )
 
         try:
             module = importlib.import_module(module_name)

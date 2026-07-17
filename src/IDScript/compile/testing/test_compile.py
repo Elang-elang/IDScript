@@ -4,7 +4,9 @@ from pathlib import Path
 from lark import Lark
 import pytest
 
-from compile import Compile, Compiler, Parse
+from compile.entrypoint import Compile
+from compile.runtime.compiler import Compiler
+from compile import Parse
 from compile.diagnostics import IDSError, IDSNameError, IDSRuntimeError, IDSSyntaxError
 
 COMPILE_DIR = Path(__file__).resolve().parent.parent
