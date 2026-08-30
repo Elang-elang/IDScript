@@ -1,0 +1,2 @@
+[console_scripts]
+idscript = IDScript.__main__:main
