@@ -1,0 +1,4 @@
+dari "_Daftar.idsm" impor {
+    publik Daftar,
+    publik adalah_daftar,
+};

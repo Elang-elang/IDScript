@@ -1,0 +1,2428 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "lingkup",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/lingkup.ids",
+    "code": [
+        [
+            "IMPORT_NAME",
+            "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Python.ids",
+            [
+                [
+                    "impor",
+                    "impor"
+                ],
+                [
+                    "evaluasi",
+                    "_eval"
+                ]
+            ]
+        ],
+        [
+            "IMPORT_NAME",
+            "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Konsol.ids",
+            [
+                [
+                    "format",
+                    "format"
+                ]
+            ]
+        ],
+        [
+            "IMPORT_NAME",
+            "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Galat.ids",
+            [
+                [
+                    "Galat",
+                    "Galat"
+                ]
+            ]
+        ],
+        [
+            "IMPORT_NAME",
+            "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Kamus.ids",
+            [
+                [
+                    "Kamus",
+                    "Kamus"
+                ]
+            ]
+        ],
+        [
+            "LOAD_CONST",
+            "<idscript input>"
+        ],
+        [
+            "STORE_NAME",
+            "FileName"
+        ],
+        [
+            "LOAD_NAME",
+            "impor"
+        ],
+        [
+            "LOAD_CONST",
+            "IDScript"
+        ],
+        [
+            "CALL_FUNCTION",
+            1
+        ],
+        [
+            "LOAD_ATTR",
+            "Interpreter"
+        ],
+        [
+            "STORE_NAME",
+            "_Helper"
+        ],
+        [
+            "LOAD_NAME",
+            "impor"
+        ],
+        [
+            "LOAD_CONST",
+            "IDScript"
+        ],
+        [
+            "CALL_FUNCTION",
+            1
+        ],
+        [
+            "LOAD_ATTR",
+            "IDSNodes"
+        ],
+        [
+            "STORE_NAME",
+            "_AST"
+        ],
+        [
+            "LOAD_NAME",
+            "_Helper"
+        ],
+        [
+            "LOAD_ATTR",
+            "make_interpreter"
+        ],
+        [
+            "CALL_FUNCTION",
+            0
+        ],
+        [
+            "STORE_NAME",
+            "Interp"
+        ]
+    ],
+    "functions": {
+        "evaluasi": {
+            "name": "evaluasi",
+            "args": [
+                "raw_code"
+            ],
+            "code": [
+                [
+                    "COPY_REFERENSIAL",
+                    "Interp"
+                ],
+                [
+                    "STORE_FAST",
+                    "copy_interp"
+                ],
+                [
+                    "LOAD_NAME",
+                    "format"
+                ],
+                [
+                    "LOAD_CONST",
+                    "fungsi utama(): Apapun { kembalikan({}) }"
+                ],
+                [
+                    "LOAD_NAME",
+                    "raw_code"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "STORE_FAST",
+                    "code"
+                ],
+                [
+                    "LOAD_DEFAULT",
+                    "Apapun"
+                ],
+                [
+                    "STORE_FAST",
+                    "ast"
+                ],
+                [
+                    "SETUP_TRY",
+                    [
+                        [
+                            "LOAD_NAME",
+                            "_Helper"
+                        ],
+                        [
+                            "LOAD_ATTR",
+                            "ast"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "code"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "STORE_NAME",
+                            "ast"
+                        ]
+                    ],
+                    [
+                        {
+                            "alias": "err",
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "Galat"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "format"
+                                ],
+                                [
+                                    "LOAD_CONST",
+                                    "Kode '{}' bukanlah sebuah ekspresi dan ada kesalahan"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "raw_code"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    2
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RAISE_ERROR"
+                                ]
+                            ]
+                        }
+                    ],
+                    [],
+                    []
+                ],
+                [
+                    "LOAD_DEREFERENSIAL",
+                    "copy_interp"
+                ],
+                [
+                    "LOAD_ATTR",
+                    "Program"
+                ],
+                [
+                    "LOAD_NAME",
+                    "ast"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "POP_TOP"
+                ],
+                [
+                    "LOAD_DEREFERENSIAL",
+                    "copy_interp"
+                ],
+                [
+                    "LOAD_ATTR",
+                    "current_scope"
+                ],
+                [
+                    "LOAD_ATTR",
+                    "get"
+                ],
+                [
+                    "LOAD_CONST",
+                    "utama"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "CALL_FUNCTION",
+                    0
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "jalankan_berkas": {
+            "name": "jalankan_berkas",
+            "args": [
+                "code",
+                "file"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "_Helper"
+                ],
+                [
+                    "LOAD_ATTR",
+                    "ast"
+                ],
+                [
+                    "LOAD_NAME",
+                    "code"
+                ],
+                [
+                    "LOAD_NAME",
+                    "file"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "STORE_FAST",
+                    "ast"
+                ],
+                [
+                    "LOAD_NAME",
+                    "Interp"
+                ],
+                [
+                    "LOAD_ATTR",
+                    "Program"
+                ],
+                [
+                    "LOAD_NAME",
+                    "ast"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "POP_TOP"
+                ],
+                [
+                    "LOAD_CONST",
+                    null
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "jalankan": {
+            "name": "jalankan",
+            "args": [
+                "code"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "jalankan_berkas"
+                ],
+                [
+                    "LOAD_NAME",
+                    "code"
+                ],
+                [
+                    "LOAD_NAME",
+                    "FileName"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "POP_TOP"
+                ],
+                [
+                    "LOAD_CONST",
+                    null
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "lingkup": {
+            "name": "lingkup",
+            "args": [],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "Kamus"
+                ],
+                [
+                    "LOAD_NAME",
+                    "Interp"
+                ],
+                [
+                    "LOAD_ATTR",
+                    "current_scope"
+                ],
+                [
+                    "LOAD_ATTR",
+                    "_GlobalScope__scope"
+                ],
+                [
+                    "LOAD_ATTR",
+                    "copy"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    0
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        }
+    },
+    "exports": [
+        "evaluasi",
+        "jalankan_berkas",
+        "jalankan",
+        "lingkup"
+    ],
+    "modules": {
+        "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Python.ids": {
+            "format": "idsm",
+            "version": 1,
+            "encoding": "utf-8",
+            "name": "Python",
+            "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Python.ids",
+            "code": [
+                [
+                    "IMPORT_NAME",
+                    "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Python.idsm",
+                    [
+                        [
+                            "evaluasi",
+                            "evaluasi"
+                        ],
+                        [
+                            "jalankan",
+                            "jalankan"
+                        ],
+                        [
+                            "impor",
+                            "impor"
+                        ],
+                        [
+                            "ambil",
+                            "ambil"
+                        ],
+                        [
+                            "atur",
+                            "atur"
+                        ],
+                        [
+                            "hapus",
+                            "hapus"
+                        ],
+                        [
+                            "punya",
+                            "punya"
+                        ],
+                        [
+                            "daftar",
+                            "daftar"
+                        ],
+                        [
+                            "bersihkan",
+                            "bersihkan"
+                        ],
+                        [
+                            "pengingatan",
+                            "pengingatan"
+                        ],
+                        [
+                            "penungguan",
+                            "penungguan"
+                        ]
+                    ]
+                ]
+            ],
+            "functions": {},
+            "exports": [
+                "evaluasi",
+                "jalankan",
+                "impor",
+                "ambil",
+                "atur",
+                "hapus",
+                "punya",
+                "daftar",
+                "bersihkan",
+                "pengingatan",
+                "penungguan"
+            ],
+            "modules": {
+                "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Python.idsm": {
+                    "format": "idsm",
+                    "version": 1,
+                    "encoding": "utf-8",
+                    "name": "_Python",
+                    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Python.idsm",
+                    "code": [],
+                    "functions": {
+                        "evaluasi": {
+                            "name": "evaluasi",
+                            "args": [
+                                "code"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.evaluasi"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "code"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "jalankan": {
+                            "name": "jalankan",
+                            "args": [
+                                "code"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.jalankan"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "code"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "impor": {
+                            "name": "impor",
+                            "args": [
+                                "module"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.impor"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "module"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "ambil": {
+                            "name": "ambil",
+                            "args": [
+                                "nama"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.ambil"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "nama"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "atur": {
+                            "name": "atur",
+                            "args": [
+                                "nama",
+                                "nilai"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.atur"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "nama"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "nilai"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    2
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "hapus": {
+                            "name": "hapus",
+                            "args": [
+                                "nama"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.hapus"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "nama"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "punya": {
+                            "name": "punya",
+                            "args": [
+                                "nama"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.punya"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "nama"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "daftar": {
+                            "name": "daftar",
+                            "args": [],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.daftar"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    0
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "bersihkan": {
+                            "name": "bersihkan",
+                            "args": [],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.bersihkan"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    0
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "pengingatan": {
+                            "name": "pengingatan",
+                            "args": [
+                                "fungsi",
+                                "args"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.pengingatan"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "fungsi"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "args"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    2
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "penungguan": {
+                            "name": "penungguan",
+                            "args": [
+                                "nilai"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.penungguan"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "nilai"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        }
+                    },
+                    "exports": [
+                        "evaluasi",
+                        "jalankan",
+                        "impor",
+                        "ambil",
+                        "atur",
+                        "hapus",
+                        "punya",
+                        "daftar",
+                        "bersihkan",
+                        "pengingatan",
+                        "penungguan"
+                    ],
+                    "modules": {},
+                    "native_symbols": {
+                        "__py_native__.evaluasi": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_evaluasi",
+                            "registry_key": "IDScript.builtins._Python:_evaluasi"
+                        },
+                        "__py_native__.jalankan": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_jalankan",
+                            "registry_key": "IDScript.builtins._Python:_jalankan"
+                        },
+                        "__py_native__.impor": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_impor",
+                            "registry_key": "IDScript.builtins._Python:_impor"
+                        },
+                        "__py_native__.ambil": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_ambil",
+                            "registry_key": "IDScript.builtins._Python:_ambil"
+                        },
+                        "__py_native__.atur": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_atur",
+                            "registry_key": "IDScript.builtins._Python:_atur"
+                        },
+                        "__py_native__.hapus": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_hapus",
+                            "registry_key": "IDScript.builtins._Python:_hapus"
+                        },
+                        "__py_native__.punya": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_punya",
+                            "registry_key": "IDScript.builtins._Python:_punya"
+                        },
+                        "__py_native__.daftar": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_daftar",
+                            "registry_key": "IDScript.builtins._Python:_daftar"
+                        },
+                        "__py_native__.bersihkan": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_bersihkan",
+                            "registry_key": "IDScript.builtins._Python:_bersihkan"
+                        },
+                        "__py_native__.pengingatan": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_pengingatan",
+                            "registry_key": "IDScript.builtins._Python:_pengingatan"
+                        },
+                        "__py_native__.penungguan": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Python",
+                            "qualname": "_penungguan",
+                            "registry_key": "IDScript.builtins._Python:_penungguan"
+                        }
+                    }
+                }
+            },
+            "native_symbols": {}
+        },
+        "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Python.idsm": {
+            "format": "idsm",
+            "version": 1,
+            "encoding": "utf-8",
+            "name": "_Python",
+            "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Python.idsm",
+            "code": [],
+            "functions": {
+                "evaluasi": {
+                    "name": "evaluasi",
+                    "args": [
+                        "code"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.evaluasi"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "code"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "jalankan": {
+                    "name": "jalankan",
+                    "args": [
+                        "code"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.jalankan"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "code"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "impor": {
+                    "name": "impor",
+                    "args": [
+                        "module"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.impor"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "module"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "ambil": {
+                    "name": "ambil",
+                    "args": [
+                        "nama"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.ambil"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "nama"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "atur": {
+                    "name": "atur",
+                    "args": [
+                        "nama",
+                        "nilai"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.atur"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "nama"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "nilai"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            2
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "hapus": {
+                    "name": "hapus",
+                    "args": [
+                        "nama"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.hapus"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "nama"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "punya": {
+                    "name": "punya",
+                    "args": [
+                        "nama"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.punya"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "nama"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "daftar": {
+                    "name": "daftar",
+                    "args": [],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.daftar"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            0
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "bersihkan": {
+                    "name": "bersihkan",
+                    "args": [],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.bersihkan"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            0
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "pengingatan": {
+                    "name": "pengingatan",
+                    "args": [
+                        "fungsi",
+                        "args"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.pengingatan"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "fungsi"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "args"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            2
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "penungguan": {
+                    "name": "penungguan",
+                    "args": [
+                        "nilai"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.penungguan"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "nilai"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                }
+            },
+            "exports": [
+                "evaluasi",
+                "jalankan",
+                "impor",
+                "ambil",
+                "atur",
+                "hapus",
+                "punya",
+                "daftar",
+                "bersihkan",
+                "pengingatan",
+                "penungguan"
+            ],
+            "modules": {},
+            "native_symbols": {
+                "__py_native__.evaluasi": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_evaluasi",
+                    "registry_key": "IDScript.builtins._Python:_evaluasi"
+                },
+                "__py_native__.jalankan": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_jalankan",
+                    "registry_key": "IDScript.builtins._Python:_jalankan"
+                },
+                "__py_native__.impor": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_impor",
+                    "registry_key": "IDScript.builtins._Python:_impor"
+                },
+                "__py_native__.ambil": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_ambil",
+                    "registry_key": "IDScript.builtins._Python:_ambil"
+                },
+                "__py_native__.atur": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_atur",
+                    "registry_key": "IDScript.builtins._Python:_atur"
+                },
+                "__py_native__.hapus": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_hapus",
+                    "registry_key": "IDScript.builtins._Python:_hapus"
+                },
+                "__py_native__.punya": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_punya",
+                    "registry_key": "IDScript.builtins._Python:_punya"
+                },
+                "__py_native__.daftar": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_daftar",
+                    "registry_key": "IDScript.builtins._Python:_daftar"
+                },
+                "__py_native__.bersihkan": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_bersihkan",
+                    "registry_key": "IDScript.builtins._Python:_bersihkan"
+                },
+                "__py_native__.pengingatan": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_pengingatan",
+                    "registry_key": "IDScript.builtins._Python:_pengingatan"
+                },
+                "__py_native__.penungguan": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Python",
+                    "qualname": "_penungguan",
+                    "registry_key": "IDScript.builtins._Python:_penungguan"
+                }
+            }
+        },
+        "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Konsol.ids": {
+            "format": "idsm",
+            "version": 1,
+            "encoding": "utf-8",
+            "name": "Konsol",
+            "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Konsol.ids",
+            "code": [
+                [
+                    "IMPORT_NAME",
+                    "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Konsol.idsm",
+                    [
+                        [
+                            "format",
+                            "format"
+                        ],
+                        [
+                            "print",
+                            "print"
+                        ],
+                        [
+                            "println",
+                            "println"
+                        ],
+                        [
+                            "eprint",
+                            "eprint"
+                        ],
+                        [
+                            "eprintln",
+                            "eprintln"
+                        ],
+                        [
+                            "input_teks",
+                            "input_teks"
+                        ]
+                    ]
+                ]
+            ],
+            "functions": {},
+            "exports": [
+                "format",
+                "print",
+                "println",
+                "eprint",
+                "eprintln",
+                "input_teks"
+            ],
+            "modules": {
+                "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Konsol.idsm": {
+                    "format": "idsm",
+                    "version": 1,
+                    "encoding": "utf-8",
+                    "name": "_Konsol",
+                    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Konsol.idsm",
+                    "code": [],
+                    "functions": {
+                        "format": {
+                            "name": "format",
+                            "args": [
+                                "text",
+                                "args"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.format"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "text"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "args"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    2
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "print": {
+                            "name": "print",
+                            "args": [
+                                "text"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.print"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "text"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "println": {
+                            "name": "println",
+                            "args": [
+                                "text"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.println"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "text"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "eprint": {
+                            "name": "eprint",
+                            "args": [
+                                "text"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.eprint"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "text"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "eprintln": {
+                            "name": "eprintln",
+                            "args": [
+                                "text"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.eprintln"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "text"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "input_teks": {
+                            "name": "input_teks",
+                            "args": [],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.input_teks"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    0
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        }
+                    },
+                    "exports": [
+                        "format",
+                        "print",
+                        "println",
+                        "eprint",
+                        "eprintln",
+                        "input_teks"
+                    ],
+                    "modules": {},
+                    "native_symbols": {
+                        "__py_native__.format": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Konsol",
+                            "qualname": "_format",
+                            "registry_key": "IDScript.builtins._Konsol:_format"
+                        },
+                        "__py_native__.print": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Konsol",
+                            "qualname": "_print",
+                            "registry_key": "IDScript.builtins._Konsol:_print"
+                        },
+                        "__py_native__.println": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Konsol",
+                            "qualname": "_println",
+                            "registry_key": "IDScript.builtins._Konsol:_println"
+                        },
+                        "__py_native__.eprint": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Konsol",
+                            "qualname": "_eprint",
+                            "registry_key": "IDScript.builtins._Konsol:_eprint"
+                        },
+                        "__py_native__.eprintln": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Konsol",
+                            "qualname": "_eprintln",
+                            "registry_key": "IDScript.builtins._Konsol:_eprintln"
+                        },
+                        "__py_native__.input_teks": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Konsol",
+                            "qualname": "_input_teks",
+                            "registry_key": "IDScript.builtins._Konsol:_input_teks"
+                        }
+                    }
+                }
+            },
+            "native_symbols": {}
+        },
+        "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Konsol.idsm": {
+            "format": "idsm",
+            "version": 1,
+            "encoding": "utf-8",
+            "name": "_Konsol",
+            "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Konsol.idsm",
+            "code": [],
+            "functions": {
+                "format": {
+                    "name": "format",
+                    "args": [
+                        "text",
+                        "args"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.format"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "args"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            2
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "print": {
+                    "name": "print",
+                    "args": [
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.print"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "println": {
+                    "name": "println",
+                    "args": [
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.println"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "eprint": {
+                    "name": "eprint",
+                    "args": [
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.eprint"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "eprintln": {
+                    "name": "eprintln",
+                    "args": [
+                        "text"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.eprintln"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "text"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "input_teks": {
+                    "name": "input_teks",
+                    "args": [],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.input_teks"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            0
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                }
+            },
+            "exports": [
+                "format",
+                "print",
+                "println",
+                "eprint",
+                "eprintln",
+                "input_teks"
+            ],
+            "modules": {},
+            "native_symbols": {
+                "__py_native__.format": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Konsol",
+                    "qualname": "_format",
+                    "registry_key": "IDScript.builtins._Konsol:_format"
+                },
+                "__py_native__.print": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Konsol",
+                    "qualname": "_print",
+                    "registry_key": "IDScript.builtins._Konsol:_print"
+                },
+                "__py_native__.println": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Konsol",
+                    "qualname": "_println",
+                    "registry_key": "IDScript.builtins._Konsol:_println"
+                },
+                "__py_native__.eprint": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Konsol",
+                    "qualname": "_eprint",
+                    "registry_key": "IDScript.builtins._Konsol:_eprint"
+                },
+                "__py_native__.eprintln": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Konsol",
+                    "qualname": "_eprintln",
+                    "registry_key": "IDScript.builtins._Konsol:_eprintln"
+                },
+                "__py_native__.input_teks": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Konsol",
+                    "qualname": "_input_teks",
+                    "registry_key": "IDScript.builtins._Konsol:_input_teks"
+                }
+            }
+        },
+        "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Galat.ids": {
+            "format": "idsm",
+            "version": 1,
+            "encoding": "utf-8",
+            "name": "Galat",
+            "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Galat.ids",
+            "code": [
+                [
+                    "IMPORT_NAME",
+                    "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Galat.idsm",
+                    [
+                        [
+                            "Galat",
+                            "Galat"
+                        ],
+                        [
+                            "GalatTipe",
+                            "GalatTipe"
+                        ],
+                        [
+                            "GalatNilai",
+                            "GalatNilai"
+                        ],
+                        [
+                            "GalatAtribut",
+                            "GalatAtribut"
+                        ],
+                        [
+                            "GalatIndeks",
+                            "GalatIndeks"
+                        ],
+                        [
+                            "GalatKunci",
+                            "GalatKunci"
+                        ],
+                        [
+                            "GalatModul",
+                            "GalatModul"
+                        ],
+                        [
+                            "GalatLoop",
+                            "GalatLoop"
+                        ],
+                        [
+                            "GalatMemori",
+                            "GalatMemori"
+                        ]
+                    ]
+                ]
+            ],
+            "functions": {},
+            "exports": [
+                "Galat",
+                "GalatTipe",
+                "GalatNilai",
+                "GalatAtribut",
+                "GalatIndeks",
+                "GalatKunci",
+                "GalatModul",
+                "GalatLoop",
+                "GalatMemori"
+            ],
+            "modules": {
+                "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Galat.idsm": {
+                    "format": "idsm",
+                    "version": 1,
+                    "encoding": "utf-8",
+                    "name": "_Galat",
+                    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Galat.idsm",
+                    "code": [],
+                    "functions": {
+                        "Galat": {
+                            "name": "Galat",
+                            "args": [
+                                "message"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.Galat"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "message"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "GalatTipe": {
+                            "name": "GalatTipe",
+                            "args": [
+                                "message"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.GalatTipe"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "message"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "GalatNilai": {
+                            "name": "GalatNilai",
+                            "args": [
+                                "message"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.GalatNilai"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "message"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "GalatAtribut": {
+                            "name": "GalatAtribut",
+                            "args": [
+                                "message"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.GalatAtribut"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "message"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "GalatIndeks": {
+                            "name": "GalatIndeks",
+                            "args": [
+                                "message"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.GalatIndeks"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "message"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "GalatKunci": {
+                            "name": "GalatKunci",
+                            "args": [
+                                "message"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.GalatKunci"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "message"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "GalatModul": {
+                            "name": "GalatModul",
+                            "args": [
+                                "message"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.GalatModul"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "message"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "GalatLoop": {
+                            "name": "GalatLoop",
+                            "args": [
+                                "message"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.GalatLoop"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "message"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "GalatMemori": {
+                            "name": "GalatMemori",
+                            "args": [
+                                "message"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.GalatMemori"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "message"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        }
+                    },
+                    "exports": [
+                        "Galat",
+                        "GalatTipe",
+                        "GalatNilai",
+                        "GalatAtribut",
+                        "GalatIndeks",
+                        "GalatKunci",
+                        "GalatModul",
+                        "GalatLoop",
+                        "GalatMemori"
+                    ],
+                    "modules": {},
+                    "native_symbols": {
+                        "__py_native__.Galat": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Galat",
+                            "qualname": "_galat",
+                            "registry_key": "IDScript.builtins._Galat:_galat"
+                        },
+                        "__py_native__.GalatTipe": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Galat",
+                            "qualname": "_galat_tipe",
+                            "registry_key": "IDScript.builtins._Galat:_galat_tipe"
+                        },
+                        "__py_native__.GalatNilai": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Galat",
+                            "qualname": "_galat_nilai",
+                            "registry_key": "IDScript.builtins._Galat:_galat_nilai"
+                        },
+                        "__py_native__.GalatAtribut": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Galat",
+                            "qualname": "_galat_atribut",
+                            "registry_key": "IDScript.builtins._Galat:_galat_atribut"
+                        },
+                        "__py_native__.GalatIndeks": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Galat",
+                            "qualname": "_galat_indeks",
+                            "registry_key": "IDScript.builtins._Galat:_galat_indeks"
+                        },
+                        "__py_native__.GalatKunci": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Galat",
+                            "qualname": "_galat_kunci",
+                            "registry_key": "IDScript.builtins._Galat:_galat_kunci"
+                        },
+                        "__py_native__.GalatModul": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Galat",
+                            "qualname": "_galat_modul",
+                            "registry_key": "IDScript.builtins._Galat:_galat_modul"
+                        },
+                        "__py_native__.GalatLoop": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Galat",
+                            "qualname": "_galat_loop",
+                            "registry_key": "IDScript.builtins._Galat:_galat_loop"
+                        },
+                        "__py_native__.GalatMemori": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Galat",
+                            "qualname": "_galat_memori",
+                            "registry_key": "IDScript.builtins._Galat:_galat_memori"
+                        }
+                    }
+                }
+            },
+            "native_symbols": {}
+        },
+        "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Galat.idsm": {
+            "format": "idsm",
+            "version": 1,
+            "encoding": "utf-8",
+            "name": "_Galat",
+            "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Galat.idsm",
+            "code": [],
+            "functions": {
+                "Galat": {
+                    "name": "Galat",
+                    "args": [
+                        "message"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.Galat"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "message"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "GalatTipe": {
+                    "name": "GalatTipe",
+                    "args": [
+                        "message"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.GalatTipe"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "message"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "GalatNilai": {
+                    "name": "GalatNilai",
+                    "args": [
+                        "message"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.GalatNilai"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "message"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "GalatAtribut": {
+                    "name": "GalatAtribut",
+                    "args": [
+                        "message"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.GalatAtribut"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "message"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "GalatIndeks": {
+                    "name": "GalatIndeks",
+                    "args": [
+                        "message"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.GalatIndeks"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "message"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "GalatKunci": {
+                    "name": "GalatKunci",
+                    "args": [
+                        "message"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.GalatKunci"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "message"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "GalatModul": {
+                    "name": "GalatModul",
+                    "args": [
+                        "message"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.GalatModul"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "message"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "GalatLoop": {
+                    "name": "GalatLoop",
+                    "args": [
+                        "message"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.GalatLoop"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "message"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "GalatMemori": {
+                    "name": "GalatMemori",
+                    "args": [
+                        "message"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.GalatMemori"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "message"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                }
+            },
+            "exports": [
+                "Galat",
+                "GalatTipe",
+                "GalatNilai",
+                "GalatAtribut",
+                "GalatIndeks",
+                "GalatKunci",
+                "GalatModul",
+                "GalatLoop",
+                "GalatMemori"
+            ],
+            "modules": {},
+            "native_symbols": {
+                "__py_native__.Galat": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Galat",
+                    "qualname": "_galat",
+                    "registry_key": "IDScript.builtins._Galat:_galat"
+                },
+                "__py_native__.GalatTipe": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Galat",
+                    "qualname": "_galat_tipe",
+                    "registry_key": "IDScript.builtins._Galat:_galat_tipe"
+                },
+                "__py_native__.GalatNilai": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Galat",
+                    "qualname": "_galat_nilai",
+                    "registry_key": "IDScript.builtins._Galat:_galat_nilai"
+                },
+                "__py_native__.GalatAtribut": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Galat",
+                    "qualname": "_galat_atribut",
+                    "registry_key": "IDScript.builtins._Galat:_galat_atribut"
+                },
+                "__py_native__.GalatIndeks": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Galat",
+                    "qualname": "_galat_indeks",
+                    "registry_key": "IDScript.builtins._Galat:_galat_indeks"
+                },
+                "__py_native__.GalatKunci": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Galat",
+                    "qualname": "_galat_kunci",
+                    "registry_key": "IDScript.builtins._Galat:_galat_kunci"
+                },
+                "__py_native__.GalatModul": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Galat",
+                    "qualname": "_galat_modul",
+                    "registry_key": "IDScript.builtins._Galat:_galat_modul"
+                },
+                "__py_native__.GalatLoop": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Galat",
+                    "qualname": "_galat_loop",
+                    "registry_key": "IDScript.builtins._Galat:_galat_loop"
+                },
+                "__py_native__.GalatMemori": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Galat",
+                    "qualname": "_galat_memori",
+                    "registry_key": "IDScript.builtins._Galat:_galat_memori"
+                }
+            }
+        },
+        "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Kamus.ids": {
+            "format": "idsm",
+            "version": 1,
+            "encoding": "utf-8",
+            "name": "Kamus",
+            "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/Kamus.ids",
+            "code": [
+                [
+                    "IMPORT_NAME",
+                    "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Kamus.idsm",
+                    [
+                        [
+                            "Kamus",
+                            "Kamus"
+                        ],
+                        [
+                            "adalah_kamus",
+                            "adalah_kamus"
+                        ]
+                    ]
+                ]
+            ],
+            "functions": {},
+            "exports": [
+                "Kamus",
+                "adalah_kamus"
+            ],
+            "modules": {
+                "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Kamus.idsm": {
+                    "format": "idsm",
+                    "version": 1,
+                    "encoding": "utf-8",
+                    "name": "_Kamus",
+                    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Kamus.idsm",
+                    "code": [],
+                    "functions": {
+                        "Kamus": {
+                            "name": "Kamus",
+                            "args": [
+                                "nilai"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.Kamus"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "nilai"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        },
+                        "adalah_kamus": {
+                            "name": "adalah_kamus",
+                            "args": [
+                                "nilai"
+                            ],
+                            "code": [
+                                [
+                                    "LOAD_NAME",
+                                    "__py_native__.adalah_kamus"
+                                ],
+                                [
+                                    "LOAD_NAME",
+                                    "nilai"
+                                ],
+                                [
+                                    "CALL_FUNCTION",
+                                    1
+                                ],
+                                [
+                                    "RETURN_VALUE"
+                                ]
+                            ]
+                        }
+                    },
+                    "exports": [
+                        "Kamus",
+                        "adalah_kamus"
+                    ],
+                    "modules": {},
+                    "native_symbols": {
+                        "__py_native__.Kamus": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Kamus",
+                            "qualname": "_kamus",
+                            "registry_key": "IDScript.builtins._Kamus:_kamus"
+                        },
+                        "__py_native__.adalah_kamus": {
+                            "kind": "function",
+                            "module": "IDScript.builtins._Kamus",
+                            "qualname": "_adalah_kamus",
+                            "registry_key": "IDScript.builtins._Kamus:_adalah_kamus"
+                        }
+                    }
+                }
+            },
+            "native_symbols": {}
+        },
+        "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Kamus.idsm": {
+            "format": "idsm",
+            "version": 1,
+            "encoding": "utf-8",
+            "name": "_Kamus",
+            "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Kamus.idsm",
+            "code": [],
+            "functions": {
+                "Kamus": {
+                    "name": "Kamus",
+                    "args": [
+                        "nilai"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.Kamus"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "nilai"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                },
+                "adalah_kamus": {
+                    "name": "adalah_kamus",
+                    "args": [
+                        "nilai"
+                    ],
+                    "code": [
+                        [
+                            "LOAD_NAME",
+                            "__py_native__.adalah_kamus"
+                        ],
+                        [
+                            "LOAD_NAME",
+                            "nilai"
+                        ],
+                        [
+                            "CALL_FUNCTION",
+                            1
+                        ],
+                        [
+                            "RETURN_VALUE"
+                        ]
+                    ]
+                }
+            },
+            "exports": [
+                "Kamus",
+                "adalah_kamus"
+            ],
+            "modules": {},
+            "native_symbols": {
+                "__py_native__.Kamus": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Kamus",
+                    "qualname": "_kamus",
+                    "registry_key": "IDScript.builtins._Kamus:_kamus"
+                },
+                "__py_native__.adalah_kamus": {
+                    "kind": "function",
+                    "module": "IDScript.builtins._Kamus",
+                    "qualname": "_adalah_kamus",
+                    "registry_key": "IDScript.builtins._Kamus:_adalah_kamus"
+                }
+            }
+        }
+    },
+    "native_symbols": {}
+}

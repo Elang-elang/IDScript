@@ -1,0 +1,5 @@
+dari "_Iterasi.idsm" impor {
+    publik panjang,
+    publik jangkauan,
+    publik bungkus_argumen
+};

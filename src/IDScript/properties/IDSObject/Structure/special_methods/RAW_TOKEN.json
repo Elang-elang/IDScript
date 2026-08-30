@@ -1,0 +1,30 @@
+{
+    "getitem":      "ambil_item",
+    "setitem":      "atur_item",
+    "getattr":      "ambil_atribut",
+    "setattr":      "atur_atribut",
+    
+    "instancecheck": "cek_jangkauan",
+    "contains":      "termasuk",
+    "bool":          "kondisi",
+    "or":            "atawa",
+
+    "eq":     "sama",
+    "ne":     "tidak_sama",
+    "gt":     "lebih_besar",
+    "ge":     "besar_sama",
+    "lt":     "lebih_kecil",
+    "le":     "kecil_sama",
+
+    "add":        "pertambahan",
+    "sub":        "pengurangan",
+    "mul":        "perkalian",
+    "truediv":    "pembagian",
+    "pow":        "perpangkatan",
+    
+    "repr": "tulisan",
+
+    "int":     "ke_angka",
+    "str":     "ke_teks",
+    "float":   "ke_float"
+}

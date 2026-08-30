@@ -1,0 +1,8 @@
+dari "_Atribut.idsm" impor {
+    publik ambil_atribut,
+    publik atur_atribut,
+    publik punya_atribut,
+    publik punya_attr,
+    publik hapus_atribut,
+    publik daftar_atribut,
+};
