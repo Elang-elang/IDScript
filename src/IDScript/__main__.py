@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from __future__ import annotations
 
 from contextlib import redirect_stdout
@@ -131,16 +132,95 @@ def _fail_with_usage_error(error: click.UsageError) -> None:
 def _fail_with_idscript_error(error: IDSError) -> None:
     click.echo(str(error), err=True)
     raise click.exceptions.Exit(1)
+=======
+import click
+import typing
+import time
+import threading
+from pathlib import Path
+from .interpreter import Compile
+
+
+class Running:
+    def __init__(self, file: Path) -> None:
+        self.file = file
+        self.is_loading = lambda: True
+
+    def __loading_event__(self) -> None:
+        loading_token = [
+            "|",
+            "/",
+            "—",
+            "\\",
+            "|",
+            "/",
+            "—",
+            "\\",
+        ]
+        
+        print("\nloading: ", end="", flush=True)
+        while self.is_loading():
+            for token in loading_token:
+                if self.is_loading():
+                    print(token, end="", flush=True)
+                
+                    time.sleep(0.1)
+                    print("\b", end="", flush=True)
+
+        
+    def __main_event__(self) -> Compile:
+        compiler = Compile(
+            file_path = str(self.file),
+            code      = self.file.read_text(encoding="utf-8"),
+            module    = False
+        )
+        
+        return compiler
+
+    
+    def run(self) -> None:
+        loading = threading.Thread(target=self.__loading_event__)
+        print(f'\033[36m{"="*20 + " \033[33mProgram " + "\033[36m" + "="*20}\033[0m', flush=True)
+        
+        loading.start()
+        try:
+            compiler = self.__main_event__()
+
+            self.is_loading = lambda: False
+            print("\b"*(len("loading: ") + 1), end="", flush=True)
+
+            compiler.run()
+            compiler.run_func('utama')
+            
+        except NameError as e:
+            print(e)
+            if "Nama yang tak terdefinisi 'utama'" in str(e):
+                print(f'\033[31mFungsi utama tidak terdifinisi\003[0m')
+
+        except:
+            raise
+            
+        finally:
+            if self.is_loading():
+                self.is_loading = lambda: False
+                print("\b", end="", flush=True)
+            print("\n")
+            print(f'\033[36m{"="*(40+len(" Program "))}\033[0m', flush=True)
+>>>>>>> 3bedd79 (Update from Alternative and the new update)
 
 
 @click.command(
     name="idscript",
+<<<<<<< HEAD
     cls=IDScriptCommand,
     context_settings={"help_option_names": ["-h", "--help"]},
     help=(
         "Run IDScript source with the normal interpreter, or compile it to "
         "official VM module/bytecode artifacts."
     ),
+=======
+    help="IDScript Cli merupakan command untuk IDScript"
+>>>>>>> 3bedd79 (Update from Alternative and the new update)
 )
 @click.argument(
     "file",
@@ -148,6 +228,7 @@ def _fail_with_idscript_error(error: IDSError) -> None:
     default=None,
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
 )
+<<<<<<< HEAD
 @click.argument(
     "output_file",
     required=False,
@@ -243,3 +324,11 @@ def main(file: Path | None, output_file: Path | None, mode: Mode | None, main_na
 
 if __name__ == "__main__":
     main()
+=======
+def main(file: Path | None) -> None:
+    if file is None:
+        raise FileNotFoundError(f'File tidak ditemukan')
+
+    event = Running(file)
+    event.run()
+>>>>>>> 3bedd79 (Update from Alternative and the new update)

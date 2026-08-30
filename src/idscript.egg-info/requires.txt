@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 click>=8.0
 lark>=1.0
 typeguard>=4.0
@@ -10,6 +11,16 @@ lark
 typeguard
 prompt_toolkit
 Pygments
+=======
+lark>=1.0
+typeguard>=4.0
+click>=8.0
+
+[all]
+lark
+typeguard
+click
+>>>>>>> 3bedd79 (Update from Alternative and the new update)
 
 [dev]
 mypy

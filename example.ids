@@ -1,0 +1,28 @@
+modul Python "./Builtins/daftar.py";
+modul Python "./Builtins/teks_editor.py";
+
+fungsi print(argument: Teks): Angka {
+    tulis argument;
+}
+
+fungsi println(argument: Teks): Angka {
+    tulis argument;
+    tulis "\n";
+}
+
+fungsi utama(): Angka {
+    konst daftar: Daftar = Daftar.inisiasi(5);
+
+    daftar.masukkan("hello", 0);
+    daftar.masukkan("world", 1);
+    daftar.masukkan("!", 2);
+    daftar.masukkan("hello", 3);
+    daftar.masukkan("everbody", 4);
+    println(Format("{}", daftar.tulisan()));
+
+    daftar.atur_tetap();
+    println(Format("{}", daftar.tulisan()));
+    
+
+    println(Format("{}", daftar.panjang()));
+}

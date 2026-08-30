@@ -1,6 +1,7 @@
 LICENSE.md
 README.md
 setup.py
+<<<<<<< HEAD
 src/IDScript/__init__.py
 src/IDScript/__main__.py
 src/IDScript/gramm.lark
@@ -122,6 +123,35 @@ src/IDScript/maker/registry.py
 src/IDScript/maker/structure.py
 src/IDScript/maker/trait.py
 src/IDScript/maker/types.py
+=======
+src/IDScript/TOKEN.py
+src/IDScript/__init__.py
+src/IDScript/__main__.py
+src/IDScript/gramm.lark
+src/IDScript/WrapperIDS/__init__.py
+src/IDScript/WrapperIDS/Python/__helper.py
+src/IDScript/WrapperIDS/Python/__init__.py
+src/IDScript/WrapperIDS/Python/function.py
+src/IDScript/WrapperIDS/Python/module.py
+src/IDScript/WrapperIDS/Python/structure.py
+src/IDScript/interpreter/__init__.py
+src/IDScript/interpreter/compile.py
+src/IDScript/interpreter/ast_nodes/ASTNodes.py
+src/IDScript/interpreter/ast_nodes/__init__.py
+src/IDScript/interpreter/compiler/__init__.py
+src/IDScript/interpreter/compiler/core.py
+src/IDScript/interpreter/compiler/expression.py
+src/IDScript/interpreter/compiler/simple_stmt.py
+src/IDScript/interpreter/compiler/top_stmt.py
+src/IDScript/interpreter/compiler/type_ann.py
+src/IDScript/interpreter/parser/__helper.py
+src/IDScript/interpreter/parser/__init__.py
+src/IDScript/interpreter/parser/core.py
+src/IDScript/interpreter/parser/expression.py
+src/IDScript/interpreter/parser/simple_stmt.py
+src/IDScript/interpreter/parser/top_stmt.py
+src/IDScript/interpreter/parser/type_ann.py
+>>>>>>> 3bedd79 (Update from Alternative and the new update)
 src/idscript.egg-info/PKG-INFO
 src/idscript.egg-info/SOURCES.txt
 src/idscript.egg-info/dependency_links.txt
