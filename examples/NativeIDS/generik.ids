@@ -1,6 +1,0 @@
-dari "Konsol.idsm" impor { publik print, publik println };
-
-fungsi utama(): Angka {
-    println("Halo, dunia!");
-    kembalikan 0;
-}

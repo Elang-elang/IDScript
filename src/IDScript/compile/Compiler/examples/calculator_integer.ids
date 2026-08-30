@@ -1,7 +1,0 @@
-dari "Konsol.idsm" impor { publik println };
-
-fungsi utama(): Angka {
-    final hasil: Angka = 12 * 8;
-    println(hasil);
-    kembalikan hasil;
-}

@@ -1,1 +1,0 @@
-"""Packaged IDScript icon assets."""
