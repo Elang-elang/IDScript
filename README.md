@@ -1,5 +1,4 @@
 <div align="center">
-<<<<<<< HEAD
 
 <img src="https://github.com/Elang-elang/IDScript/blob/main/icons/small.jpg" alt="IDScript" width="160">
 
