@@ -1,0 +1,344 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "_Python",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Python.idsm",
+    "code": [],
+    "functions": {
+        "evaluasi": {
+            "name": "evaluasi",
+            "args": [
+                "code"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.evaluasi"
+                ],
+                [
+                    "LOAD_NAME",
+                    "code"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "jalankan": {
+            "name": "jalankan",
+            "args": [
+                "code"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.jalankan"
+                ],
+                [
+                    "LOAD_NAME",
+                    "code"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "impor": {
+            "name": "impor",
+            "args": [
+                "module"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.impor"
+                ],
+                [
+                    "LOAD_NAME",
+                    "module"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "ambil": {
+            "name": "ambil",
+            "args": [
+                "nama"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.ambil"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nama"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "atur": {
+            "name": "atur",
+            "args": [
+                "nama",
+                "nilai"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.atur"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nama"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nilai"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "hapus": {
+            "name": "hapus",
+            "args": [
+                "nama"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.hapus"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nama"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "punya": {
+            "name": "punya",
+            "args": [
+                "nama"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.punya"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nama"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "daftar": {
+            "name": "daftar",
+            "args": [],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.daftar"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    0
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "bersihkan": {
+            "name": "bersihkan",
+            "args": [],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.bersihkan"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    0
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "pengingatan": {
+            "name": "pengingatan",
+            "args": [
+                "fungsi",
+                "args"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.pengingatan"
+                ],
+                [
+                    "LOAD_NAME",
+                    "fungsi"
+                ],
+                [
+                    "LOAD_NAME",
+                    "args"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    2
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "penungguan": {
+            "name": "penungguan",
+            "args": [
+                "nilai"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.penungguan"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nilai"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        }
+    },
+    "exports": [
+        "evaluasi",
+        "jalankan",
+        "impor",
+        "ambil",
+        "atur",
+        "hapus",
+        "punya",
+        "daftar",
+        "bersihkan",
+        "pengingatan",
+        "penungguan"
+    ],
+    "modules": {},
+    "native_symbols": {
+        "__py_native__.evaluasi": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_evaluasi",
+            "registry_key": "IDScript.builtins._Python:_evaluasi"
+        },
+        "__py_native__.jalankan": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_jalankan",
+            "registry_key": "IDScript.builtins._Python:_jalankan"
+        },
+        "__py_native__.impor": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_impor",
+            "registry_key": "IDScript.builtins._Python:_impor"
+        },
+        "__py_native__.ambil": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_ambil",
+            "registry_key": "IDScript.builtins._Python:_ambil"
+        },
+        "__py_native__.atur": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_atur",
+            "registry_key": "IDScript.builtins._Python:_atur"
+        },
+        "__py_native__.hapus": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_hapus",
+            "registry_key": "IDScript.builtins._Python:_hapus"
+        },
+        "__py_native__.punya": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_punya",
+            "registry_key": "IDScript.builtins._Python:_punya"
+        },
+        "__py_native__.daftar": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_daftar",
+            "registry_key": "IDScript.builtins._Python:_daftar"
+        },
+        "__py_native__.bersihkan": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_bersihkan",
+            "registry_key": "IDScript.builtins._Python:_bersihkan"
+        },
+        "__py_native__.pengingatan": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_pengingatan",
+            "registry_key": "IDScript.builtins._Python:_pengingatan"
+        },
+        "__py_native__.penungguan": {
+            "kind": "function",
+            "module": "IDScript.builtins._Python",
+            "qualname": "_penungguan",
+            "registry_key": "IDScript.builtins._Python:_penungguan"
+        }
+    }
+}

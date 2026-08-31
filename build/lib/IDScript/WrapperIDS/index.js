@@ -1,0 +1,1 @@
+export const JavaScript = await import('./JavaScript/index.js');

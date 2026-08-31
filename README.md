@@ -1,19 +1,32 @@
-<div align="center">
-    <img src="./icons/big.jpg" alt="IDScript" width="160">
+<div align="center" alt="body">
+    <div alt="icon-project">
+        <a href="https://pypi.org/project/idscript">
+            <img src="https://raw.githubusercontent.com/Elang-elang/IDScript/refs/heads/main/icons/big.jpg" alt="IDScript" width="160">
+        </a>
+    </div>
+    <hr>
+    <div alt="icon-utlis">
+        <a href="https://pypi.org/project/idscript">
+            <img src="https://img.shields.io/pypi/v/idscript.svg?label=PyPI">
+        </a>
+    </div>
+    <br>
+    <div alt="url-project">
+        <a align="center" href="#tentang">Tentang kami</a>
+        <a align="center" href="#mulai">Mulai cepat</a>
+        <a align="center" href="#cli">Cli Projek</a>
+        <a align="center" href="./LICENSE.md">Lisensi</a>
+    </div>
+    <div alt="paragraf-prolog">
+        <p>
+            Kami persembahkan IDScript yang dibuat oleh diri sediri yang terinspirasi dari bahasa Indonesia
+        </p>
+    </div>
 </div>
 
-<p align="center">
-    <a align="center" href="#tentang">Tentang</a>
-    <a align="center" href="#mulai">Mulai</a>
-    <a align="center" href="./LICENSE.md">Lisensi</a>
-</p>
-
-<p align="center">
-    Kami persembahkan IDScript yang dibuat oleh diri sediri yang terinspirasi dari bahasa Indonesia
-</p>
+<hr>
 
 # Tentang
-
 
 <details close>
 <summary><strong>Apa itu IDScript?</strong></summary>
@@ -41,8 +54,9 @@ Elang Muhammad Ridzqy Jamaludin
 
 </details>
 
-# Mulai
+<hr>
 
+# Mulai
 
 <details close>
 <summary><strong>Cara Mengunduhnya bagaimana?</strong></summary>
@@ -69,14 +83,42 @@ pip install -e .
 
 ## Python (PIP)
 
-
 Cara ini adalah cara yang mudah. Dengan seperti berikut saja anda telah menginstal nya
 
 ```bash
-pip install IDScript
+pip install idscript
 ```
 
 > Peringatan: Lebih baik gunakan virtual envirotmen karena mungkin saja ada beberapa perpustakaannya yang bisa saja berukuran berat
+
+</details>
+
+<hr>
+
+# Cli
+
+<details close>
+    <summary><strong>Ada Cli atau Command yang termuat di projek ini?</strong></summary>
+
+Iya, kami menyediakan command untuk cli agar pemuatan script lebih mudah dan flexibel!
+
+Saat setelah terinstal ([untuk menginstal atau mengunduh bisa ikuti instruksi ini](#mulai)) maka akan otomatis memuat command line interface (cli) untuk idscript.
+
+```bash
+idscript --help # Untuk menampilkan text helper
+```
+
+```bash
+idscript <file> # Untuk menjalankan file / berkas yang memuat syntax idscript
+```
+
+Contoh command untuk menjalankan syntax dari file idscript
+
+```bash
+idscript example.ids
+```
+
+> Namun yang kami sediakan masih tergolong command biasa dan berguna untuk menjalankan script saja.
 
 </details>
 

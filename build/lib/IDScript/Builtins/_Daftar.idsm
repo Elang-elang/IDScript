@@ -1,0 +1,76 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "_Daftar",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_Daftar.idsm",
+    "code": [],
+    "functions": {
+        "Daftar": {
+            "name": "Daftar",
+            "args": [
+                "nilai"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.Daftar"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nilai"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "adalah_daftar": {
+            "name": "adalah_daftar",
+            "args": [
+                "nilai"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.adalah_daftar"
+                ],
+                [
+                    "LOAD_NAME",
+                    "nilai"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        }
+    },
+    "exports": [
+        "Daftar",
+        "adalah_daftar"
+    ],
+    "modules": {},
+    "native_symbols": {
+        "__py_native__.Daftar": {
+            "kind": "function",
+            "module": "IDScript.builtins._Daftar",
+            "qualname": "_daftar",
+            "registry_key": "IDScript.builtins._Daftar:_daftar"
+        },
+        "__py_native__.adalah_daftar": {
+            "kind": "function",
+            "module": "IDScript.builtins._Daftar",
+            "qualname": "_adalah_daftar",
+            "registry_key": "IDScript.builtins._Daftar:_adalah_daftar"
+        }
+    }
+}

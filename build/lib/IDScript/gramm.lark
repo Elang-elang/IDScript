@@ -1,0 +1,134 @@
+prog: sub_prog*
+sub_prog: top_stmt
+        | "publik" top_stmt            -> public_stmt
+        | "privat" top_stmt            -> private_stmt
+        | "publik" NAME ";"            -> public_name
+        | "modul" "Python"     STRING ";"  -> module_python
+        | "modul" "JavaScript" STRING ";"  -> module_javascript
+
+top_stmt: "konst" NAME ":" type_ann "=" expr ";"                                              -> const_decl
+        | "definisi" "tipe" NAME "=" (expr | type_ann) ";"                                                 -> type_decl
+        | "fungsi" NAME params ":" type_ann "{" stmt* "}"                                     -> func_decl
+        | "struktur" NAME "{" (struct_field ",")* "}"                                         -> struct_decl
+        | "struktur" NAME "{" (struct_field ",")* "}" "turunan" "dari" NAME ";"               -> struct_extended_decl
+        | "implemen" NAME "{" impl_body* "}"                                                  -> impl_stmt
+        | import_stmt 
+
+stmt: simple_stmt
+    | compound_stmt
+    | "{" stmt* "}"     -> block
+
+simple_stmt: "var" NAME ":" type_ann "=" expr ";"     -> var_decl
+           | "kembalikan" expr ";"                    -> return_stmt
+           | "kesalahan" expr ";"                     -> throw_stmt
+           | "lanjutkan" ";"                          -> continue_stmt
+           | "hentikan" ";"                           -> break_stmt
+           | "tulis" expr ";"                         -> write_stmt
+           | "baca" NAME ";"                          -> read_stmt
+           | expr ";"
+
+
+compound_stmt: top_stmt
+
+
+impl_body: "publik" method_impl  -> method_public_decl
+         | "privat"? method_impl -> method_private_decl
+
+method_impl: "statik" "metode" NAME params ":" type_ann "{" stmt* "}" -> static_method_decl
+           | "metode" NAME params ":" type_ann "{" stmt* "}"          -> normal_method_decl
+
+
+import_stmt: "dari" pather "impor" from_import_fields ";"  -> multi_import
+           | "impor" import_fields ";"                     -> single_import
+
+
+from_import_fields: from_field
+                  | "(" from_field ("," from_field)* ")"
+
+from_field: NAME ("sebagai" NAME)?
+
+
+import_fields: import_field
+             | "(" import_field ("," import_field)* ")"
+
+import_field: pather ("sebagai" NAME)?
+
+
+pather: "<bawaan>" (":" STRING)?  -> builtins_path
+      | NAME (":" STRING)?        -> module_path
+      | STRING                    -> normal_path
+
+
+
+expr: unary_op
+    | bool_op
+    | compare
+    | bin_op
+    | term
+
+unary_op: "tidak" expr          -> _not
+bool_op:  expr    "atau"   term -> _or
+       |  expr    "dan"    term -> _and
+
+compare: expr "=="         term -> eq
+       | expr "!="         term -> ne
+       | expr "<="         term -> le
+       | expr ">="         term -> ge
+       | expr "<"          term -> lt
+       | expr ">"          term -> gt
+       | expr "didalam"    term -> _in
+       | expr "diluar"     term -> not_in
+       | expr "adalah"     term -> _is
+       | expr "bukanlah"   term -> is_not
+
+bin_op: expr  "+"    term -> add
+      | expr  "-"    term -> sub
+      | expr  "*"    term -> mul
+      | expr  "/"    term -> div
+      | expr  "**"   term -> pow
+
+
+term: literal
+    | NAME
+    | subscript
+    | "fungsi" params ":" type_ann "{" stmt* "}" -> func_expr
+    | "(" expr ")"                               -> tuple_expr
+
+
+subscript: term "(" (expr ("," expr)* )? ")"                   -> call_func
+         | term "{" (NAME ":" expr ("," NAME ":" expr)*)? "}"  -> call_struct
+         | term "." NAME                                       -> attribute
+         | term "[" expr "]"                                   -> index
+
+
+literal: STRING
+       | INT
+       | FLOAT
+       | BOOLEAN
+
+
+type_ann: NAME
+        | "Fungsi" "<" "(" ( type_ann ("," type_ann)* )? ")" "," type_ann ">" -> type_func
+
+
+NAME: /[A-Za-z_][A-Za-z0-9_]*/
+params: "(" (field ("," field)*)? ")"
+field: NAME ":" type_ann
+struct_field: "publik" field    -> public_struct_field
+            | "privat"? field   -> private_struct_field
+
+
+%import common.FLOAT
+%import common.SIGNED_INT       -> INT
+%import common.ESCAPED_STRING   -> STRING
+BOOLEAN: /benar/ | /salah/
+
+%import common.WS
+%import common.C_COMMENT
+%import common.CPP_COMMENT
+%import common.NEWLINE
+
+%ignore WS
+%ignore C_COMMENT
+%ignore CPP_COMMENT
+%ignore NEWLINE

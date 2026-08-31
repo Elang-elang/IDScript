@@ -1,0 +1,186 @@
+IDSM1
+{
+    "format": "idsm",
+    "version": 1,
+    "encoding": "utf-8",
+    "name": "_HTTP",
+    "path": "/sdcard/DCIM/workspace/IDScript/IDScript/src/IDScript/builtins/_HTTP.idsm",
+    "code": [],
+    "functions": {
+        "buat_server": {
+            "name": "buat_server",
+            "args": [
+                "host",
+                "port",
+                "routes"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.buat_server"
+                ],
+                [
+                    "LOAD_NAME",
+                    "host"
+                ],
+                [
+                    "LOAD_NAME",
+                    "port"
+                ],
+                [
+                    "LOAD_NAME",
+                    "routes"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    3
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "jalankan": {
+            "name": "jalankan",
+            "args": [
+                "server"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.jalankan"
+                ],
+                [
+                    "LOAD_NAME",
+                    "server"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "jalankan_thread": {
+            "name": "jalankan_thread",
+            "args": [
+                "server"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.jalankan_thread"
+                ],
+                [
+                    "LOAD_NAME",
+                    "server"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "hentikan": {
+            "name": "hentikan",
+            "args": [
+                "server"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.hentikan"
+                ],
+                [
+                    "LOAD_NAME",
+                    "server"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    1
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        },
+        "respons": {
+            "name": "respons",
+            "args": [
+                "teks",
+                "status",
+                "headers"
+            ],
+            "code": [
+                [
+                    "LOAD_NAME",
+                    "__py_native__.respons"
+                ],
+                [
+                    "LOAD_NAME",
+                    "teks"
+                ],
+                [
+                    "LOAD_NAME",
+                    "status"
+                ],
+                [
+                    "LOAD_NAME",
+                    "headers"
+                ],
+                [
+                    "CALL_FUNCTION",
+                    3
+                ],
+                [
+                    "RETURN_VALUE"
+                ]
+            ]
+        }
+    },
+    "exports": [
+        "buat_server",
+        "jalankan",
+        "jalankan_thread",
+        "hentikan",
+        "respons"
+    ],
+    "modules": {},
+    "native_symbols": {
+        "__py_native__.buat_server": {
+            "kind": "function",
+            "module": "IDScript.builtins._HTTP",
+            "qualname": "_buat_server",
+            "registry_key": "IDScript.builtins._HTTP:_buat_server"
+        },
+        "__py_native__.jalankan": {
+            "kind": "function",
+            "module": "IDScript.builtins._HTTP",
+            "qualname": "_jalankan",
+            "registry_key": "IDScript.builtins._HTTP:_jalankan"
+        },
+        "__py_native__.jalankan_thread": {
+            "kind": "function",
+            "module": "IDScript.builtins._HTTP",
+            "qualname": "_jalankan_thread",
+            "registry_key": "IDScript.builtins._HTTP:_jalankan_thread"
+        },
+        "__py_native__.hentikan": {
+            "kind": "function",
+            "module": "IDScript.builtins._HTTP",
+            "qualname": "_hentikan",
+            "registry_key": "IDScript.builtins._HTTP:_hentikan"
+        },
+        "__py_native__.respons": {
+            "kind": "function",
+            "module": "IDScript.builtins._HTTP",
+            "qualname": "_respons",
+            "registry_key": "IDScript.builtins._HTTP:_respons"
+        }
+    }
+}

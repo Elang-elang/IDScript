@@ -9,7 +9,7 @@ os.chdir(ROOT)
 README = ROOT / "README.md"
 
 setup(
-    name="idscript",
+    name="IDScript",
     version="0.0.1a",
     description="IDScript adalah bahasa pemrograman berbahasa Indonesia penerus Indonesian Script (IS), dengan interpreter dan compiler VM resmi.",
     long_description=README.read_text(encoding="utf-8") if README.exists() else "",
@@ -29,7 +29,24 @@ setup(
     packages=find_packages(where="src"),
     include_package_data=False,
     package_data={
-        "IDScript": ["gramm.lark"],
+        "IDScript": [
+            "gramm.lark",
+            "Builtins/*",
+            "WrapperIDS/*"
+            "properties/*",
+            "properties/__helper/*.py",
+            "properties/Modules/*",
+            "properties/Scoping/*.py",
+            "properties/TypeSystem/*.py",
+            "properties/IDSObject/*",
+            "properties/Modules/LoadWrapper/*.py",
+            "properties/IDSObject/Function/*.py",
+            "properties/IDSObject/Operation/*.py",
+            "properties/IDSObject/Structure/*.py",
+            "properties/IDSObject/Structure/special_methods/*.py",
+            "properties/IDSObject/Structure/special_methods/*.json",
+            "properties/IDSObject/Structure/special_methods/SystemAttribute/*.py",
+        ],
         "IDScript.Builtins": ["*.ids", "*.idsm", "*.idsc"],
         "IDScript.properties.IDSObject.Structure.special_methods": ["TOKEN.json", "RAW_TOKEN.json"],
     },
