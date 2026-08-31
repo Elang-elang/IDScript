@@ -10,7 +10,7 @@ README = ROOT / "README.md"
 
 setup(
     name="IDScript",
-    version="0.0.1a",
+    version="0.0.1a2",
     description="IDScript adalah bahasa pemrograman berbahasa Indonesia penerus Indonesian Script (IS), dengan interpreter dan compiler VM resmi.",
     long_description=README.read_text(encoding="utf-8") if README.exists() else "",
     long_description_content_type="text/markdown",
@@ -34,6 +34,9 @@ setup(
             "Builtins/*",
             "WrapperIDS/*"
             "properties/*",
+            "properties/_Reprer.py",
+            "properties/config.py",
+            "properties/operator.py",
             "properties/__helper/*.py",
             "properties/Modules/*",
             "properties/Scoping/*.py",
