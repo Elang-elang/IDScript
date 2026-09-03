@@ -1,0 +1,23 @@
+dari <bawaan>:"Tipe/Iterator" impor Iterasi;
+
+fungsi penanganan(value: Teks): Angka {
+    tulis value;
+}
+
+fungsi utama(): Angka {
+    konst array: Iterasi = Iterasi.inisiasi(11);
+    array.masukkan(0, "h");
+    array.masukkan(1, "e");
+    array.masukkan(2, "l");
+    array.masukkan(3, "l");
+    array.masukkan(4, "o");
+    array.masukkan(5, " ");
+    array.masukkan(6, "w");
+    array.masukkan(7, "o");
+    array.masukkan(8, "r");
+    array.masukkan(9, "l");
+    array.masukkan(10, "d");
+
+    array.pemetaan(penanganan);
+    tulis "\n";
+}

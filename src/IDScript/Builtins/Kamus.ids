@@ -1,4 +1,0 @@
-dari "_Kamus.idsm" impor {
-    publik Kamus,
-    publik adalah_kamus,
-};

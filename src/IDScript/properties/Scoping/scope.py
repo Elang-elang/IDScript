@@ -95,7 +95,7 @@ class TypeScope(ABC):
 
     def export_space(self) -> dict[str, Any]:
         d = {}
-        for k, v in self.space:
+        for k, v in self.space.items():
             if not v.private:
                 d[k] = v
         

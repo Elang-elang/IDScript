@@ -204,7 +204,12 @@ class Function(TypeFunction.__origin__):
     
     def __call__(self, *values: tuple[Any]) -> Any:
         callable = GetAttr(self, '_callable')
-        return callable(*values)
+
+        try:
+            return callable(*values)
+        except Exception as e:
+            raise e
+            # raise Exception(f'{self.name}: {str(e)}')
 
     
     def __class_getitem__(cls, *args: Any) -> TypeFunction:

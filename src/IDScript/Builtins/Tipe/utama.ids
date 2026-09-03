@@ -1,0 +1,3 @@
+dari "./daftar.ids"  impor Daftar;
+dari "./boolean.ids" impor Kondisi;
+dari "./Tekstual/utama.ids" impor ( Tekstual, Bitetual );

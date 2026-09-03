@@ -179,6 +179,12 @@ class _Binding:
         for idx, property   in enumerate(self.properties):
             name_property = property.name
             value         = kwargs[name_property]
+            
+            if value  is None:
+                value     = 0
+            elif type(value) is bool:
+                value     = bool(value)
+            
             space         = property.copy(value=value)
             
             self.namespace.append(space)
@@ -188,7 +194,6 @@ class _Binding:
         for i in range(len(l_idx)):
             self.properties.pop(0)
 
-        
         if len(self.properties) != 0:
             raise ValueError(f'Adalah beberapa properti yang belum terdefinisi {', '.join([p.name for p in self.properties])}')
 

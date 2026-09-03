@@ -1,0 +1,12 @@
+dari <bawaan>:"konsol.ids" impor Konsol;
+
+fungsi utama(): Angka {
+    Konsol.print("print: Hello world! ");
+    Konsol.println("println: Hello world! ");
+    Konsol.eprint("eprint: Hello world! ");
+    Konsol.eprintln("eprintln: Hello world! ");
+    Konsol.wprint("wprint: Hello world! ");
+    Konsol.wprintln("wprintln: Hello world! ");
+    Konsol.sprint("sprint: Hello world! ");
+    Konsol.sprintln("wprintln: Hello world! ");
+}

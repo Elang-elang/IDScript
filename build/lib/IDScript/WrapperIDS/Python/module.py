@@ -81,9 +81,9 @@ class Module:
         
         self.func = func
         self.path = resolve_path
+        self.func(self.bind)
 
     def __call__(self):
-        self.func(self.bind)
         return self.bind
 
     def __repr__(self):

@@ -1,0 +1,4 @@
+fungsi utama(): Angka {
+    tulis "Hello world!\n";
+    kembalikan 0;
+}

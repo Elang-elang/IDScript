@@ -2,9 +2,10 @@ from .types import (
     Teks,          AngkaBulat,         Float,
     Boolean,       Angka,           Primitif,
     TypeFunction,  TypeField,  TypeStructure,
+    get_primitive_type,
 )
 
-from .system import CheckType
+from .system import CheckType, ValidateAttribute, ValidateType
 
 """
 Sistem tipe milik IDScript

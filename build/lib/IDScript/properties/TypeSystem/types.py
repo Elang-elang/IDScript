@@ -31,6 +31,15 @@ type Primitif   = Union[
     Boolean, Angka,
 ]
 
+def get_primitive_type():
+    return {
+        'Teks': Teks,
+        'AngkaBulat': AngkaBulat,
+        'Float': Float,
+        'Boolean': Boolean,
+        'Angka': Angka
+    }
+
 @Reprer(writer='TipeFungsi', keyword_only=True,)
 @dataclass
 class TypeFunction:
@@ -128,7 +137,7 @@ class TypeStructure(type):
                     pass
             raise
 
-    def __setattr__(cls, name: str, value: Any) -> None:
+    def __setattr__(cls, name: str, value: Any, /) -> None:
         prototype = cls.__dict__.get('PROTOTYPE')
         if prototype is not None:
             try:
@@ -139,22 +148,316 @@ class TypeStructure(type):
         super().__setattr__(name, value)
 
     def __delattr__(cls, name: str) -> None:
+        raise PermissionError(f'Tidak dapat menghapus atribut {name}')
+
+
+    def __getitem__(cls, name: str, /) -> Any:
         prototype = cls.__dict__.get('PROTOTYPE')
         if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
             try:
-                this = prototype.search_name(name)
-                if isinstance(this, prototype.__class__.__bases__[0].__bases__[0].__dict__.get('Property', type).__origin__):
-                    raise PermissionError(f'Tidak dapat menghapus properti {name}')
-            except (NameError, AttributeError):
-                pass
-        super().__delattr__(name)
+                return cls.__getattribute__('ambil_item')(name)
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "ambil_item" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "ambil_item"')
 
-    def __repr__(self) -> str:
-        try:
-            return self.__getattribute__('tulisan')
-        except:
-            return repr(self.__dict__.get('PROTOTYPE'))
+    def __setitem__(cls, name: str, value: Any, /) -> None:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                cls.__getattribute__('atur_item')(name, value)
+                return
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "atur_item" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "atur_item"')
 
-    def __instancecheck__(self, instance: Any) -> bool:
-        return type(instance) is TypeStructure or 'PROTOTYPE' in dir(instance)
+    
+    def __delitem__(cls, name: str, /) -> None:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                cls.__getattribute__('hapus_item')(name)
+                return
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "hapus_item" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "hapus_item"')
+
+
+    def __contains__(cls, value: Any, /) -> bool:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return bool(cls.__getattribute__('termasuk')(value))
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "termasuk" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+        raise NotImplementedError(f'Tidak ada penanganan "termasuk"')
+
+    def __bool__(cls) -> bool:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return bool(cls.__getattribute__('kondisi'))
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "kondisi" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+        raise NotImplementedError(f'Tidak ada penanganan "kondisi"')
+
+    def __eq__(cls, value: Any, /) -> bool:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return bool(cls.__getattribute__('sama')(value))
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "sama" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "sama"')
+
+    def __ne__(cls, value: Any, /) -> bool:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return bool(cls.__getattribute__('tidak_sama')(value))
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "tidak_sama" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "tidak_sama"')
+
+    def __gt__(cls, value: Any, /) -> bool:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return bool(cls.__getattribute__('lebih_besar')(value))
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "lebih_besar" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "lebih_besar"')
+
+    def __ge__(cls, value: Any, /) -> bool:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return bool(cls.__getattribute__('besar_sama')(value))
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "besar_sama" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "besar_sama"')
+
+    def __lt__(cls, value: Any, /) -> bool:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return bool(cls.__getattribute__('lebih_kecil')(value))
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "lebih_kecil" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "lebih_kecil"')
+
+    def __le__(cls, value: Any, /) -> bool:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return bool(cls.__getattribute__('kecil_sama')(value))
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "kecil_sama" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "kecil_sama"')
+
+    def __add__(cls, value: Any, /) -> Any:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return cls.__getattribute__('pertambahan')(value)
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "pertambahan" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "pertambahan"')
+
+    def __sub__(cls, value: Any, /) -> Any:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return cls.__getattribute__('pengurangan')(value)
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "pengurangan" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "pengurangan"')
+
+    def __mul__(cls, value: Any, /) -> Any:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return cls.__getattribute__('perkalian')(value)
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "perkalian" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "perkalian"')
+
+    def __truediv__(cls, value: Any, /) -> Any:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return cls.__getattribute__('pembagian')(value)
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "pembagian" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "pembagian"')
+
+    def __pow__(cls, value: Any, /) -> Any:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return cls.__getattribute__('perpangkatan')(value)
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "perpangkatan" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "perpangkatan"')
+
+    def __int__(cls) -> int:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return int(cls.__getattribute__('ke_angka')())
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "ke_angka" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "ke_angka"')
+
+    def __str__(cls) -> str:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return cls.__getattribute__('ke_teks')()
+            except NameError:
+                try:
+                    return cls.__getattribute__('tulisan')()
+                except NameError:
+                    pass
+                
+                raise NotImplementedError(f'Tidak ada penanganan "ke_teks" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "ke_teks"')
+
+
+    def __float__(cls) -> float:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return float(cls.__getattribute__('ke_float')())
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "ke_float" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "ke_float"')
+
+    def __copy__(cls) -> Any:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return cls.__getattribute__('salin')()
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "salin" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "salin"')
+
+    def __deepcopy__(cls) -> Any:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return cls.__getattribute__('salin_mendalam')()
+            except NameError:
+                try:
+                    return cls.__getattribute__('salin')()
+                except NameError:
+                    raise NotImplementedError(f'Tidak ada penanganan "salin_mendalam" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        raise NotImplementedError(f'Tidak ada penanganan "salin_mendalam"')
+
+    
+    def __repr__(cls) -> str:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return cls.__getattribute__('tulisan')()
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "tulisan" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
         
+        return 'types.TypeStructure'
+    
+    def __instancecheck__(cls, instance: Any, /) -> bool:
+        prototype = cls.__dict__.get('PROTOTYPE')
+        if prototype is not None:
+            prototype.config.enter_struct(prototype.name_struct)
+            try:
+                return bool(cls.__getattribute__('cek_jangkauan')(instance))
+            except NameError:
+                raise NotImplementedError(f'Tidak ada penanganan "cek_jangkauan" pada {prototype.name_struct}')
+            finally:
+                prototype.config.leave_struct()
+            
+        return type(instance) is TypeStructure

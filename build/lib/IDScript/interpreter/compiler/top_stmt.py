@@ -6,6 +6,7 @@ from ...properties.__helper    import   GetAttr
 from ...properties.TypeSystem  import   TypeFunction
 from pathlib                   import   Path
 from typing                    import   Any
+from re                        import   fullmatch
 
 
 def visit_PublicStatement(
@@ -256,11 +257,18 @@ def visit_FromImport(
         aliases.append(alias.id if alias else None)
     
     resolve_path = module_path / file_path
+    
 
     if not resolve_path.exists():
         raise ModuleNotFoundError(f'Tidak ada modul berkas {str(resolve_path)}')
 
-    code = path.read_text()
+    if resolve_path.is_dir():
+        dir_path = resolve_path
+        resolve_path /= "utama.ids"
+        if not resolve_path.exists():
+            raise ModuleNotFoundError(f'Tidak ada modul berkas utama pada folder ini: {str(dir_path)}')
+    
+    code = resolve_path.read_text()
     compiler = Compile(
         code=code,
         file_path=str(resolve_path),
@@ -284,17 +292,16 @@ def visit_FromImport(
                 constant=space.constant,
                 private=False
             )
-            continue
         
-        if field in export_type:
-            space = export_type[field]
-            self.config.scope_name.current.def_name(
-                aliases[i] or space.name,
-                space.type,
-                space.value,
-                constant=space.constant,
-                private=False
-            )
+            if field in export_type:
+                space = export_type[field]
+                self.config.scope_type.current.def_name(
+                    aliases[i] or space.name,
+                    space.type,
+                    space.value,
+                    constant=space.constant,
+                    private=False
+                )
             continue
         
         raise AttributeError(f'Tidak ada nama {field!r} pada {str(resolve_path)!r}')
@@ -320,7 +327,19 @@ def visit_Import(self, node: Import):
         if not resolve_path.exists():
             raise ModuleNotFoundError(f'Tidak ada modul berkas {str(resolve_path)}')
 
-        
+        if resolve_path.is_dir():
+            dir_path = resolve_path
+            resolve_path /= "utama.ids"
+            if not resolve_path.exists():
+                raise ModuleNotFoundError(f'Tidak ada modul berkas utama pada folder ini: {str(dir_path)}')
+            
+            if not aliases[i]:
+                match_name = fullmatch(r'[a-zA-Z_][a-zA-Z0-9_]+', dir_path.name)
+                if match_name:
+                    aliases[i] = match_name.group()
+                else:
+                    raise NameError(f'Nama folder yang tidak relevan {dir_path.name}. Solusinya: berikan saja alias')
+    
         module: Module = Module( resolve_path, compile )
         bind           = GetAttr( module, 'bind')
         

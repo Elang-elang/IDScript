@@ -252,6 +252,9 @@ class Method(TypeFunction.__origin__):
             return handler(*values)
         except ReturnSignal:
             raise
+        except Exception as e:
+            raise e
+            # raise Exception(f'{prototype.name_struct}.{self.name}: {str(e)}')
         finally:
             config.leave_struct()
         

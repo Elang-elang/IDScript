@@ -1,8 +1,1 @@
-dari "_Konsol.idsm" impor {
-    publik format,
-    publik print,
-    publik println,
-    publik eprint,
-    publik eprintln,
-    publik input_teks,
-};
+modul Python "./konsol.py";

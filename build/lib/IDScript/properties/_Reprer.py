@@ -63,7 +63,7 @@ class HelperRepr:
         'writer',
     })
     
-    def __new__(self, **options: Any) -> object:
+    def __new__(self, cls: Any = None, **options: Any) -> object:
         if options:
             unknown = set(options) - self.__options__
             if unknown:
@@ -74,6 +74,8 @@ class HelperRepr:
         def wrapper(cls: type[object]) -> type[object]:
             return bind.loader(cls)
 
+        if cls is not None:
+            return wrapper(cls)
         return wrapper
 
 # Alias

@@ -34,9 +34,9 @@ class Public:
 class _Binding:
     name:          str
     fields:        list[TypeField]
-    __def_methods: list[Any] = field(default_factory=list)
-    __is_loaded:   bool      = False
-    __cls:         Any       = None
+    def_methods:   list[Any] = field(default_factory=list)
+    is_loaded:     bool      = False
+    struct:        Any       = None
 
 
     def Method(self, func = None, /, *, static: bool = False, public: bool = False, **kwargs):
@@ -49,7 +49,7 @@ class _Binding:
                 m = Method(
                     res['name'],
                     res['type_params'],
-                    func,
+                    res['resolve_func'],
                     res['return_type'],
                     config  = None,
                     static  = static,
@@ -58,7 +58,7 @@ class _Binding:
                 )
                 return m
                 
-            self.__def_methods.append(def_m())
+            self.def_methods.append(def_m())
             return func
 
         if func is not None:
@@ -68,18 +68,24 @@ class _Binding:
 
     @staticmethod
     def __resolver__(func):
-        about_func = inspect.signature(func)
+        about_func   = inspect.signature(func)
+        resolve_func = func
 
         # resolve return type
         return_type = about_func.return_annotation
         if return_type is inspect._empty:
             return_type = Any
 
-        if return_type is None:
-            return_type = Literal[0]
+        if return_type   is None or \
+           return_type   is type(None):
+            return_type  = Literal[0]
+            def resolve_func(*args):
+                func(*args)
+                return 0
 
         elif return_type is bool:
-            return_type = Literal[0, 1]
+            return_type  = Literal[0, 1]
+            resolve_func = lambda *args: int(func(*args))
 
         params = list(about_func.parameters.values())
 
@@ -90,46 +96,145 @@ class _Binding:
                 raise TypeError(f'Parameter yang harus didaftar adalah parameter posisional dan posisional atau keyword (normal arguments)')
             
             type_params.append( param.annotation
-                                if param.annotation is not inspect._empty
-                                else int
-                                    if param.annotation is None
+                                if param.annotation is not inspect._empty \
+                                else Any \
+                                    if param.annotation is not None           and \
+                                       param.annotation is not type(None)     and \
+                                       param.annotation is not bool               \
                                     else Any )
 
         return {
-            'name':        func.__name__,
-            'type_params': type_params,
-            'return_type': return_type,
+            'name':         func.__name__,
+            'type_params':  type_params,
+            'return_type':  return_type,
+            'resolve_func': resolve_func
         }
     
     def __loader__(self, config: Configure, /) -> _S:
         struct    = _S(self.name, self.fields, config=config)
         prototype     = object.__getattribute__(struct, 'PROTOTYPE')
-        for m in self.__def_methods:
+        for m in self.def_methods:
             m.__bind__(struct)
             prototype.methods.append(m)
 
-        self.__is_loaded = True
-        self.__cls = struct
+        self.struct = struct
+        self.is_loaded = True
         return struct
     
 
     def __call__(self, **kwargs) -> Any:
-        if not self.__is_loaded:
+        if not self.is_loaded:
             raise TypeError(f'Binding belum terdaftar')
         
-        return self.__cls(**kwargs)
+        return self.struct(**kwargs)
+
+    def __getattr__(self, name: str, /) -> Any:
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            if self.is_loaded:
+                try:
+                    getter = self.struct.__dict__.get(
+                        '__getattribute__',
+                        lambda name: getattr(self.struct, name)
+                    )
+                
+                    return getter(name)
+            
+                except (NameError, PermissionError):
+                    pass
+            raise
+        
+
+    def __setattr__(self, name: str, value: Any, /) -> None:
+        if self.is_loaded:
+            try:
+                setter = self.struct.__dict__.get(
+                    '__setattr__',
+                    lambda name=name, value=value: setattr(self.struct, name, value)
+                )
+                
+                setter(name, value)
+            
+            except (NameError, PermissionError):
+                raise
+        else:
+            object.__setattr__(self, name, value)
+        
+
+    def __delattr__(self, name: str, /) -> None:
+        raise PermissionError(f'Tidak dapat menghapus properti {name}')
+
+    def __getitem__(self, name: str, /) -> Any:
+        if self.is_loaded:
+            try:
+                getter = self.struct.__dict__.get(
+                    '__getattribute__',
+                    lambda name: getattr(self.struct, name)
+                )
+                
+                return getter('ambil_item')(name)
+            
+            except AttributeError:
+                raise
+        
+        
+    def __setitem__(self, name: str, value: Any, /) -> Any:
+        if self.is_loaded:
+            try:
+                getter = self.struct.__dict__.get(
+                    '__getattribute__',
+                    lambda name: getattr(self.struct, name)
+                )
+                
+                return getter('atur_item')(name, value)
+            
+            except AttributeError:
+                raise
+
+        
+    def __delitem__(self, name: str, /) -> Any:
+        if self.is_loaded:
+            try:
+                getter = self.struct.__dict__.get(
+                    '__getattribute__',
+                    lambda name: getattr(self.struct, name)
+                )
+                
+                return getter('hapus_item')(name)
+            
+            except AttributeError:
+                raise
+    
+        
 
     def __instancecheck__(self, instance: Any) -> bool:
-        if self.__is_loaded:
-            return isinstance(instance, self.__cls)
+        res: list[bool] = []
+        if self.is_loaded:
+            res.append(isinstance(instance, self.struct))
         
-        return isinstance(instance, _Binding)
+        elif isinstance(instance, TypeStructure):
+            d = instance.__dict__
+            res.append(d.get('PROTOTYPE').name_struct == self.name)
+            
+        else:
+            res.append(type(instance) is _Binding)
+            res.append(hasattr(instance, 'fields'))
+            if hasattr(instance, 'fields'):
+                res.append(len(instance.fields) == len(self.fields))
+                for i, field in enumerate(instance.fields):
+                    res.append(field == self.fields[i])
+
+        return all(res)
+            
 
     def __repr__(self) -> str:
-        if self.__is_loaded:
-            return repr(self.__cls)
+        if self.is_loaded:
+            return repr(self.struct)
         
         return f'Struktur<{self.name}>'
+
+
 
 class Structure:
     __options__ = frozenset({'name', 'fields'})
